@@ -1,0 +1,23 @@
+
+1. Find derivation algorithm of 'mgfs' 0th, 1st and 2nd layers (from 'mhei' + 'mepa' + 'mepb' + 'mgfs' 7th layer)
+    - These three bitwise layers might correspond to three directions of edges, however this is not confirmed.
+
+2. Find derivation algorithm of 'mbio' 1st and 2nd values (from 'mepa' + 'mepb' + 'mstr')
+    - "MaxWater" and "MaxNutritional" values should be helpful.
+
+3. Find in-game meaning of 'mstr' values (which ones represent snow, water, road)
+    - In worst-case scenario it might be necessary to check all 65536 values by hand.
+
+4. Find in-game meaning of remaining unknown value of unsigned byte variable in 'xsec' section
+    - There seem to be roughly related to land area near walk sector points
+
+5. Find derivation algorithm for placement of 'walk sector points' in 'xsec' section
+    - I suspect this might be something like hexagonally-shaped snail.
+    - Walk sector point cannot be placed on water or void
+
+6. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
+
+7. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
+   values from later modified landscapes.)
+    -  This is not a programming challenge, but a research-like one.
+
