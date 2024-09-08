@@ -9,15 +9,22 @@
     - In worst-case scenario it might be necessary to check all 65536 values by hand.
 
 4. Find in-game meaning of remaining unknown value of unsigned byte variable in 'xsec' section
-    - There seem to be roughly related to land area near walk sector points
+    - These seem to be roughly related to land area near walk sector points.
 
 5. Find derivation algorithm for placement of 'walk sector points' in 'xsec' section
     - I suspect this might be something like hexagonally-shaped snail.
-    - Walk sector point cannot be placed on water or void
+    - Walk sector point cannot be placed on water or void.
 
 6. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
 
 7. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
    values from later modified landscapes.)
-    -  This is not a programming challenge, but a research-like one.
+    - This is not a programming challenge, but a research-like one.
 
+8. Write a function that would update '*.map' file based on '.sav' file.
+    - Offset of sections revelant to map files has to be calculated correcty. Finding reversed strings of headers just
+      by pure phrase-finding is not acceptable due to possible duplications in actual data.
+
+9. Write a function that would export bitmap to hex-like images and triangle-like images.
+    - That means: each entry per vertex/triangle should be saved as multiple pixels which compose visual triangle/hex.
+    - This function is purely for debug purposes related to easier visualisation of hexes.
