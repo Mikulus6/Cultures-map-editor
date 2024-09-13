@@ -21,7 +21,7 @@
    values from later modified landscapes.)
     - This is not a programming challenge, but a research-like one.
 
-8. Write a function that would update '*.map' file based on '.sav' file.
+8. Write a function that would update '*.map' file based on '*.sav' file.
     - Offset of sections revelant to map files has to be calculated correcty. Finding reversed strings of headers just
       by pure phrase-finding is not acceptable due to possible duplications in actual data.
 
