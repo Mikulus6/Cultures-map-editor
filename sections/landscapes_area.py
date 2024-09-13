@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Literal
-from flags import bool_ndarray_to_flag
-from data_loader import landscapedefs
+from scripts.flags import bool_ndarray_to_flag
+from scripts.data_loader import landscapedefs
 
 
 # Letter case might be incorrect in original maps.

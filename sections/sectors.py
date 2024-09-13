@@ -1,4 +1,4 @@
-from buffer import BufferGiver, BufferTaker
+from scripts.buffer import BufferGiver, BufferTaker
 from sections.summary import load_summary_from_bytes, load_summary_to_bytes
 
 

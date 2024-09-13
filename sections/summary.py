@@ -1,4 +1,4 @@
-from buffer import BufferGiver, BufferTaker
+from scripts.buffer import BufferGiver, BufferTaker
 
 
 def load_summary_from_bytes(sequence: bytes) -> tuple:

@@ -1,4 +1,4 @@
-from data_loader import patterndefs_normal
+from scripts.data_loader import patterndefs_normal
 
 
 border_full_ids = tuple([key for key in patterndefs_normal if

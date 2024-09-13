@@ -1,5 +1,5 @@
 import numpy as np
-from flags import bool_ndarray_to_flag
+from scripts.flags import bool_ndarray_to_flag
 from sections.terrain_full_ids import void_full_ids, water_full_ids, underwater_full_ids
 
 

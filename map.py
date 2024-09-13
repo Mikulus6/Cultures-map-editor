@@ -1,6 +1,6 @@
 import os
-from buffer import BufferGiver, BufferTaker
-from const import map_const, section_names
+from scripts.buffer import BufferGiver, BufferTaker
+from scripts.const import map_const, section_names
 
 from sections.run_length import run_length_decryption, run_length_encryption
 from sections.landscapes import load_landscapes_from_llan, load_llan_from_landscapes
@@ -14,9 +14,9 @@ from sections.sectors_flag import sectors_flag
 from sections.buildability import buildability_area_shifted
 from sections.mesh_points import combine_mep, split_mep
 
-from flags import sequence_to_flags, flags_to_sequence
-from image import bytes_to_image, shorts_to_image, bits_to_image
-from image import image_to_bytes, image_to_shorts, image_to_bits
+from scripts.flags import sequence_to_flags, flags_to_sequence
+from scripts.image import bytes_to_image, shorts_to_image, bits_to_image
+from scripts.image import image_to_bytes, image_to_shorts, image_to_bits
 
 
 class Map:
@@ -161,6 +161,9 @@ class Map:
         assert len(buffer) == 0
 
     def save_to_file(self, filename: str):
+
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
         buffer = BufferTaker()
 
         buffer.unsigned(self.map_version, length=2)
@@ -202,6 +205,10 @@ class Map:
             file.write(bytes(buffer))
 
     def load_from_data(self, directory: str):
+
+        with open(os.path.join(directory, "header.csv"), "r") as file:
+            self.map_version, self.map_width, self.map_height = map(int, file.read().strip("\n").split(","))
+
         self.mhei = image_to_bytes(os.path.join(directory, "mhei.png"))
         self.mlig = image_to_bytes(os.path.join(directory, "mlig.png"))
         self.mepa, self.mepb = split_mep(image_to_shorts(os.path.join(directory, "mep.png")))
@@ -243,6 +250,11 @@ class Map:
                 self.smmw.append(int(line.rstrip("\n")))
 
     def save_to_data(self, directory: str):
+
+        os.makedirs(directory, exist_ok=True)
+
+        with open(os.path.join(directory, "header.csv"), "w") as file:
+            file.write(f"{self.map_version},{self.map_width},{self.map_height}\n")
 
         os.makedirs(directory, exist_ok=True)
 

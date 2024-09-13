@@ -1,5 +1,5 @@
 import numpy as np
-from flags import bool_ndarray_to_flag, flag_to_bool_ndarray
+from scripts.flags import bool_ndarray_to_flag, flag_to_bool_ndarray
 from sections.continents2 import land_marker, derive_continents
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-from flags import bool_ndarray_to_flag
+from scripts.flags import bool_ndarray_to_flag
 
 
 def sectors_flag(xsec: list, map_width: int, map_height: int):
