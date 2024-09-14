@@ -18,7 +18,7 @@ for item in os.listdir(directory_input):
         try:
             map_object = Map()
             map_object.load_from_file(file.read())
-            map_object.save_to_data(os.path.join(directory_output, os.path.splitext(item)[0]))
+            map_object.save_to_data(os.path.join(directory_output, os.path.splitext(item)[0]), expand=True)
             # map_object.load_from_data(os.path.join(directory_output, os.path.splitext(item)[0]))
             # map_object.save_to_file(f"{os.path.splitext(item)[0]}_edit.map")
         except NotImplementedError:

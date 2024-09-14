@@ -1,6 +1,10 @@
 import os
+
 from scripts.buffer import BufferGiver, BufferTaker
 from scripts.const import map_const, section_names
+from scripts.flags import sequence_to_flags, flags_to_sequence
+from scripts.image import bytes_to_image, shorts_to_image, bits_to_image
+from scripts.image import image_to_bytes, image_to_shorts, image_to_bits
 
 from sections.run_length import run_length_decryption, run_length_encryption
 from sections.landscapes import load_landscapes_from_llan, load_llan_from_landscapes
@@ -13,10 +17,6 @@ from sections.landscapes_area import landscapes_area_flag
 from sections.sectors_flag import sectors_flag
 from sections.buildability import buildability_area_shifted
 from sections.mesh_points import combine_mep, split_mep
-
-from scripts.flags import sequence_to_flags, flags_to_sequence
-from scripts.image import bytes_to_image, shorts_to_image, bits_to_image
-from scripts.image import image_to_bytes, image_to_shorts, image_to_bits
 
 
 class Map:
@@ -249,7 +249,7 @@ class Map:
             for line in file.readlines():
                 self.smmw.append(int(line.rstrip("\n")))
 
-    def save_to_data(self, directory: str):
+    def save_to_data(self, directory: str, expand=False):
 
         os.makedirs(directory, exist_ok=True)
 
@@ -258,26 +258,33 @@ class Map:
 
         os.makedirs(directory, exist_ok=True)
 
-        bytes_to_image(self.mhei, os.path.join(directory, "mhei.png"), width=self.map_width//2)
-        bytes_to_image(self.mlig, os.path.join(directory, "mlig.png"), width=self.map_width//2)
-        shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "mep.png"), width=self.map_width)
+        bytes_to_image(self.mhei, os.path.join(directory, "mhei.png"), width=self.map_width//2,
+                       expansion_mode="hexagon" if expand else None)
+        bytes_to_image(self.mlig, os.path.join(directory, "mlig.png"), width=self.map_width//2,
+                       expansion_mode="hexagon" if expand else None)
+        shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "mep.png"), width=self.map_width,
+                       expansion_mode="triangle" if expand else None)
 
         for counter, flag in enumerate(sequence_to_flags(self.mgfs)):
-            bits_to_image(flag, os.path.join(directory, f"mgfs_{counter}.png"), width=self.map_width)  # noqa
+            bits_to_image(flag, os.path.join(directory, f"mgfs_{counter}.png"), width=self.map_width,
+                          expansion_mode="hexagon" if expand else None)  # noqa
 
-        shorts_to_image(self.mstr, os.path.join(directory, "mstr.png"), width=self.map_width)
+        shorts_to_image(self.mstr, os.path.join(directory, "mstr.png"), width=self.map_width,
+                        expansion_mode="parallelogram" if expand else None)
 
         mbio_flags = sequence_to_flags(self.mbio)
         mbio_1 = [*mbio_flags[0:4], *(4*["0" * len(mbio_flags[0])])]
         mbio_2 = [*mbio_flags[4:8], *(4*["0" * len(mbio_flags[0])])]
 
         bytes_to_image(flags_to_sequence(mbio_1), os.path.join(directory, "mbio_1.png"),
-                       width=self.map_width//2)
+                       width=self.map_width//2, expansion_mode="hexagon" if expand else None)
         bytes_to_image(flags_to_sequence(mbio_2), os.path.join(directory, "mbio_2.png"),
-                       width=self.map_width//2)
+                       width=self.map_width//2, expansion_mode="hexagon" if expand else None)
 
-        bytes_to_image(self.mco2, os.path.join(directory, "mco2.png"), width=self.map_width)
-        shorts_to_image(self.mexp, os.path.join(directory, "mexp.png"), width=self.map_width//2)
+        bytes_to_image(self.mco2, os.path.join(directory, "mco2.png"), width=self.map_width,
+                       expansion_mode="hexagon" if expand else None)
+        shorts_to_image(self.mexp, os.path.join(directory, "mexp.png"), width=self.map_width//2,
+                        expansion_mode="hexagon" if expand else None)
 
         with open(os.path.join(directory, "llan.csv"), "w") as file:
             for coordinates, landscape in self.llan.items():
