@@ -39,5 +39,3 @@ def image_to_shorts(filename: str) -> bytes:
 
 def image_to_bits(filename: str):
     return ''.join(['1' if r == g == b == 255 else '0' for r, g, b in Image.open(filename).getdata()])
-
-
