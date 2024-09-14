@@ -25,9 +25,5 @@
     - Offset of sections revelant to map files has to be calculated correcty. Finding reversed strings of headers just
       by pure phrase-finding is not acceptable due to possible duplications in actual data.
 
-9. Write a function that would export bitmap to hex-like images and triangle-like images.
-    - That means: each entry per vertex/triangle should be saved as multiple pixels which compose visual triangle/hex.
-    - This function is purely for debug purposes related to easier visualisation of hexes.
-
-10. Document in-game meaning of all entries from *.cif / *.ini files responsible for maps content.
+9. Document in-game meaning of all entries from *.cif / *.ini files responsible for maps content.
     - Some possible entries might not be present anywhere, all of them probably are stored as strings in *.exe file.
