@@ -3,20 +3,20 @@ import os
 from scripts.buffer import BufferGiver, BufferTaker
 from scripts.const import map_const, section_names
 from scripts.flags import sequence_to_flags, flags_to_sequence
-from scripts.image import bytes_to_image, shorts_to_image, bits_to_image
-from scripts.image import image_to_bytes, image_to_shorts, image_to_bits
+from scripts.image import bytes_to_image, shorts_to_image, bits_to_image, image_to_bytes, image_to_shorts, image_to_bits
 
-from sections.run_length import run_length_decryption, run_length_encryption
-from sections.landscapes import load_landscapes_from_llan, load_llan_from_landscapes
+from sections.biomes import derive_biomes
+from sections.buildability import buildability_area_shifted
 from sections.continents import load_continents_from_xcot, load_xcot_from_continents
 from sections.continents2 import derive_continents
-from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
-from sections.light import derive_light_map
 from sections.inland_vertices import inland_vertices_flag
+from sections.landscapes import load_landscapes_from_llan, load_llan_from_landscapes
 from sections.landscapes_area import landscapes_area_flag
-from sections.sectors_flag import sectors_flag
-from sections.buildability import buildability_area_shifted
+from sections.light import derive_light_map
 from sections.mesh_points import combine_mep, split_mep
+from sections.run_length import run_length_decryption, run_length_encryption
+from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
+from sections.sectors_flag import sectors_flag
 
 
 class Map:
@@ -49,6 +49,7 @@ class Map:
         self.update_continents()
         self.update_exploration()
         self.update_light()
+        self.update_biomes()
         self.update_ground_set_flags()
         # TODO: add later derivable sections
 
@@ -60,6 +61,9 @@ class Map:
 
     def update_light(self):
         self.mlig = derive_light_map(self.mhei, self.mepa, self.mepb, self.map_width, self.map_height)
+
+    def update_biomes(self):
+        self.mbio = derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
 
     def update_ground_set_flags(self, *, update_buildability=True):
 
@@ -93,6 +97,7 @@ class Map:
             assert self.test_continents()
             assert self.test_exploration()
             assert self.test_light()
+            assert self.test_biomes()
             assert self.test_ground_set_flags()
             # TODO: add later derivable sections
         except AssertionError:
@@ -107,6 +112,9 @@ class Map:
 
     def test_light(self):
         return self.mlig == derive_light_map(self.mhei, self.mepa, self.mepb, self.map_width, self.map_height)
+
+    def test_biomes(self):
+        return self.mbio == derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
 
     def test_ground_set_flags(self):
 

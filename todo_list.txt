@@ -2,28 +2,29 @@
 1. Find derivation algorithm of 'mgfs' 0th, 1st and 2nd layers (from 'mhei' + 'mepa' + 'mepb' + 'mgfs' 7th layer)
     - These three bitwise layers might correspond to three directions of edges, however this is not confirmed.
 
-2. Find derivation algorithm of 'mbio' 1st and 2nd values (from 'mepa' + 'mepb' + 'mstr')
-    - "MaxWater" and "MaxNutritional" values should be helpful.
-
-3. Find in-game meaning of 'mstr' values (which ones represent snow, water, road)
+2. Find in-game meaning of 'mstr' values (which ones represent snow, water, road)
     - In worst-case scenario it might be necessary to check all 65536 values by hand.
+    - These seem to be bitwise flags
 
-4. Find in-game meaning of remaining unknown value of unsigned byte variable in 'xsec' section
+3. Find in-game meaning of remaining unknown value of unsigned byte variable in 'xsec' section
     - These seem to be roughly related to land area near walk sector points.
 
-5. Find derivation algorithm for placement of 'walk sector points' in 'xsec' section
+4. Find derivation algorithm for placement of 'walk sector points' in 'xsec' section
     - I suspect this might be something like hexagonally-shaped snail.
     - Walk sector point cannot be placed on water or void.
 
-6. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
+5. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
 
-7. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
+6. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
    values from later modified landscapes.)
     - This is not a programming challenge, but a research-like one.
 
-8. Write a function that would update '*.map' file based on '*.sav' file.
+7. Write a function that would update '*.map' file based on '*.sav' file.
     - Offset of sections revelant to map files has to be calculated correcty. Finding reversed strings of headers just
       by pure phrase-finding is not acceptable due to possible duplications in actual data.
 
-9. Document in-game meaning of all entries from *.cif / *.ini files responsible for maps content.
+8. Document in-game meaning of all entries from '*.cif' / '*.ini' files responsible for maps content.
     - Some possible entries might not be present anywhere, all of them probably are stored as strings in *.exe file.
+
+9. Create interpolation algorithm that for given 'mepa' + 'mepb' pair of sections would fix as many transition triangles
+   as possible to make terrain look smooth as in original maps.

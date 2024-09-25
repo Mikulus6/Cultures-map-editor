@@ -9,6 +9,7 @@ landscapedefs_lowercase = dict()
 for key, value in list(landscapedefs.items()):
     assert key == key.lower() or key.lower() not in landscapedefs.keys()
     landscapedefs_lowercase[key.lower()] = value
+del key, value
 
 
 def landscapes_area_flag(llan, map_width, map_height,
