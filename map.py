@@ -225,7 +225,9 @@ class Map:
         for counter in range(8):
             flags.append(image_to_bits(os.path.join(directory, f"mgfs_{counter}.png")))
 
-        self.mstr = image_to_shorts(os.path.join(directory, "mstr.png"))
+        self.mstr = flags_to_sequence([*sequence_to_flags(image_to_bytes(os.path.join(directory, "mstr_1.png")))[:8],
+                                       *(7*["0" * (self.map_width * self.map_height)]),
+                                       image_to_bits(os.path.join(directory, "mstr_2.png"))], bytes_per_entry=2)
 
         self.mbio = flags_to_sequence([*sequence_to_flags(image_to_bytes(os.path.join(directory, "mbio_1.png")))[:4],
                                        *sequence_to_flags(image_to_bytes(os.path.join(directory, "mbio_2.png")))[:4]])
@@ -277,8 +279,15 @@ class Map:
             bits_to_image(flag, os.path.join(directory, f"mgfs_{counter}.png"), width=self.map_width,
                           expansion_mode="hexagon" if expand else None)  # noqa
 
-        shorts_to_image(self.mstr, os.path.join(directory, "mstr.png"), width=self.map_width,
-                        expansion_mode="parallelogram" if expand else None)
+        mstr_flags = sequence_to_flags(self.mstr, bytes_per_entry=2)
+
+        mstr_1 = mstr_flags[0:8]
+        mstr_2 = mstr_flags[15]
+
+        bytes_to_image(flags_to_sequence(mstr_1), os.path.join(directory, "mstr_1.png"), width=self.map_width,
+                       expansion_mode="parallelogram" if expand else None)
+        bits_to_image(mstr_2, os.path.join(directory, "mstr_2.png"), width=self.map_width,
+                      expansion_mode="parallelogram" if expand else None)
 
         mbio_flags = sequence_to_flags(self.mbio)
         mbio_1 = [*mbio_flags[0:4], *(4*["0" * len(mbio_flags[0])])]
