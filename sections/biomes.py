@@ -41,8 +41,7 @@ def derive_biome_parameter_ndarray(mepa, mepb, map_width, map_height, *,
             neighbours_bonus = 0
 
             for coordinates in neighbours:
-                if not(0 <= coordinates[0] < map_width//2 and 0 <= coordinates[1] < map_height//2):
-                    continue # out of bounds
+                coordinates = (coordinates[0] % (map_width // 2), coordinates[1] % (map_height // 2))
 
                 neighbours_bonus += patterndefs_normal[mepa_ndarray[*coordinates[::-1]]].get(parameter, 0)
                 neighbours_bonus += patterndefs_normal[mepb_ndarray[*coordinates[::-1]]].get(parameter, 0)
@@ -74,8 +73,7 @@ def derive_structural_bonus_ndarray(mstr, map_width, map_height) -> np.ndarray:
                                  (x, y - 1), (x + 1, y + 1), (x + 1, y - 1)]
 
             for coordinates in surroundings:
-                if not(0 <= coordinates[0] < map_width and 0 <= coordinates[1] < map_height):
-                    continue # out of bounds
+                coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
 
                 value = (mstr_ndarray[*coordinates[::-1]])
 

@@ -14,7 +14,7 @@ intercept = 150
 round_fix = 0.001
 
 
-def convolve_hexagonal_2d(input_array, kernel_array, kernel_center=(0, 0), oob_value=0, dtype=np.int32):
+def convolve_hexagonal_2d(input_array, kernel_array, kernel_center=(0, 0), dtype=np.int32):
     input_height, input_width = input_array.shape
     kernel_height, kernel_width = kernel_array.shape
 
@@ -36,10 +36,8 @@ def convolve_hexagonal_2d(input_array, kernel_array, kernel_center=(0, 0), oob_v
                     else:
                         kernel_item = 0
 
-                    if 0 <= x_real_shifted < input_width and 0 <= y_real_shifted < input_height:
-                        conv_item += kernel_item * input_array[y_real_shifted, x_real_shifted]
-                    else:
-                        conv_item += kernel_item * oob_value
+                    conv_item += kernel_item * input_array[y_real_shifted % input_array.shape[0],
+                                                           x_real_shifted % input_array.shape[1]]
             output_array[y, x] = conv_item
 
     return output_array
@@ -68,16 +66,12 @@ def derive_light_map(mhei: bytes, mepa: bytes, mepb: bytes, map_width: int, map_
 
             try:
                 for coordinates in mepb_coordinates:
-                    if not (0 <= coordinates[0] < mepb_ndarray.shape[1] and
-                            0 <= coordinates[1] < mepb_ndarray.shape[0]):
-                        raise ValueError
+                    coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
                     if mepb_ndarray[*coordinates[::-1]] in border_full_ids:
                         raise ValueError
 
                 for coordinates in mepa_coordinates:
-                    if not (0 <= coordinates[0] < mepa_ndarray.shape[1] and
-                            0 <= coordinates[1] < mepa_ndarray.shape[0]):
-                        raise ValueError
+                    coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
                     if mepa_ndarray[*coordinates[::-1]] in border_full_ids:
                         raise ValueError
 

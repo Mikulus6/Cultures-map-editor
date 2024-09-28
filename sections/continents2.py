@@ -55,8 +55,8 @@ def flood_fill_continents(area_types_ndarray: np.ndarray, *, minimum_area_size=m
                                   (coordinates[0] + 1, coordinates[1] - 1)]
 
                 for neighbour in neighbours:
-                    if 0 <= neighbour[0] < map_width and 0 <= neighbour[1] < map_height and\
-                       not is_filled[*neighbour[::-1]] and area_types_ndarray[*neighbour[::-1]] == value:
+                    coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
+                    if not is_filled[*neighbour[::-1]] and area_types_ndarray[*neighbour[::-1]] == value:
                         coordinates_to_iterate.append(neighbour)
                         continent_coordinates.append(neighbour)
                         map_continents_2[*neighbour[::-1]] = continent_id
@@ -114,14 +114,13 @@ def area_types_marker(mepa: bytes, mepb: bytes, map_width: int, map_height: int,
 
                 if (full_id not in void_data) and (full_id not in water_data):
                     for coordinates in coordinates_list:
-                        if not (0 <= coordinates[0] < map_width and 0 <= coordinates[1] < map_height):
-                            continue  # out of bounds
+                        coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
                         area_types_ndarray[*coordinates[::-1]] = land_marker
 
                 if full_id not in water_data:
                     for coordinates in coordinates_list:
-                        if not (0 <= coordinates[0] < map_width and 0 <= coordinates[1] < map_height) or\
-                           area_types_ndarray[*coordinates[::-1]] == land_marker:
+                        coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
+                        if area_types_ndarray[*coordinates[::-1]] == land_marker:
                             continue
                         area_types_ndarray[*coordinates[::-1]] = void_marker
 

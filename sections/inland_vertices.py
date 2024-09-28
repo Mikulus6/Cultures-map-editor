@@ -43,8 +43,7 @@ def inland_vertices_flag(mepa: bytes, mepb: bytes, map_width: int, map_height: i
 
                 if full_id in (*void_full_ids, *water_full_ids, *underwater_full_ids):
                     for coordinates in coordinates_list:
-                        if not (0 <= coordinates[0] < map_width and 0 <= coordinates[1] < map_height):
-                            continue  # out of bounds
+                        coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
                         area_types_ndarray[*coordinates[::-1]] = False
 
     return bool_ndarray_to_flag(area_types_ndarray)

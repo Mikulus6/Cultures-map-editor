@@ -23,8 +23,8 @@ def buildability_area_shifted(mgfs_7th_flag, mepa, mepb, map_width, map_height, 
                             y-local_shift_vector[1])
 
             for coordinates in ((x, y), displacement):
-                if not (0 <= coordinates[0] < map_width and 0 <= coordinates[1] < map_height):
-                    coordinates = [x, y]  # out of bounds
+                coordinates[0] %= map_width
+                coordinates[1] %= map_height
 
                 if area_flag_ndarray[*coordinates[::-1]] == 1:
                     build_vertices_ndarray[y, x] = False
