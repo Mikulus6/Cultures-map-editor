@@ -18,7 +18,10 @@ for item in os.listdir(directory_input):
         try:
             map_object = Map()
             map_object.load_from_file(file.read())
-            map_object.save_to_data(os.path.join(directory_output, os.path.splitext(item)[0]), expand=True)
+            map_object.save_to_data(os.path.join(directory_output, os.path.splitext(item)[0]),
+                                    interprete_structures=True)
+            # map_object.load_from_data(os.path.join(directory_output, os.path.splitext(item)[0]),
+            #                           interprete_structures=True)
 
         except NotImplementedError:
             print("*not implemented*")

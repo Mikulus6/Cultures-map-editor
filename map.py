@@ -3,7 +3,8 @@ import os
 from scripts.buffer import BufferGiver, BufferTaker
 from scripts.const import map_const, section_names
 from scripts.flags import sequence_to_flags, flags_to_sequence
-from scripts.image import bytes_to_image, shorts_to_image, bits_to_image, image_to_bytes, image_to_shorts, image_to_bits
+from scripts.image import bytes_to_image, shorts_to_image, bits_to_image, rgb_to_image, \
+                          image_to_bytes, image_to_shorts, image_to_bits, image_to_rgb
 
 from sections.biomes import derive_biomes
 from sections.buildability import buildability_area_shifted
@@ -17,6 +18,7 @@ from sections.mesh_points import combine_mep, split_mep
 from sections.run_length import run_length_decryption, run_length_encryption
 from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
 from sections.sectors_flag import sectors_flag
+from sections.structures import update_structures, validate_structures_continuity, structures_to_rgb, rgb_to_structures
 
 
 class Map:
@@ -49,6 +51,7 @@ class Map:
         self.update_continents()
         self.update_exploration()
         self.update_light()
+        self.update_structures()
         self.update_biomes()
         self.update_ground_set_flags()
         # TODO: add later derivable sections
@@ -61,6 +64,9 @@ class Map:
 
     def update_light(self):
         self.mlig = derive_light_map(self.mhei, self.mepa, self.mepb, self.map_width, self.map_height)
+
+    def update_structures(self):
+        self.mstr = update_structures(self.mstr, self.mco2, self.xcot, self.map_width, self.map_height)
 
     def update_biomes(self):
         self.mbio = derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
@@ -98,6 +104,7 @@ class Map:
             assert self.test_exploration()
             assert self.test_light()
             assert self.test_biomes()
+            assert self.test_structures()
             assert self.test_ground_set_flags()
             # TODO: add later derivable sections
         except AssertionError:
@@ -112,6 +119,10 @@ class Map:
 
     def test_light(self):
         return self.mlig == derive_light_map(self.mhei, self.mepa, self.mepb, self.map_width, self.map_height)
+
+    def test_structures(self):
+        return self.mstr == update_structures(self.mstr, self.mco2, self.xcot, self.map_width, self.map_height) and \
+               validate_structures_continuity(self.mstr, self.map_width, self.map_height)
 
     def test_biomes(self):
         return self.mbio == derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
@@ -170,7 +181,10 @@ class Map:
 
     def save_to_file(self, filename: str):
 
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        try:
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+        except FileNotFoundError:
+            pass
 
         buffer = BufferTaker()
 
@@ -212,7 +226,7 @@ class Map:
         with open(filename, "wb") as file:
             file.write(bytes(buffer))
 
-    def load_from_data(self, directory: str):
+    def load_from_data(self, directory: str, interprete_structures=False):
 
         with open(os.path.join(directory, "header.csv"), "r") as file:
             self.map_version, self.map_width, self.map_height = map(int, file.read().strip("\n").split(","))
@@ -225,9 +239,14 @@ class Map:
         for counter in range(8):
             flags.append(image_to_bits(os.path.join(directory, f"mgfs_{counter}.png")))
 
-        self.mstr = flags_to_sequence([*sequence_to_flags(image_to_bytes(os.path.join(directory, "mstr_1.png")))[:8],
-                                       *(7*["0" * (self.map_width * self.map_height)]),
-                                       image_to_bits(os.path.join(directory, "mstr_2.png"))], bytes_per_entry=2)
+        if interprete_structures:
+            self.mstr = rgb_to_structures(image_to_rgb(os.path.join(directory, "mstr.png")),
+                                          self.mco2, self.xcot, self.map_width, self.map_height)
+        else:
+            self.mstr = flags_to_sequence([*sequence_to_flags(image_to_bytes(
+                                           os.path.join(directory, "mstr_1.png")))[:8],
+                                           *(7*["0" * (self.map_width * self.map_height)]),
+                                           image_to_bits(os.path.join(directory, "mstr_2.png"))], bytes_per_entry=2)
 
         self.mbio = flags_to_sequence([*sequence_to_flags(image_to_bytes(os.path.join(directory, "mbio_1.png")))[:4],
                                        *sequence_to_flags(image_to_bytes(os.path.join(directory, "mbio_2.png")))[:4]])
@@ -259,7 +278,7 @@ class Map:
             for line in file.readlines():
                 self.smmw.append(int(line.rstrip("\n")))
 
-    def save_to_data(self, directory: str, expand=False):
+    def save_to_data(self, directory: str, interprete_structures=False, expand=False):
 
         os.makedirs(directory, exist_ok=True)
 
@@ -281,13 +300,19 @@ class Map:
 
         mstr_flags = sequence_to_flags(self.mstr, bytes_per_entry=2)
 
-        mstr_1 = mstr_flags[0:8]
-        mstr_2 = mstr_flags[15]
+        if interprete_structures:
+            rgb_to_image(structures_to_rgb(self.mstr, self.map_width, self.map_height),
+                         os.path.join(directory, "mstr.png"), width=self.map_width,
+                         expansion_mode="hexagon" if expand else None)
+        else:
+            mstr_1 = mstr_flags[0:8]
+            mstr_2 = mstr_flags[15]
 
-        bytes_to_image(flags_to_sequence(mstr_1), os.path.join(directory, "mstr_1.png"), width=self.map_width,
-                       expansion_mode="parallelogram" if expand else None)
-        bits_to_image(mstr_2, os.path.join(directory, "mstr_2.png"), width=self.map_width,
-                      expansion_mode="parallelogram" if expand else None)
+            bytes_to_image(flags_to_sequence(mstr_1), os.path.join(directory, "mstr_1.png"), width=self.map_width,
+                           expansion_mode="parallelogram" if expand else None)
+            bits_to_image(mstr_2, os.path.join(directory, "mstr_2.png"), width=self.map_width,
+                          expansion_mode="parallelogram" if expand else None)
+            del mstr_1, mstr_2
 
         mbio_flags = sequence_to_flags(self.mbio)
         mbio_1 = [*mbio_flags[0:4], *(4*["0" * len(mbio_flags[0])])]

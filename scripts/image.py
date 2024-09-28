@@ -23,6 +23,13 @@ def bits_to_image(sequence: str, filename: str, width: int, expansion_mode=None)
     image.save(filename)
 
 
+def rgb_to_image(rgb_iterable: list | tuple, filename: str, width, expansion_mode=None):
+    image = Image.new('RGB', (width, len(rgb_iterable)//width))
+    image.putdata(rgb_iterable)  # noqa
+    image = expand_image(image, expansion_mode=expansion_mode)
+    image.save(filename)
+
+
 def image_to_bytes(filename: str):
     pixels = list(Image.open(filename).getdata())
     if isinstance(pixels[0], tuple):
@@ -39,3 +46,7 @@ def image_to_shorts(filename: str) -> bytes:
 
 def image_to_bits(filename: str):
     return ''.join(['1' if r == g == b == 255 else '0' for r, g, b in Image.open(filename).getdata()])
+
+
+def image_to_rgb(filename: str) -> tuple:
+    return tuple([x[:3] for x in Image.open(filename).getdata()])
