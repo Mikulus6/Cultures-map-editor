@@ -16,7 +16,7 @@ from sections.landscapes_area import landscapes_area_flag
 from sections.light import derive_light_map
 from sections.mesh_points import combine_mep, split_mep
 from sections.run_length import run_length_decryption, run_length_encryption
-from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
+from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors, check_sectors_coherency
 from sections.sectors_flag import sectors_flag
 from sections.structures import update_structures, validate_structures_continuity, structures_to_rgb, rgb_to_structures
 
@@ -106,6 +106,7 @@ class Map:
             assert self.test_biomes()
             assert self.test_structures()
             assert self.test_ground_set_flags()
+            assert self.test_sectors()
             # TODO: add later derivable sections
         except AssertionError:
             # print("test error!")
@@ -146,6 +147,10 @@ class Map:
             return False
         else:
             return True
+
+    def test_sectors(self):
+        return check_sectors_coherency(self.mco2, self.xsec, self.map_width, self.map_height)
+        # TODO: function is not complete.
 
     # =================================== load & save ===================================
 
@@ -271,7 +276,7 @@ class Map:
         with open(os.path.join(directory, "xsec.csv"), "r") as file:
             for line in file.readlines():
                 entries = line.rstrip("\n").split(",")
-                self.xsec.append((int(entries[0]), int(entries[1]), (int(entries[2]), int(entries[3]))))
+                self.xsec.append([int(entries[0]), entries[1].strip("\""), (int(entries[2]), int(entries[3]))])
 
         self.smmw = list()
         with open(os.path.join(directory, "smmw.csv"), "r") as file:
@@ -339,7 +344,7 @@ class Map:
 
         with open(os.path.join(directory, "xsec.csv"), "w") as file:
             for sector_data in self.xsec:
-                file.write(f"{sector_data[0]},{sector_data[1]},{sector_data[2][0]},{sector_data[2][1]}\n")
+                file.write(f"{sector_data[0]},\"{sector_data[1]}\",{sector_data[2][0]},{sector_data[2][1]}\n")
 
         with open(os.path.join(directory, "smmw.csv"), "w") as file:
             file.write("\n".join(map(str, self.smmw)))
