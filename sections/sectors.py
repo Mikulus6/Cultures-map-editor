@@ -79,6 +79,7 @@ def check_sectors_coherency(mco2: bytes, sectors: list, map_width: int, map_heig
                 neighbour_sector_index = neighbour[1] * sectors_width + neighbour[0]
 
                 if not(0 <= neighbour[0] < sectors_width and 0 <= neighbour[1] < sectors_height):
+                    assert int(sector_value[neighbour_relative_index]) == 0
                     continue
 
                 neighbour_type, neighbour_value, neighbour_coordinates = sectors[neighbour_sector_index]
