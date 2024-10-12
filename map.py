@@ -16,7 +16,8 @@ from sections.landscapes_area import landscapes_area_flag
 from sections.light import derive_light_map
 from sections.mesh_points import combine_mep, split_mep
 from sections.run_length import run_length_decryption, run_length_encryption
-from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors, check_sectors_coherency
+from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors, check_sectors_coherency,\
+                             draw_sectors_connections
 from sections.sectors_flag import sectors_flag
 from sections.structures import update_structures, validate_structures_continuity, structures_to_rgb, rgb_to_structures
 
@@ -283,7 +284,7 @@ class Map:
             for line in file.readlines():
                 self.smmw.append(int(line.rstrip("\n")))
 
-    def save_to_data(self, directory: str, interprete_structures=False, expand=False):
+    def save_to_data(self, directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
 
         os.makedirs(directory, exist_ok=True)
 
@@ -348,3 +349,8 @@ class Map:
 
         with open(os.path.join(directory, "smmw.csv"), "w") as file:
             file.write("\n".join(map(str, self.smmw)))
+
+        if interprete_sectors:
+            draw_sectors_connections(self.mco2, self.xsec, self.map_width, self.map_height,
+                                     expansion_mode="hexagon" if expand else None).save(os.path.join(directory,
+                                                                                                     "xsec.png"))

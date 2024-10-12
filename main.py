@@ -19,7 +19,7 @@ for item in os.listdir(directory_input):
             map_object = Map()
             map_object.load_from_file(file.read())
             map_object.save_to_data(os.path.join(directory_output, os.path.splitext(item)[0]),
-                                    interprete_structures=True)
+                                    interprete_structures=True, interprete_sectors=True)
             # map_object.load_from_data(os.path.join(directory_output, os.path.splitext(item)[0]),
             #                           interprete_structures=True)
 

@@ -1,6 +1,15 @@
 from PIL import Image
 from scripts.expansions import expand_image
 
+
+def get_rgb_hue_tuple(value):
+    value %= 1
+    if 0 <= value < 1/3: color = 1, (value / 1/3), 0
+    elif 1/3 <= value < 2/3: color = (1 - (value - 1/3) / (1/3)), 1, ((value - 1/3) / (1/3))
+    else: color = ((value - (2/3)) / (1/3)), (1 - (value - (2/3)) / (1/3)), 1
+    return tuple(map(lambda x: max(min(round(x * 255), 255), 0), color))
+
+
 def bytes_to_image(sequence: bytes, filename: str, width: int, expansion_mode=None):
     image = Image.new('L', (width, len(sequence)//width))
     image.putdata(sequence)
