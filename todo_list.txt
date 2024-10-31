@@ -6,23 +6,19 @@
     - All signpost connections on every map are bidirectional.
     - Two signposts on different continents are never connected to each other.
 
-3. Find derivation algorithm for placement of 'walk sector points' in 'xsec' section
-    - I suspect this might be something like hexagonally-shaped snail.
-    - Walk sector point cannot be placed on water or void.
+3. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
 
-4. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
-
-5. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
+4. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
    values from later modified landscapes.)
     - This is not a programming challenge, but a research-like one.
 
-6. Write a function that would update '*.map' file based on '*.sav' file.
+5. Write a function that would update '*.map' file based on '*.sav' file.
     - Offset of sections revelant to map files has to be calculated correcty. Finding reversed strings of headers just
       by pure phrase-finding is not acceptable due to possible duplications in actual data.
     - This point is not necessary.
 
-7. Document in-game meaning of all entries from '*.cif' / '*.ini' files responsible for maps content.
+6. Document in-game meaning of all entries from '*.cif' / '*.ini' files responsible for maps content.
     - Some possible entries might not be present anywhere, all of them probably are stored as strings in *.exe file.
 
-8. Create interpolation algorithm that for given 'mepa' + 'mepb' pair of sections would fix as many transition triangles
+7. Create interpolation algorithm that for given 'mepa' + 'mepb' pair of sections would fix as many transition triangles
    as possible to make terrain look smooth as in original maps.
