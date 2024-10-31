@@ -3,6 +3,8 @@ from sections.sectors import sector_width
 from sections.continents2 import void_marker, land_marker
 from scripts.flags import sequence_to_flags, flag_to_bool_ndarray
 
+max_search_radius = 21
+
 
 def largest_land_continent_in_sector(mco2_ndarray, sector_x, sector_y, xcot):
     mco2_subarray = mco2_ndarray[sector_y: sector_y + sector_width,
@@ -37,7 +39,7 @@ def search_valid_coordinates(validity_subarray):
     if validity_subarray[y, x]:
         return x, y
 
-    for side_length in range(1, 22):
+    for side_length in range(1, max_search_radius + 1):
         x, y = get_tile_in_direction(x, y, 4)
 
         for radius in range(6):
