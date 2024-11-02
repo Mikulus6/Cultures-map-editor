@@ -16,10 +16,10 @@ from sections.landscapes_area import landscapes_area_flag
 from sections.light import derive_light_map
 from sections.mesh_points import combine_mep, split_mep
 from sections.run_length import run_length_decryption, run_length_encryption
-from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors, check_sectors_coherency,\
-                             draw_sectors_connections
+from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
 from sections.sectors_flag import sectors_flag
 from sections.structures import update_structures, validate_structures_continuity, structures_to_rgb, rgb_to_structures
+from sections.walk_sector_points import update_sectors, draw_sectors_connections
 
 
 class Map:
@@ -55,6 +55,7 @@ class Map:
         self.update_structures()
         self.update_biomes()
         self.update_ground_set_flags()
+        self.update_sectors()
         # TODO: add later derivable sections
 
     def update_continents(self):
@@ -96,6 +97,9 @@ class Map:
                                                       shift_vector=(-1, 0), use_coastline_fix=True)
 
         self.mgfs = flags_to_sequence(mgfs_flags)
+
+    def update_sectors(self):
+        self.xsec = update_sectors(self.mgfs, self.mco2, self.xcot, self.map_width, self.map_height)
 
     # ====================================  testers  ====================================
 
@@ -150,8 +154,8 @@ class Map:
             return True
 
     def test_sectors(self):
-        return check_sectors_coherency(self.mco2, self.xsec, self.map_width, self.map_height)
-        # TODO: function is not complete.
+        # return check_sectors_coherency(self.mco2, self.xsec, self.map_width, self.map_height)
+        return self.xsec == update_sectors(self.mgfs, self.mco2, self.xcot, self.map_width, self.map_height)
 
     # =================================== load & save ===================================
 

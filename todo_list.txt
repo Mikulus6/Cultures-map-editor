@@ -1,12 +1,12 @@
 
 1. Find derivation algorithm of 'mgfs' 0th, 1st and 2nd layers (from 'mhei' + 'mepa' + 'mepb' + 'mgfs' 7th layer)
-    - These three bitwise layers might correspond to three directions of edges, however this is not confirmed.
+    - These three bitwise layers correspond to three directions of edges.
 
-2. Find derivation algorithm for connections between walk sector points in 'xsec' section.
-    - All signpost connections on every map are bidirectional.
-    - Two signposts on different continents are never connected to each other.
+2. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
+    - There is only one bit with unknown meaning.
 
-3. Find in-game meaning and derivation algorithm for 'smmw' subsection in 'xsec' section.
+3. Create interpolation algorithm that for given 'mepa' + 'mepb' pair of sections would fix as many transition triangles
+   as possible to make terrain look smooth as in original maps.
 
 4. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
    values from later modified landscapes.)
@@ -19,6 +19,3 @@
 
 6. Document in-game meaning of all entries from '*.cif' / '*.ini' files responsible for maps content.
     - Some possible entries might not be present anywhere, all of them probably are stored as strings in *.exe file.
-
-7. Create interpolation algorithm that for given 'mepa' + 'mepb' pair of sections would fix as many transition triangles
-   as possible to make terrain look smooth as in original maps.
