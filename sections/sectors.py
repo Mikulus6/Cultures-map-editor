@@ -34,14 +34,14 @@ def load_xsec_from_sectors(sectors: list, smmw_data: list, mco2_array: bytes, ma
     buffer.unsigned(0, length=16)
 
     for sector in sectors:
-        sector_type, sector_value, coordintes = sector
+        sector_type, sector_value, coordinates = sector
 
         assert sector_type in (0, 1)
 
         buffer.unsigned(sector_type, length=2)
         buffer.binary(sector_value)
-        buffer.unsigned(mco2_array[coordintes[0] + map_width * coordintes[1]], length=1)
-        buffer.unsigned(coordintes[0], length=2)
-        buffer.unsigned(coordintes[1], length=2)
+        buffer.unsigned(mco2_array[coordinates[0] + map_width * coordinates[1]], length=1)
+        buffer.unsigned(coordinates[0], length=2)
+        buffer.unsigned(coordinates[1], length=2)
 
     return bytes(buffer)

@@ -17,7 +17,7 @@ def check_sectors_coherency(mco2: bytes, sectors: list, map_width: int, map_heig
 
     try:
         for index_value, sector in enumerate(sectors):
-            sector_type, sector_value, coordintes = sector
+            sector_type, sector_value, coordinates = sector
 
             if sector_type == 0:
                 assert sector_value == "00000000"
@@ -47,7 +47,7 @@ def check_sectors_coherency(mco2: bytes, sectors: list, map_width: int, map_heig
                 assert sector_value[neighbour_relative_index] == neighbour_value[(neighbour_relative_index + 4) % 8]
 
                 if int(sector_value[neighbour_relative_index]) == 1:
-                    assert mco2_ndarray[*coordintes[::-1]] == mco2_ndarray[*neighbour_coordinates[::-1]]
+                    assert mco2_ndarray[*coordinates[::-1]] == mco2_ndarray[*neighbour_coordinates[::-1]]
 
     except AssertionError:
         return False
@@ -160,7 +160,7 @@ def derive_connections(mgfs, sectors, map_width, map_height):
                      mgfs_2_ndarray]
 
     for index_value, sector in enumerate(sectors):
-        sector_type, sector_value, coordintes = sector
+        sector_type, sector_value, coordinates = sector
 
         if sector_type == 0:
             continue
@@ -187,7 +187,7 @@ def derive_connections(mgfs, sectors, map_width, map_height):
             if neighbour_type == 0:
                 continue
 
-            if check_connection(mgfs_ndarrays, coordintes, neighbour_coordinates):
+            if check_connection(mgfs_ndarrays, coordinates, neighbour_coordinates):
 
                 sectors[index_value][1] = sectors[index_value][1][:neighbour_relative_index] + "1" + \
                                           sectors[index_value][1][neighbour_relative_index+1:]
@@ -246,10 +246,10 @@ def draw_sectors_connections(mco2: bytes, sectors: list, map_width: int, map_hei
     # color palette generation - start
     continents_with_sectors = set()
     for sector in sectors:
-        sector_type, sector_value, coordintes = sector
+        sector_type, sector_value, coordinates = sector
         if sector_type == 0:
             continue
-        continents_with_sectors.add(int(mco2_ndarray[coordintes[::-1]]))
+        continents_with_sectors.add(int(mco2_ndarray[coordinates[::-1]]))
 
     colors_primary = tuple(map(lambda x: get_rgb_hue_tuple(x),
                                tuple(np.linspace(0, 1, len(continents_with_sectors)+1)[:-1])))
@@ -261,7 +261,7 @@ def draw_sectors_connections(mco2: bytes, sectors: list, map_width: int, map_hei
     # color palette generation - end
 
     for index_value, sector in enumerate(sectors):
-        sector_type, sector_value, coordintes = sector
+        sector_type, sector_value, coordinates = sector
 
         if sector_type == 0:
             continue
@@ -288,17 +288,17 @@ def draw_sectors_connections(mco2: bytes, sectors: list, map_width: int, map_hei
             if neighbour_type == 0:
                 continue
 
-            color_primary, color_secondary = continents_colors[int(mco2_ndarray[coordintes[::-1]])]
+            color_primary, color_secondary = continents_colors[int(mco2_ndarray[coordinates[::-1]])]
 
             if int(sector_value[neighbour_relative_index]) == 1:
                 # Warning: rectangular line can became discontinuous when interpreted on hexagonal grid.
-                image.line((coordintes, neighbour_coordinates), fill=color_secondary)
+                image.line((coordinates, neighbour_coordinates), fill=color_secondary)
 
     for sector in sectors:
-        sector_type, sector_value, coordintes = sector
+        sector_type, sector_value, coordinates = sector
         if sector_type == 0:
             continue
-        color_primary, color_secondary = continents_colors[int(mco2_ndarray[coordintes[::-1]])]
-        image.point(coordintes, fill=color_primary)
+        color_primary, color_secondary = continents_colors[int(mco2_ndarray[coordinates[::-1]])]
+        image.point(coordinates, fill=color_primary)
 
     return expand_image(image._image, expansion_mode=expansion_mode) # noqa
