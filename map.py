@@ -19,6 +19,7 @@ from sections.run_length import run_length_decryption, run_length_encryption
 from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
 from sections.sectors_flag import sectors_flag
 from sections.structures import update_structures, validate_structures_continuity, structures_to_rgb, rgb_to_structures
+from sections.summary import update_summary
 from sections.walk_sector_points import update_sectors, draw_sectors_connections
 
 
@@ -49,6 +50,7 @@ class Map:
     # ==================================== updaters ====================================
 
     def update_all(self):
+        self.update_summary()
         self.update_continents()
         self.update_exploration()
         self.update_light()
@@ -56,7 +58,9 @@ class Map:
         self.update_biomes()
         self.update_ground_set_flags()
         self.update_sectors()
-        # TODO: add later derivable sections
+
+    def update_summary(self):
+        self.smmw = update_summary(self.map_width, self.map_height)
 
     def update_continents(self):
         self.mco2, self.xcot = derive_continents(self.mepa, self.mepb, self.map_width, self.map_height)
@@ -105,6 +109,7 @@ class Map:
 
     def test_all(self):
         try:
+            assert self.test_summary()
             assert self.test_continents()
             assert self.test_exploration()
             assert self.test_light()
@@ -112,10 +117,15 @@ class Map:
             assert self.test_structures()
             assert self.test_ground_set_flags()
             assert self.test_sectors()
-            # TODO: add later derivable sections
         except AssertionError:
-            # print("test error!")
             raise AssertionError
+
+    def test_summary(self):
+
+        # Some maps with incorrectly set flag might not pass this test.
+        # For details look into comments in module where function called below is defined.
+
+        return self.smmw == self.update_summary()
 
     def test_continents(self):
         return (self.mco2, self.xcot) == derive_continents(self.mepa, self.mepb, self.map_width, self.map_height)

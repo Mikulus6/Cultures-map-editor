@@ -1,4 +1,16 @@
 from scripts.buffer import BufferGiver, BufferTaker
+from sections.walk_sector_points import sector_width
+
+
+flag_state = 1
+# Value above is most likely outside of categories of derivable and visible primary map data. It seems to be a flag of
+# inner gameplay state. When it is set to 0, structure of walk sector points will remain unchanged upon initializing a
+# pathfinding algorithm. When it is set to 1, recalculation function of walk sector points will be called inside main
+# game loop upon first usage of pathfinding algorithm. Obstructing walk sector point with building or landscape will
+# cause this value to be changed to 1. Effectively, this value stores the information about walk sector points not being
+# up-to-date with currect placament of landscapes and buildings. Moreover only around 21% of all unique maps found in
+# original games have this flag set to 0, which makes setting this value to 1 a statistically better choice in case of
+# missing the hidden meaning beneath this boolean value.
 
 
 def load_summary_from_bytes(sequence: bytes) -> tuple:
@@ -15,7 +27,7 @@ def load_summary_from_bytes(sequence: bytes) -> tuple:
 
     assert grid_width * grid_height == grid_size
 
-    flag = buffer.unsigned(4)  # TODO: purpose unknown
+    flag = buffer.unsigned(4)
 
     assert flag in (0, 1)
 
@@ -40,3 +52,11 @@ def load_summary_to_bytes(smmw_data: list | tuple) -> bytes:
     buffer.unsigned(flag, length=4)
 
     return bytes(buffer)
+
+
+def update_summary(map_width, map_height):
+
+    grid_width = map_width // sector_width + (1 if map_width % sector_width != 0 else 0)
+    grid_height = map_height // sector_width + (1 if map_height % sector_width != 0 else 0)
+
+    return grid_width, grid_height, grid_width * grid_height, flag_state
