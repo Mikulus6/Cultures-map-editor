@@ -1,4 +1,4 @@
-1. When saving mepa+mepb instead of using red and green channels for Id+SetId use exactly the same colors as in-game
+1. When saving 'mepa'+'mepb' instead of using red and green channels for Id+SetId use exactly the same colors as in-game
    minimap would do. For cases when two types of terrain use exactly the same color, decide manually which one should
    differ.
    - Test in-game which colors are used by which terrain types on perfectly flat terrain with correct light.
@@ -6,7 +6,7 @@
    - Create a json file with dictionary for that.
 
 2. Similarly to map.save_to_data and map.load_from_data create two functions named maybe "save_to_primary_data" and
-   "load_from_primary_data" (or maybe rename old methods to something like "save_to_raw_data" etc.
+   "load_from_primary_data" (or maybe rename old methods to something like "save_to_raw_data" etc.)
    The point is: user should be albe to load and save map using only primary sections.
    Those are: 'mhei', 'mepa', 'mepb', 'llan'.
 
