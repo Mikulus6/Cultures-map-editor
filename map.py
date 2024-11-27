@@ -7,7 +7,7 @@ from scripts.image import bytes_to_image, shorts_to_image, bits_to_image, rgb_to
                           image_to_bytes, image_to_shorts, image_to_bits, image_to_rgb
 
 from sections.biomes import derive_biomes
-from sections.buildability import buildability_area_shifted
+from sections.pathfinder_blockers import pathfinder_blockers_area_shifted
 from sections.continents import load_continents_from_xcot, load_xcot_from_continents
 from sections.continents2 import derive_continents
 from sections.inland_vertices import inland_vertices_flag
@@ -15,6 +15,7 @@ from sections.landscapes import load_landscapes_from_llan, load_llan_from_landsc
 from sections.landscapes_area import landscapes_area_flag
 from sections.light import derive_light_map
 from sections.mesh_points import combine_mep, split_mep
+from sections.pathfinder_blockers import draw_pathfinder_blockers
 from sections.run_length import run_length_decryption, run_length_encryption
 from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
 from sections.sectors_flag import sectors_flag
@@ -77,28 +78,24 @@ class Map:
     def update_biomes(self):
         self.mbio = derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
 
-    def update_ground_set_flags(self, *, update_buildability=True):
+    def update_ground_set_flags(self):
 
         mgfs_flags = sequence_to_flags(self.mgfs)
 
         mgfs_flags[3] = sectors_flag(self.xsec, self.map_width, self.map_height)
         mgfs_flags[4] = "0" * (self.map_width * self.map_height)
-        mgfs_flags[5] = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")  # noqa: E501
+        mgfs_flags[5] = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")
         mgfs_flags[6] = inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
         mgfs_flags[7] = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
 
-        if update_buildability:
-            mgfs_flags[0] = buildability_area_shifted(mgfs_flags[7], self.mepa, self.mepb,
-                                                      self.map_width, self.map_height,
-                                                      shift_vector=(1, -1), use_coastline_fix=True)
+        mgfs_flags[0] = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
+                                                         self.map_width, self.map_height, flag_index=0)
 
-            mgfs_flags[1] = buildability_area_shifted(mgfs_flags[7], self.mepa, self.mepb,
-                                                      self.map_width, self.map_height,
-                                                      shift_vector=(0, -1), use_coastline_fix=True)
+        mgfs_flags[1] = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
+                                                         self.map_width, self.map_height, flag_index=1)
 
-            mgfs_flags[2] = buildability_area_shifted(mgfs_flags[7], self.mepa, self.mepb,
-                                                      self.map_width, self.map_height,
-                                                      shift_vector=(-1, 0), use_coastline_fix=True)
+        mgfs_flags[2] = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
+                                                         self.map_width, self.map_height, flag_index=2)
 
         self.mgfs = flags_to_sequence(mgfs_flags)
 
@@ -118,7 +115,9 @@ class Map:
             assert self.test_ground_set_flags()
             assert self.test_sectors()
         except AssertionError:
-            raise AssertionError
+            return False
+        else:
+            return True
 
     def test_summary(self):
 
@@ -144,24 +143,29 @@ class Map:
         return self.mbio == derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
 
     def test_ground_set_flags(self):
-
         # Maps created before 22nd August 2000 might not pass this test due to different landscapes' shapes.
 
         mgfs_flags = sequence_to_flags(self.mgfs)
 
-        try:
+        mgfs_flags_0 = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
+                                                        self.map_width, self.map_height, flag_index=0)
 
-            # TODO: test layers 0, 1, 2.
-            assert mgfs_flags[3] == sectors_flag(self.xsec, self.map_width, self.map_height)
-            assert mgfs_flags[4] == "0" * (self.map_width * self.map_height)
-            assert mgfs_flags[5] == landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")  # noqa: E501
-            assert mgfs_flags[6] == inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
-            assert mgfs_flags[7] == landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
+        mgfs_flags_1 = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
+                                                        self.map_width, self.map_height, flag_index=1)
 
-        except AssertionError:
-            return False
-        else:
-            return True
+        mgfs_flags_2 = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
+                                                        self.map_width, self.map_height, flag_index=2)
+
+        mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
+        mgfs_flags_4 = "0" * (self.map_width * self.map_height)
+        mgfs_flags_5 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")  # noqa: E501
+        mgfs_flags_6 = inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
+        mgfs_flags_7 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
+
+        mgfs_new = flags_to_sequence([mgfs_flags_0, mgfs_flags_1, mgfs_flags_2, mgfs_flags_3,
+                                      mgfs_flags_4, mgfs_flags_5, mgfs_flags_6, mgfs_flags_7])
+
+        return mgfs_new == self.mgfs
 
     def test_sectors(self):
         # return check_sectors_coherency(self.mco2, self.xsec, self.map_width, self.map_height)
@@ -314,7 +318,12 @@ class Map:
         shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "mep.png"), width=self.map_width,
                        expansion_mode="triangle" if expand else None)
 
+        if expand:
+            draw_pathfinder_blockers(self.mgfs, self.map_width, self.map_height).save(os.path.join(directory,
+                                                                                                   "mgfs_0_1_2.png"))
         for counter, flag in enumerate(sequence_to_flags(self.mgfs)):
+            if expand and counter < 3:
+                continue
             bits_to_image(flag, os.path.join(directory, f"mgfs_{counter}.png"), width=self.map_width,
                           expansion_mode="hexagon" if expand else None)  # noqa
 
