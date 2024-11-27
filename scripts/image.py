@@ -32,6 +32,25 @@ def bits_to_image(sequence: str, filename: str, width: int, expansion_mode=None)
     image.save(filename)
 
 
+def bits_difference_to_image(sequence_1, sequence_2, filename: str, width: int, expansion_mode=None):
+    assert len(sequence_1) == len(sequence_2)
+
+    image = Image.new('RGB', (width, len(sequence_1)//width))
+
+    for index, values in list(enumerate(zip(sequence_1, sequence_2))):
+        match int(values[0]), int(values[1]):
+            case 0, 0: color = (0, 192, 0)  # true negative
+            case 0, 1: color = (192, 0, 0)  # false negative
+            case 1, 0: color = (255, 0, 0)  # false positive
+            case 1, 1: color = (0, 255, 0)  # true positive
+            case _: raise ValueError
+
+        image.putpixel((index % width, index // width), color)
+
+    image = expand_image(image, expansion_mode=expansion_mode)
+    image.save(filename)
+
+
 def rgb_to_image(rgb_iterable: list | tuple, filename: str, width, expansion_mode=None):
     image = Image.new('RGB', (width, len(rgb_iterable)//width))
     image.putdata(rgb_iterable)  # noqa
