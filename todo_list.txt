@@ -8,7 +8,7 @@
 2. Similarly to map.save_to_data and map.load_from_data create two functions named maybe "save_to_primary_data" and
    "load_from_primary_data" (or maybe rename old methods to something like "save_to_raw_data" etc.)
    The point is: user should be albe to load and save map using only primary sections.
-   Those are: 'mhei', 'mepa', 'mepb', 'llan'.
+   Those are: 'mhei', 'mepa', 'mepb', 'llan', 'mstr'.
 
 3. Create interpolation algorithm that for given 'mepa' + 'mepb' pair of sections would fix as many transition triangles
    as possible to make terrain look smooth as in original maps.
