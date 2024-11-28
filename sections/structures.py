@@ -1,11 +1,8 @@
 import numpy as np
+from scripts.colormap import mstr_colormap
 
-color_palette = {"road": (128, 128, 128),
-                 "water": (0, 0, 255),
-                 "snow": (255, 255, 255),
-                 "empty": (0, 0, 0)}
-
-color_palette_inverted = {v: k for k, v in color_palette.items()}
+empty_color = (0, 0, 0)
+assert empty_color not in mstr_colormap.values()
 
 def coordinates_in_radius(start_position, radius):
     coordinates_set_old = set()
@@ -142,11 +139,14 @@ def structures_to_rgb(mstr, map_width, map_height):
             else:
                 value = None
 
-            match value:
-                case 0: rgb_data.append(color_palette["road"])
-                case 1: rgb_data.append(color_palette["water"])
-                case 2: rgb_data.append(color_palette["snow"])
-                case _: rgb_data.append(color_palette["empty"])
+            # 0 = road
+            # 1 = water
+            # 2 = snow
+
+            if value is not None:
+                rgb_data.append(mstr_colormap[value])
+            else:
+                rgb_data.append(empty_color)
 
     return rgb_data
 
@@ -157,12 +157,10 @@ def rgb_to_structures(rgb_data, mco2, xcot, map_width, map_height):
     for index_value, rgb_pixel in enumerate(rgb_data):
         x, y = index_value % map_width, index_value // map_width
 
-        match color_palette_inverted[tuple(rgb_pixel)[:3]]:  # noqa
-            case "road": value = 0
-            case "water": value = 1
-            case "snow": value = 2
-            case "empty": continue
-            case _: raise ValueError
+        rgb_pixel = tuple(rgb_pixel)[:3]
+        if tuple(rgb_pixel)[:3] == empty_color:
+            continue
+        value = mstr_colormap.inversed[tuple(rgb_pixel)[:3]]
         
         if y % 2 == 0:
             conditions = [(x, y, 1, "ab"), (x-1, y, 2, "b"), (x, y-1, 4, "a"), (x-1, y-1, 8, "ab")]

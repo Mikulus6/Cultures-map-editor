@@ -1,4 +1,5 @@
 from PIL import Image
+from scripts.colormap import apply_colormap_to_shorts, remove_colormap_to_shorts, ColorMap
 from scripts.expansions import expand_image
 
 
@@ -17,9 +18,12 @@ def bytes_to_image(sequence: bytes, filename: str, width: int, expansion_mode=No
     image.save(filename)
 
 
-def shorts_to_image(sequence: bytes, filename: str, width: int, expansion_mode=None):
+def shorts_to_image(sequence: bytes, filename: str, width: int, expansion_mode=None, colormap: ColorMap = None):
     image = Image.new('RGB', (width, len(sequence)//(2*width)))
-    image.putdata([(byte1, byte2, 0) for byte1, byte2 in zip(sequence[::2], sequence[1::2])])  # noqa
+
+    if colormap is not None: image.putdata(apply_colormap_to_shorts(sequence, colormap))
+    else: image.putdata([(byte1, byte2, 0) for byte1, byte2 in zip(sequence[::2], sequence[1::2])])
+
     image = expand_image(image, expansion_mode=expansion_mode)
     image.save(filename)
 
@@ -58,18 +62,23 @@ def rgb_to_image(rgb_iterable: list | tuple, filename: str, width, expansion_mod
     image.save(filename)
 
 
-def image_to_bytes(filename: str):
-    pixels = list(Image.open(filename).getdata())
+def image_to_bytes(filename: str, get_width=False):
+    image = Image.open(filename)
+    pixels = list(image.getdata())
     if isinstance(pixels[0], tuple):
         pixels = [x[0] for x in pixels]
-    return bytes(pixels)
+    return (bytes(pixels), image.width) if get_width else bytes(pixels)
 
 
-def image_to_shorts(filename: str) -> bytes:
+def image_to_shorts(filename: str, colormap: ColorMap = None) -> bytes:
+    if colormap is not None:
+        return remove_colormap_to_shorts(list(Image.open(filename).getdata()), colormap)
+
     shorts = []
     for r, g, b in [x[:3] for x in Image.open(filename).getdata()]:
         shorts += [r, g]
     return bytes(shorts)
+
 
 
 def image_to_bits(filename: str):

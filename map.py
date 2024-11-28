@@ -1,6 +1,7 @@
 import os
 
 from scripts.buffer import BufferGiver, BufferTaker
+from scripts.colormap import mep_colormap
 from scripts.const import map_const, section_names
 from scripts.flags import sequence_to_flags, flags_to_sequence
 from scripts.image import bytes_to_image, shorts_to_image, bits_to_image, rgb_to_image, \
@@ -50,15 +51,16 @@ class Map:
 
     # ==================================== updaters ====================================
 
-    def update_all(self):
+    def update_all(self, *, exclude_continents=False):
+        if not exclude_continents: self.update_continents()
         self.update_summary()
-        self.update_continents()
         self.update_exploration()
         self.update_light()
         self.update_structures()
         self.update_biomes()
         self.update_ground_set_flags()
         self.update_sectors()
+        self.update_ground_set_flags(post_sectors_update=True)
 
     def update_summary(self):
         self.smmw = update_summary(self.map_width, self.map_height)
@@ -78,26 +80,30 @@ class Map:
     def update_biomes(self):
         self.mbio = derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
 
-    def update_ground_set_flags(self):
+    def update_ground_set_flags(self, post_sectors_update=False):
 
-        mgfs_flags = sequence_to_flags(self.mgfs)
+        if post_sectors_update:
+            mgfs_flags = sequence_to_flags(self.mgfs)
+            mgfs_flags[3] = sectors_flag(self.xsec, self.map_width, self.map_height)
+            self.mgfs = flags_to_sequence(mgfs_flags)
 
-        mgfs_flags[3] = sectors_flag(self.xsec, self.map_width, self.map_height)
-        mgfs_flags[4] = "0" * (self.map_width * self.map_height)
-        mgfs_flags[5] = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")
-        mgfs_flags[6] = inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
-        mgfs_flags[7] = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
+        else:
+            mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
+            mgfs_flags_4 = "0" * (self.map_width * self.map_height)
+            mgfs_flags_5 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")
+            mgfs_flags_6 = inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
+            mgfs_flags_7 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
 
-        mgfs_flags[0] = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
-                                                         self.map_width, self.map_height, flag_index=0)
+            mgfs_flags_0 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
+                                                            self.map_width, self.map_height, flag_index=0)
 
-        mgfs_flags[1] = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
-                                                         self.map_width, self.map_height, flag_index=1)
+            mgfs_flags_1 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
+                                                            self.map_width, self.map_height, flag_index=1)
 
-        mgfs_flags[2] = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
-                                                         self.map_width, self.map_height, flag_index=2)
-
-        self.mgfs = flags_to_sequence(mgfs_flags)
+            mgfs_flags_2 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
+                                                            self.map_width, self.map_height, flag_index=2)
+            self.mgfs = flags_to_sequence([mgfs_flags_0, mgfs_flags_1, mgfs_flags_2, mgfs_flags_3,
+                                           mgfs_flags_4, mgfs_flags_5, mgfs_flags_6, mgfs_flags_7])
 
     def update_sectors(self):
         self.xsec = update_sectors(self.mgfs, self.mco2, self.xcot, self.map_width, self.map_height)
@@ -106,14 +112,14 @@ class Map:
 
     def test_all(self):
         try:
-            assert self.test_summary()
             assert self.test_continents()
+            assert self.test_summary()
             assert self.test_exploration()
             assert self.test_light()
             assert self.test_biomes()
             assert self.test_structures()
-            assert self.test_ground_set_flags()
             assert self.test_sectors()
+            assert self.test_ground_set_flags()
         except AssertionError:
             return False
         else:
@@ -145,22 +151,20 @@ class Map:
     def test_ground_set_flags(self):
         # Maps created before 22nd August 2000 might not pass this test due to different landscapes' shapes.
 
-        mgfs_flags = sequence_to_flags(self.mgfs)
-
-        mgfs_flags_0 = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
-                                                        self.map_width, self.map_height, flag_index=0)
-
-        mgfs_flags_1 = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
-                                                        self.map_width, self.map_height, flag_index=1)
-
-        mgfs_flags_2 = pathfinder_blockers_area_shifted(mgfs_flags[7], self.mepa, self.mepb, self.mhei,
-                                                        self.map_width, self.map_height, flag_index=2)
-
         mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
         mgfs_flags_4 = "0" * (self.map_width * self.map_height)
         mgfs_flags_5 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")  # noqa: E501
         mgfs_flags_6 = inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
         mgfs_flags_7 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
+
+        mgfs_flags_0 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
+                                                        self.map_width, self.map_height, flag_index=0)
+
+        mgfs_flags_1 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
+                                                        self.map_width, self.map_height, flag_index=1)
+
+        mgfs_flags_2 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
+                                                        self.map_width, self.map_height, flag_index=2)
 
         mgfs_new = flags_to_sequence([mgfs_flags_0, mgfs_flags_1, mgfs_flags_2, mgfs_flags_3,
                                       mgfs_flags_4, mgfs_flags_5, mgfs_flags_6, mgfs_flags_7])
@@ -250,7 +254,51 @@ class Map:
         with open(filename, "wb") as file:
             file.write(bytes(buffer))
 
-    def load_from_data(self, directory: str, interprete_structures=False):
+    def save_to_primary_data(self, directory: str, expand=False):
+
+        # Setting 'expand' to True makes this conversion one-directional.
+
+        os.makedirs(directory, exist_ok=True)
+
+        bytes_to_image(self.mhei, os.path.join(directory, "heightmap.png"), width=self.map_width//2,
+                       expansion_mode="hexagon" if expand else None)
+
+        shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "terrain.png"), width=self.map_width,
+                        expansion_mode="triangle" if expand else None, colormap=mep_colormap)
+
+        with open(os.path.join(directory, "landscapes.csv"), "w") as file:
+            for coordinates, landscape in self.llan.items():
+                file.write(f"{coordinates[0]},{coordinates[1]},\"{landscape}\"\n")
+
+        rgb_to_image(structures_to_rgb(self.mstr, self.map_width, self.map_height),
+                     os.path.join(directory, "structures.png"), width=self.map_width,
+                     expansion_mode="hexagon" if expand else None)
+
+    def load_from_primary_data(self, directory: str):
+
+        self.mhei, width = image_to_bytes(os.path.join(directory, "heightmap.png"), get_width=True)
+        self.mepa, self.mepb = split_mep(image_to_shorts(os.path.join(directory, "terrain.png"), colormap=mep_colormap))
+
+        self.map_version = 12
+        self.map_width = width * 2
+        self.map_height = (len(self.mhei)//width) * 2
+
+        self.llan = dict()
+        with open(os.path.join(directory, "landscapes.csv"), "r") as file:
+            for line in file.readlines():
+                entries = line.rstrip("\n").split(",")
+                key = (int(entries[0]), int(entries[1]))
+                assert key not in self.llan.keys()
+                self.llan[key] = entries[2].strip("\"")
+
+        self.update_continents()
+
+        self.mstr = rgb_to_structures(image_to_rgb(os.path.join(directory, "structures.png")),
+                                      self.mco2, self.xcot, self.map_width, self.map_height)
+
+        self.update_all(exclude_continents=True)
+
+    def load_from_raw_data(self, directory: str, interprete_structures=False):
 
         with open(os.path.join(directory, "header.csv"), "r") as file:
             self.map_version, self.map_width, self.map_height = map(int, file.read().strip("\n").split(","))
@@ -302,7 +350,9 @@ class Map:
             for line in file.readlines():
                 self.smmw.append(int(line.rstrip("\n")))
 
-    def save_to_data(self, directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
+    def save_to_raw_data(self, directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
+
+        # Setting 'expand' to True makes this conversion one-directional.
 
         os.makedirs(directory, exist_ok=True)
 
@@ -316,7 +366,7 @@ class Map:
         bytes_to_image(self.mlig, os.path.join(directory, "mlig.png"), width=self.map_width//2,
                        expansion_mode="hexagon" if expand else None)
         shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "mep.png"), width=self.map_width,
-                       expansion_mode="triangle" if expand else None)
+                        expansion_mode="triangle" if expand else None)
 
         if expand:
             draw_pathfinder_blockers(self.mgfs, self.map_width, self.map_height).save(os.path.join(directory,

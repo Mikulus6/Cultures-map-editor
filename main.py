@@ -1,7 +1,7 @@
 import os
 import conversions  # noqa
 from map import Map  # <-- The important file
-
+from scripts.colormap import *
 # Following directories should be created manually
 directory_input = "maps"  # put all *.map files there
 directory_output = "edit"  # all extracted maps will be here
@@ -12,16 +12,23 @@ for item in os.listdir(directory_input):
         continue
 
     path = os.path.join(directory_input, item)
+    directory = os.path.join(directory_output, os.path.splitext(item)[0])
     print(item)
 
     with open(path, "rb") as file:
         try:
             map_object = Map()
             map_object.load_from_file(file.read())
-            map_object.save_to_data(os.path.join(directory_output, os.path.splitext(item)[0]),
-                                    interprete_structures=True, interprete_sectors=True)
-            # map_object.load_from_data(os.path.join(directory_output, os.path.splitext(item)[0]),
-            #                           interprete_structures=True)
+            map_object.save_to_primary_data(directory)
+            map_object.save_to_raw_data(os.path.join(directory, "raw"))
+            del map_object
+
+            map_object_new = Map()
+            map_object_new.load_from_primary_data(directory)
+            map_object_new.save_to_raw_data(os.path.join(directory, "raw2"))
+            del map_object_new
+
+            # compare 'raw' and 'raw2' folders to vertify the correctness of derivations.
 
         except NotImplementedError:
             print("*not implemented*")
