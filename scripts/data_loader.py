@@ -29,7 +29,10 @@ def load_ini_as_dictionary(filepath: str, dual_id=False) -> dict:
     with open(filepath, encoding=data_encoding) as file:
 
         adding = False
-        name = None
+        name = 0
+        header_name = None
+        id_counted = False
+        setid_counted = False
 
         for line in file.readlines():
             line = line_split(line)
@@ -41,21 +44,30 @@ def load_ini_as_dictionary(filepath: str, dual_id=False) -> dict:
             if line[0] == "Name" and not dual_id:
                 adding = True
                 name = line[1].replace("\"", "").replace("\n", "")
-                data_dict[name] = dict()
+                if header_name == "[PatternDef]" or not dual_id:
+                    data_dict[name] = dict()
 
             elif line[0] == "Id" and dual_id:
                 adding = False
-                name = line[1]
+                name += line[1]
+                id_counted = True
             elif line[0] == "SetId" and dual_id:
-                assert not adding and name is not None
-                adding = True  # "Id" always should be found before "SetId".
-                data_dict[name + line[1] * 256] = {"Id": name}
+                adding = False
                 name += line[1] * 256
+                setid_counted = True
+            elif setid_counted and id_counted and not adding:
+                adding = True
+                if header_name == "[PatternDef]" or not dual_id:
+                    data_dict[name] = {"Id": name}
 
             if line[0][0] == "[":
                 adding = False
-            elif adding:
-                subdict = data_dict[name]  # noqa: Pycharm bug
+                header_name = line[0]
+                name = 0
+                id_counted = False
+                setid_counted = False
+            elif adding and header_name == "[PatternDef]" or not dual_id:
+                subdict = data_dict[name]  # noqa: PyCharm bug
                 subdict[line[0]] = subdict.get(line[0], [])
                 subdict[line[0]].append(line[1:])
                 data_dict[name] = subdict

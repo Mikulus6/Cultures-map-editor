@@ -56,6 +56,7 @@ def flood_fill_continents(area_types_ndarray: np.ndarray, *, minimum_area_size=m
 
                 for neighbour in neighbours:
                     coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
+                    neighbour = (neighbour[0] % map_width, neighbour[1] % map_height)
                     if not is_filled[*neighbour[::-1]] and area_types_ndarray[*neighbour[::-1]] == value:
                         coordinates_to_iterate.append(neighbour)
                         continent_coordinates.append(neighbour)
