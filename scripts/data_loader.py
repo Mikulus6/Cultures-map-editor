@@ -3,6 +3,8 @@ import os
 data_directory = "data"
 data_encoding = "cp1252"
 
+landscapedefs_path = "landscapedefs.ini"
+patterndefs_path = "patterndefs_normal.ini"
 
 def line_split(line_: str):
     list_ = [""]
@@ -12,99 +14,94 @@ def line_split(line_: str):
             list_[-1] += char
         else:
             list_.append("")
-
         if char == "\"":
             quoted = not quoted
 
-    for index, element in enumerate(list_):
-        if index != 0 and element[0] != "\"":
-            list_[index] = int(element)
+    for index in range(len(list_)):
+        if index == len(list_) - 1:
+            list_[index] = list_[index].rstrip("\n")
+        if str.isdigit(list_[index].replace("-", "")):
+            list_[index] = int(list_[index])
+        else:
+            list_[index] = list_[index].strip("\"")
 
     return list_
 
-
-def load_ini_as_dictionary(filepath: str, dual_id=False) -> dict:
-    data_dict = dict()
-
+def load_ini_as_sections(filepath: str) -> list:
+    data_list = []
     with open(filepath, encoding=data_encoding) as file:
-
-        adding = False
-        name = 0
-        header_name = None
-        id_counted = False
-        setid_counted = False
-
         for line in file.readlines():
             line = line_split(line)
-
-            for num, item in enumerate(line):
-                if isinstance(item, str):
-                    line[num] = item.replace("\"", "").replace("\n", "")
-
-            if line[0] == "Name" and not dual_id:
-                adding = True
-                name = line[1].replace("\"", "").replace("\n", "")
-                if header_name == "[PatternDef]" or not dual_id:
-                    data_dict[name] = dict()
-
-            elif line[0] == "Id" and dual_id:
-                adding = False
-                name += line[1]
-                id_counted = True
-            elif line[0] == "SetId" and dual_id:
-                adding = False
-                name += line[1] * 256
-                setid_counted = True
-            elif setid_counted and id_counted and not adding:
-                adding = True
-                if header_name == "[PatternDef]" or not dual_id:
-                    data_dict[name] = {"Id": name}
-
-            if line[0][0] == "[":
-                adding = False
-                header_name = line[0]
-                name = 0
-                id_counted = False
-                setid_counted = False
-            elif adding and header_name == "[PatternDef]" or not dual_id:
-                subdict = data_dict[name]  # noqa: PyCharm bug
-                subdict[line[0]] = subdict.get(line[0], [])
-                subdict[line[0]].append(line[1:])
-                data_dict[name] = subdict
-
-    all_keys = set()
-    for subdict in data_dict.values():
-        all_keys.update(subdict.keys())
-
-    for iteration in range(2):
-        unique_keys = set()
-
-        for key in all_keys:
-            duped = False
-            for value in data_dict.values():
-                try:
-                    if len(value.get(key, [])) >= 2:
-                        duped = True
-                        break
-                except TypeError:
-                    pass
-            if duped:
+            if len(line) == 0:
                 continue
+            if line[0][0] == "[" and line[0][-1] == "]":  # header
+                header = line[0][1:-1]
+                data_list.append([header, list()])
+            else:                                         # entry
+                data_list[-1][1].append(line)
+    return data_list
 
-            unique_keys.add(key)
+def filter_section_by_name(data_list, allowed_section_names=tuple()):
+    data_list_new = []
+    for element in data_list:
+        if element[0] in allowed_section_names:
+            data_list_new.append(element[1])
+    return data_list_new
 
-        for key, value in data_dict.items():
-            for subkey, subvalue in data_dict[key].items():
-                if subkey in unique_keys:
-                    try:
-                        data_dict[key][subkey] = subvalue[0]
-                    except IndexError:
-                        data_dict[key][subkey] = None
-                    except TypeError:
-                        data_dict[key][subkey] = subvalue
+def merge_entries_to_dicts(data_list, entries_duplicated, merge_duplicates) -> list:
+    data_list_new = []
+    for section in data_list:
+        section_dict = dict()
+        for element in section:
+            name, parameters = element[0], element[1:]
+            if name in entries_duplicated:
+                match merge_duplicates:
+                    case True:  section_dict.setdefault(name, []).extend(parameters)
+                    case False: section_dict.setdefault(name, []).append(parameters)
+            else:
+                assert section_dict.get(name, None) is None
+                if len(parameters) > 1:
+                    section_dict[name] = parameters
+                elif len(parameters) == 1:
+                    section_dict[name] = parameters[0]
+                else:
+                    section_dict[name] = None
+        data_list_new.append(section_dict)
+    return data_list_new
 
+def list_to_dict_by_global_key(data_list, global_key):
+    data_dict = dict()
+    for section in data_list:
+        data_dict[global_key(section)] = section
     return data_dict
 
+def load_ini_as_dict(filename, allowed_section_names, entries_duplicated, global_key, merge_duplicates) -> dict:
+    data_list = load_ini_as_sections(filename)
+    data_list = filter_section_by_name(data_list, allowed_section_names)
+    data_list = merge_entries_to_dicts(data_list, entries_duplicated, merge_duplicates)
+    return list_to_dict_by_global_key(data_list, global_key)
 
-landscapedefs = load_ini_as_dictionary(os.path.join(data_directory, "landscapedefs.ini"))
-patterndefs_normal = load_ini_as_dictionary(os.path.join(data_directory, "patterndefs_normal.ini"), dual_id=True)
+landscapedefs = load_ini_as_dict(os.path.join(data_directory, landscapedefs_path),
+                                 allowed_section_names=("LandscapeElement",),
+                                 entries_duplicated=("BaseArea", "ExtendedArea", "SpecialArea",
+                                                     "AddNextLandscape", "FlagSet"),
+                                 global_key = lambda x: x.get("Name"),
+                                 merge_duplicates=False)
+
+patterndefs_normal = load_ini_as_dict(os.path.join(data_directory, patterndefs_path),
+                                      allowed_section_names=("PatternDef",),
+                                      entries_duplicated=("GroundFlagSet", ),
+                                      global_key = lambda x: x.get("Id") + x.get("SetId") * 256,
+                                      merge_duplicates=True)
+
+transitions = load_ini_as_dict(os.path.join(data_directory, patterndefs_path),
+                               allowed_section_names=("Transition",),
+                               entries_duplicated=tuple(),
+                               global_key = lambda x: x.get("Name"),
+                               merge_duplicates=False)
+
+transition_defs = load_ini_as_dict(os.path.join(data_directory, patterndefs_path),
+                               allowed_section_names=("TransitionDef",),
+                               entries_duplicated=tuple(),
+                               global_key = lambda x: x.get("Name"),
+                               merge_duplicates=False)
