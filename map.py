@@ -177,7 +177,7 @@ class Map:
 
     # =================================== load & save ===================================
 
-    def load_from_file(self, sequence: bytes):
+    def load(self, sequence: bytes):
         buffer = BufferGiver(sequence)
 
         self.map_version = buffer.unsigned(2)  # noqa: E221
@@ -207,7 +207,7 @@ class Map:
         assert buffer.unsigned(5) == 0
         assert len(buffer) == 0
 
-    def save_to_file(self, filename: str):
+    def save(self, filename: str):
 
         try:
             os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -254,27 +254,7 @@ class Map:
         with open(filename, "wb") as file:
             file.write(bytes(buffer))
 
-    def save_to_primary_data(self, directory: str, expand=False):
-
-        # Setting 'expand' to True makes this conversion one-directional.
-
-        os.makedirs(directory, exist_ok=True)
-
-        bytes_to_image(self.mhei, os.path.join(directory, "heightmap.png"), width=self.map_width//2,
-                       expansion_mode="hexagon" if expand else None)
-
-        shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "terrain.png"), width=self.map_width,
-                        expansion_mode="triangle" if expand else None, colormap=mep_colormap)
-
-        with open(os.path.join(directory, "landscapes.csv"), "w") as file:
-            for coordinates, landscape in self.llan.items():
-                file.write(f"{coordinates[0]},{coordinates[1]},\"{landscape}\"\n")
-
-        rgb_to_image(structures_to_rgb(self.mstr, self.map_width, self.map_height),
-                     os.path.join(directory, "structures.png"), width=self.map_width,
-                     expansion_mode="hexagon" if expand else None)
-
-    def load_from_primary_data(self, directory: str):
+    def pack(self, directory: str):
 
         self.mhei, width = image_to_bytes(os.path.join(directory, "heightmap.png"), get_width=True)
         self.mepa, self.mepb = split_mep(image_to_shorts(os.path.join(directory, "terrain.png"), colormap=mep_colormap))
@@ -298,7 +278,29 @@ class Map:
 
         self.update_all(exclude_continents=True)
 
-    def load_from_raw_data(self, directory: str, interprete_structures=False):
+    def extract(self, directory: str, expand=False):
+
+        # Setting 'expand' to True makes this conversion one-directional.
+
+        os.makedirs(directory, exist_ok=True)
+
+        bytes_to_image(self.mhei, os.path.join(directory, "heightmap.png"), width=self.map_width//2,
+                       expansion_mode="hexagon" if expand else None)
+
+        shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "terrain.png"), width=self.map_width,
+                        expansion_mode="triangle" if expand else None, colormap=mep_colormap)
+
+        with open(os.path.join(directory, "landscapes.csv"), "w") as file:
+            for coordinates, landscape in self.llan.items():
+                file.write(f"{coordinates[0]},{coordinates[1]},\"{landscape}\"\n")
+
+        rgb_to_image(structures_to_rgb(self.mstr, self.map_width, self.map_height),
+                     os.path.join(directory, "structures.png"), width=self.map_width,
+                     expansion_mode="hexagon" if expand else None)
+
+    # ============================= debug load & debug save =============================
+
+    def _load_from_raw_data(self, directory: str, interprete_structures=False):
 
         with open(os.path.join(directory, "header.csv"), "r") as file:
             self.map_version, self.map_width, self.map_height = map(int, file.read().strip("\n").split(","))
@@ -350,7 +352,7 @@ class Map:
             for line in file.readlines():
                 self.smmw.append(int(line.rstrip("\n")))
 
-    def save_to_raw_data(self, directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
+    def _extract_to_raw_data(self, directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
 
         # Setting 'expand' to True makes this conversion one-directional.
 
