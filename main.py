@@ -1,7 +1,7 @@
 import os
 import conversions  # noqa
 from map import Map  # <-- The important file
-from scripts.colormap import *
+
 # Following directories should be created manually
 directory_input = "maps"  # put all *.map files there
 directory_output = "edit"  # all extracted maps will be here
