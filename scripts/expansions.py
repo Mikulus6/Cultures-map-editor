@@ -90,7 +90,7 @@ def expand_image_object_to_triangles(image_object: Image.Image,
                     new_image.putpixel((x_real, y_real), pixel_color)
     return new_image
 
-def expand_image(image: Image.Image, expansion_mode: Literal[None, "hexagon", "triangle", "pallalelogram"]=None):
+def expand_image(image: Image.Image, expansion_mode: Literal[None, "hexagon", "triangle", "parallelogram"]=None):
 
     match expansion_mode:
         case None: return image
