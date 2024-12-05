@@ -35,7 +35,7 @@ def apply_colormap_to_shorts(sequence: bytes, colormap: ColorMap) -> list:
     return [(colormap[byte1 + byte2 * 256]) for byte1, byte2 in zip(sequence[::2], sequence[1::2])]
 
 def remove_colormap_to_shorts(list_: list, colormap: ColorMap) -> bytes:
-    return b"".join(int.to_bytes(colormap.inversed[element], length=2, byteorder="little") for element in list_)
+    return b"".join(int.to_bytes(colormap.inversed[element[:3]], length=2, byteorder="little") for element in list_)
 
 
 mstr_colormap = load_colormap(mstr_colormap_filepath)
