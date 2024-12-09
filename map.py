@@ -6,6 +6,7 @@ from scripts.const import map_const, section_names
 from scripts.flags import sequence_to_flags, flags_to_sequence
 from scripts.image import bytes_to_image, shorts_to_image, bits_to_image, rgb_to_image, \
                           image_to_bytes, image_to_shorts, image_to_bits, image_to_rgb
+from scripts.report import Report
 
 from sections.biomes import derive_biomes
 from sections.pathfinder_blockers import pathfinder_blockers_area_shifted
@@ -51,16 +52,36 @@ class Map:
 
     # ==================================== updaters ====================================
 
-    def update_all(self, *, exclude_continents=False):
-        if not exclude_continents: self.update_continents()
+    def update_all(self, *, exclude_continents=False, report: Report = None):
+        if report is None: report = Report(muted=True)
+        if not exclude_continents:
+            report.report("Updating continents.")
+            self.update_continents()
+
+        report.report("Updating summary.")
         self.update_summary()
+
+        report.report("Updating exploration.")
         self.update_exploration()
+
+        report.report("Updating light.")
         self.update_light()
+
+        report.report("Updating structures.")
         self.update_structures()
+
+        report.report("Updating biomes.")
         self.update_biomes()
-        self.update_ground_set_flags()
+
+        report.report("Updating ground set flags.")
+        self.update_ground_set_flags(pre_sectors_update=True, report=report)
+
+        report.report("Updating sectors.")
         self.update_sectors()
-        self.update_ground_set_flags(post_sectors_update=True)
+
+        self.update_ground_set_flags(post_sectors_update=True, report=report)
+
+        report.report("Map updates are finished.")
 
     def update_summary(self):
         self.smmw = update_summary(self.map_width, self.map_height)
@@ -80,28 +101,45 @@ class Map:
     def update_biomes(self):
         self.mbio = derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
 
-    def update_ground_set_flags(self, post_sectors_update=False):
+    def update_ground_set_flags(self, post_sectors_update=False, pre_sectors_update=False, report: Report = None):
+        if report is None: report = Report(muted=True)
 
         if post_sectors_update:
+            report.report("Updating ground set flag sectors data.")
             mgfs_flags = sequence_to_flags(self.mgfs)
             mgfs_flags[3] = sectors_flag(self.xsec, self.map_width, self.map_height)
             self.mgfs = flags_to_sequence(mgfs_flags)
 
         else:
-            mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
+
+            if pre_sectors_update:
+                report.report("Updating ground set flag sectors data.")
+                mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
+
+            report.report("Updating ground set flag unused data.")
             mgfs_flags_4 = "0" * (self.map_width * self.map_height)
+
+            report.report("Updating ground set flag landscapes' ExtendedArea.")
             mgfs_flags_5 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")
+
+            report.report("Updating ground set flag in-land vertices.")
             mgfs_flags_6 = inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
+
+            report.report("Updating ground set flag landscapes' BaseArea.")
             mgfs_flags_7 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
 
+            report.report("Updating ground set flag connections (backslash direction).")
             mgfs_flags_0 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
                                                             self.map_width, self.map_height, flag_index=0)
 
+            report.report("Updating ground set flag connections (forward slash direction).")
             mgfs_flags_1 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
                                                             self.map_width, self.map_height, flag_index=1)
 
+            report.report("Updating ground set flag connections (horizontal direction).")
             mgfs_flags_2 = pathfinder_blockers_area_shifted(mgfs_flags_7, self.mepa, self.mepb, self.mhei,
                                                             self.map_width, self.map_height, flag_index=2)
+
             self.mgfs = flags_to_sequence([mgfs_flags_0, mgfs_flags_1, mgfs_flags_2, mgfs_flags_3,
                                            mgfs_flags_4, mgfs_flags_5, mgfs_flags_6, mgfs_flags_7])
 
@@ -254,8 +292,11 @@ class Map:
         with open(filename, "wb") as file:
             file.write(bytes(buffer))
 
-    def pack(self, directory: str):
+    def pack(self, directory: str, report: bool = False):
 
+        report = Report(muted=not report)
+
+        report.report("Reading input files.")
         self.mhei, width = image_to_bytes(os.path.join(directory, "heightmap.png"), get_width=True)
         self.mepa, self.mepb = split_mep(image_to_shorts(os.path.join(directory, "terrain.png"), colormap=mep_colormap))
 
@@ -271,12 +312,13 @@ class Map:
                 assert key not in self.llan.keys()
                 self.llan[key] = entries[2].strip("\"")
 
+        report.report("Updating continents.")
         self.update_continents()
 
         self.mstr = rgb_to_structures(image_to_rgb(os.path.join(directory, "structures.png")),
                                       self.mco2, self.xcot, self.map_width, self.map_height)
 
-        self.update_all(exclude_continents=True)
+        self.update_all(exclude_continents=True, report=report)
 
     def extract(self, directory: str, expand=False):
 
