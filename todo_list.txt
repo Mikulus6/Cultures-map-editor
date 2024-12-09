@@ -1,9 +1,63 @@
-1. Create interpolation algorithm that for given 'mepa' + 'mepb' pair of sections would fix as many transition triangles
-   as possible to make terrain look smooth as in original maps.
+(A) ===== Game-extraction related tasks =====
 
-2. Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and ExtendedArea
-   values from later modified landscapes.)
-    - This is not a programming challenge, but a research-like one.
+1a. Document in-game meaning of all entries from '*.cif' / '*.ini' files responsible for maps content.
+    (Some possible entries might not be present anywhere, all of them probably are stored as strings in *.exe file.)
+    Categories of entries necessary to document:
+        - animals                           - buildings
+        - units (+ jobs)                    - tribes
+        - mission results                   - mission goals
+        - 'Control' parameters              - ai conditions and actions
+        - remaining 'StartUp' parameters    - remaining 'Mission' parameters
+        *- all remaining useful information not mentioned here
 
-3. Document in-game meaning of all entries from '*.cif' / '*.ini' files responsible for maps content.
-    - Some possible entries might not be present anywhere, all of them probably are stored as strings in *.exe file.
+2a. (Bonus Task) Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and
+    ExtendedArea values from later modified landscapes.)-> This is not a programming challenge, but a research-like one.
+
+
+
+(B) ===== Repository related tasks =====
+
+1b. Write proper README.md file for github repository.
+2b. Write additional comments in code as a form of documentation.
+3b. If necessary, write '*.tex' file with technical documentation that would be too broad for comments in code.
+4b. Decide which licence we want to use after making repo public.
+
+
+
+(C) ===== Editor related tasks =====
+
+1c. Turn all previously written code into nicely portable package. (It might be very useful to use instead of file input
+    and output some objects of type 'bytes' so it wouldn't be necessary to save and immediately load some data).
+    This point might be relevant if we want to separate editor-related code from direct-map-edition code.
+
+2c. Decide on engine/library to write a fully functional editor. (This engine must support packages import from python
+    to make it compatible with already exisiting code). Proposition: OpenGL + Pygame
+
+3c. Finish code responsible for reading and displaying '*.bmd' files.
+    - Code for that is available on our Discord server from different project.
+    - There are some values in header with unknown meaning -> those meanings should be discovered
+    - '*.pcx' palettes should be applicable on raw bmd frames.
+    (This is necessary for landscapes' and static objects' display)
+
+4c. Program following features regarding pseudo-3D graphics render:
+    - Displaying landscapes/units/animals based on '*.bmd' and '*.pcx' files (Some of them are animated).
+    - Displaying terrain patterns based on patterndefs_normal.ini file and 'data_v\ve_graphics\textures1' folder.
+        - 'APixelCoords' and 'BPixelCoords' are responsible for determining triangle texture corners for display.
+        - 'Transition' and 'TransitionDef' sections are responsible for determining corners of thin rhombuses which are
+          meant to be drawn on edges between triangles in six possible configurations
+          (hence 36 values - 3 corners of trianges on 2d plane each in 6 possible configuations).
+    - Displaying overlay textures for 'mstr' section (road / water / snow)
+    - Applying shadow/light mask for textures accordingly to values stored in 'mlig' section.
+    - Stretching terrain and overlay texutres to be displayed accordingly to heightmap.
+    - Changing perspective and zooming in/out as in game with camera.
+
+5c. Write function that would convert building-related landscapes into plain text with proper '*.ini' syntax containing
+    same buildings but stored as 'real' buildings not as landscapes. This way it won't be necessary to program editing
+    buildings on its own for '*.ini' files.
+
+6c. Write function that would generate heightmap and terrain based on generic image similar to those present in
+    'Editor/Premaps' folder in newer Cultures games.
+
+(D) ===== The end =====
+
+1d. Use created tools to make actuall Cultures 1 Fan-Made map :)
