@@ -115,6 +115,8 @@ class Map:
             if pre_sectors_update:
                 report.report("Updating ground set flag sectors data.")
                 mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
+            else:
+                mgfs_flags_3 = sequence_to_flags(self.mgfs)[3]
 
             report.report("Updating ground set flag unused data.")
             mgfs_flags_4 = "0" * (self.map_width * self.map_height)
@@ -215,8 +217,9 @@ class Map:
 
     # =================================== load & save ===================================
 
-    def load(self, sequence: bytes):
-        buffer = BufferGiver(sequence)
+    def load(self, filename: str):
+        with open(filename, 'rb') as file:
+            buffer = BufferGiver(file.read())
 
         self.map_version = buffer.unsigned(2)  # noqa: E221
         self.map_width   = buffer.unsigned(2)  # noqa: E221

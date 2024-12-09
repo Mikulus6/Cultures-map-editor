@@ -15,20 +15,19 @@ for item in os.listdir(directory_input):
     directory = os.path.join(directory_output, os.path.splitext(item)[0])
     print(item)
 
-    with open(path, "rb") as file:
-        try:
-            map_object = Map()
-            map_object.load(file.read())
-            map_object.extract(directory)
-            map_object._extract_to_raw_data(os.path.join(directory, "raw"))
-            del map_object
+    try:
+        map_object = Map()
+        map_object.load(directory)
+        map_object.extract(directory)
+        map_object._extract_to_raw_data(os.path.join(directory, "raw"))
+        del map_object
 
-            map_object_new = Map()
-            map_object_new.pack(directory)
-            map_object_new._extract_to_raw_data(os.path.join(directory, "raw2"))
-            del map_object_new
+        map_object_new = Map()
+        map_object_new.pack(directory)
+        map_object_new._extract_to_raw_data(os.path.join(directory, "raw2"))
+        del map_object_new
 
-            # compare 'raw' and 'raw2' folders to vertify the correctness of derivations.
+        # compare 'raw' and 'raw2' folders to vertify the correctness of derivations.
 
-        except NotImplementedError:
-            print("*not implemented*")
+    except NotImplementedError:
+        print("*not implemented*")
