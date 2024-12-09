@@ -17,7 +17,7 @@ for item in os.listdir(directory_input):
 
     try:
         map_object = Map()
-        map_object.load(directory)
+        map_object.load(path)
         map_object.extract(directory)
         map_object._extract_to_raw_data(os.path.join(directory, "raw"))
         del map_object
