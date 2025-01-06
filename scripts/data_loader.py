@@ -1,10 +1,13 @@
 import os
 
-data_directory = "data"
+from supplements.library import Library, separator
+from supplements.initialization import decode
+
 data_encoding = "cp1252"
 
-landscapedefs_path = "landscapedefs.ini"
-patterndefs_path = "patterndefs_normal.ini"
+backup_library_path_data_v = "data_l/data_v.lib"
+landscapedefs_path = "data_v/ve_graphics/landscape/landscapedefs.ini"
+patterndefs_path = "data_v/ve_graphics/pattern1/patterndefs_normal.ini"
 
 def line_split(line_: str):
     list_ = [""]
@@ -27,18 +30,20 @@ def line_split(line_: str):
 
     return list_
 
-def load_ini_as_sections(filepath: str) -> list:
+def load_ini_as_sections(filepath: str, backup_library_path: str = "") -> list:
     data_list = []
-    with open(filepath, encoding=data_encoding) as file:
-        for line in file.readlines():
-            line = line_split(line)
-            if len(line) == 0:
-                continue
-            if line[0][0] == "[" and line[0][-1] == "]":  # header
-                header = line[0][1:-1]
-                data_list.append([header, list()])
-            else:                                         # entry
-                data_list[-1][1].append(line)
+
+    ini_string = load_ini(filepath, backup_library_path)
+
+    for line in ini_string.split("\n"):
+        if len(line) == 0:
+            continue
+        line = line_split(line)
+        if line[0][0] == "[" and line[0][-1] == "]":  # header
+            header = line[0][1:-1]
+            data_list.append([header, list()])
+        else:                                         # entry
+            data_list[-1][1].append(line)
     return data_list
 
 def filter_section_by_name(data_list, allowed_section_names=tuple()):
@@ -75,33 +80,69 @@ def list_to_dict_by_global_key(data_list, global_key):
         data_dict[global_key(section)] = section
     return data_dict
 
-def load_ini_as_dict(filename, allowed_section_names, entries_duplicated, global_key, merge_duplicates) -> dict:
-    data_list = load_ini_as_sections(filename)
+def load_ini_as_dict(filename, backup_library_path, allowed_section_names,
+                     entries_duplicated, global_key, merge_duplicates) -> dict:
+    data_list = load_ini_as_sections(filename, backup_library_path)
     data_list = filter_section_by_name(data_list, allowed_section_names)
     data_list = merge_entries_to_dicts(data_list, entries_duplicated, merge_duplicates)
     return list_to_dict_by_global_key(data_list, global_key)
 
-landscapedefs = load_ini_as_dict(os.path.join(data_directory, landscapedefs_path),
+def load_ini(filepath: str, backup_lib_filepath: str):
+    filepath            = filepath.replace("/", separator)
+    backup_lib_filepath = backup_lib_filepath.replace("/", separator)
+
+    try:
+        with open(filepath, "r", encoding=data_encoding) as file:
+            return file.read()
+    except FileNotFoundError:
+        pass
+
+    try:
+        with open(filepath[:-3]+"cif", "rb") as file:
+            return decode(file.read(), tab_sal_file_format=False)
+    except FileNotFoundError:
+        pass
+
+    print((filepath[:-3]+"cif").replace(os.sep, separator))
+    library = Library()
+    library.load(backup_lib_filepath, cultures_1=True)
+
+    try:
+        return str(library[filepath.replace(os.sep, separator)], encoding=data_encoding)
+    except KeyError:
+        pass
+
+    try:
+        return decode(library[(filepath[:-3]+"cif").replace(os.sep, separator)], tab_sal_file_format=False)
+    except KeyError:
+        raise FileNotFoundError
+
+
+landscapedefs = load_ini_as_dict(landscapedefs_path,
+                                 backup_library_path_data_v,
                                  allowed_section_names=("LandscapeElement",),
                                  entries_duplicated=("BaseArea", "ExtendedArea", "SpecialArea",
                                                      "AddNextLandscape", "FlagSet"),
                                  global_key = lambda x: x.get("Name"),
                                  merge_duplicates=False)
 
-patterndefs_normal = load_ini_as_dict(os.path.join(data_directory, patterndefs_path),
+patterndefs_normal = load_ini_as_dict(patterndefs_path,
+                                      backup_library_path_data_v,
                                       allowed_section_names=("PatternDef",),
                                       entries_duplicated=("GroundFlagSet", ),
                                       global_key = lambda x: x.get("Id") + x.get("SetId") * 256,
                                       merge_duplicates=True)
 
-transitions = load_ini_as_dict(os.path.join(data_directory, patterndefs_path),
+transitions = load_ini_as_dict(patterndefs_path,
+                               backup_library_path_data_v,
                                allowed_section_names=("Transition",),
                                entries_duplicated=tuple(),
                                global_key = lambda x: x.get("Name"),
                                merge_duplicates=False)
 
-transition_defs = load_ini_as_dict(os.path.join(data_directory, patterndefs_path),
-                               allowed_section_names=("TransitionDef",),
-                               entries_duplicated=tuple(),
-                               global_key = lambda x: x.get("Name"),
-                               merge_duplicates=False)
+transition_defs = load_ini_as_dict(patterndefs_path,
+                                   backup_library_path_data_v,
+                                   allowed_section_names=("TransitionDef",),
+                                   entries_duplicated=tuple(),
+                                   global_key = lambda x: x.get("Name"),
+                                   merge_duplicates=False)

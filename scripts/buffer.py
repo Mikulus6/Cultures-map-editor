@@ -12,7 +12,7 @@ class BufferGiver(bytes):
         self.offset = 0
 
     def __repr__(self):
-        return str(self.sequence[self.offset:])
+        return str(self.sequence[self.offset:], encoding=_encoding)
 
     def __str__(self):
         return self.__repr__()
@@ -56,7 +56,7 @@ class BufferTaker(bytes):
         self.sequence = b""
 
     def __repr__(self):
-        return str(self.sequence)
+        return str(self.sequence, encoding=_encoding)
 
     def __str__(self):
         return self.__repr__()

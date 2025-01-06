@@ -1,5 +1,4 @@
 import os
-import conversions  # noqa
 from map import Map  # <-- The important file
 
 # Following directories should be created manually
