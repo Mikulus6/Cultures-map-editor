@@ -3,6 +3,9 @@ from scripts.buffer import BufferGiver, BufferTaker
 _bits_per_byte = 8
 
 
+warp_sign = lambda value, bits: ((value+(2**(bits-1))) % (2**bits))-(2**(bits-1))
+
+
 def sequence_to_flags(sequence: bytes, *, bytes_per_entry=1) -> list[str]:
     assert len(sequence) % bytes_per_entry == 0
     buffer = BufferGiver(sequence)

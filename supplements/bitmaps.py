@@ -1,175 +1,176 @@
-import itertools
-import sys
-
-# TODO: this file requires refactorization, it is quite messy. (+ Font files should be implemented too)
+import os
+import numpy as np
+from PIL import Image
+from scripts.buffer import BufferGiver
+from scripts.flags import warp_sign
 
 alpha_index = -1
-
-def bytes_buffer(bytes_obj):
-    for byte in bytes_obj:
-        yield byte
-
-def bytes_to_bits_string(bytes_obj):
-    string = str(bin(bytes_to_int(bytes_obj)))[2:]
-    return "0"*(8*len(bytes_obj) - len(string)) + string
-
-nexts = lambda iterable, var: bytes(list(itertools.islice(iterable, var)))                       # noqa: E731
-bytes_to_int = lambda bytes_obj: int.from_bytes(bytes_obj, byteorder="little")                   # noqa: E731
-int_to_signed = lambda value, length: ((value+(2**(length-1))) % (2**length))-(2**(length-1))    # noqa: E731
-bytes_to_list_of_ints = lambda bytes_obj: [byte for byte in bytes_obj]                           # noqa: E731
-
-def get_bytes_gen(bytes_obj):
-    buffer = bytes_buffer(bytes_obj)
-
-    def gen_bytes(n):
-        return nexts(buffer, n)
-    return gen_bytes
+shadow_alpha_value = 128
 
 
 class Frame:
-    def __init__(self, f_type, offset, data):
-        self.type = f_type
-        self.offset = offset
+    def __init__(self, frame_type, rect, data: list):
+        self.frame_type = frame_type
+        self.rect = rect
         self.data = data
 
+    def extract(self, filepath: str):
 
-def read_bmd_file(file_path):
-    with open(file_path, "rb") as bmd_file:
-        bytes_gen_file = get_bytes_gen(bmd_file.read())
+        if tuple(self.rect[:2]) == (0, 0):
+            raise NotImplementedError  # Cannot export image with size 0 x 0.
 
-    file_id      =              bytes_gen_file(4)   # noqa: E222 E221
-    unknown_1    = bytes_to_int(bytes_gen_file(4))  # noqa: E222 E221
-    num_frames   = bytes_to_int(bytes_gen_file(4))  # noqa: E222 E221
-    num_pixels   = bytes_to_int(bytes_gen_file(4))  # noqa: E222 E221
-    num_rows     = bytes_to_int(bytes_gen_file(4))  # noqa: E222 E221
-    num_rows_dup = bytes_to_int(bytes_gen_file(4))  # noqa: E222 E221
-    unknown_2 =                 bytes_gen_file(8)   # noqa
+        array = np.zeros((self.rect[1], self.rect[0], 4), dtype=np.uint8)
+        for y, row in enumerate(self.data):
+            for x, (value, alpha) in enumerate(row):
+                array[y, x] = (value, value, value, alpha)
+        img = Image.fromarray(array, 'RGBA')
+        img.save(filepath)
 
-    assert file_id == b'\x19\x00\x00\x00'
-    assert num_rows == num_rows_dup
 
-    counted_rows = 0
-    counted_pixels = 0
+class BitmapData(dict):
+    def __init__(self):
+        super().__init__()
 
-    frames_dict = dict()
+    def load(self, filename: str):
 
-    if num_frames == 0:
-        return frames_dict
+        with open(filename, "rb") as file:
+            buffer =  BufferGiver(file.read())
 
-    sections = []
+        assert buffer.unsigned(length=4) == 25
+        buffer.unsigned(4)
+        number_of_frames = buffer.unsigned(4)
+        number_of_pixels = buffer.unsigned(4)
+        number_of_rows = buffer.unsigned(4)
+        assert number_of_rows == buffer.unsigned(4)
+        buffer.unsigned(length=8)
 
-    for _ in range(3):
-        section_id     =              bytes_gen_file(4)               # noqa: E222 E221
-        section_length = bytes_to_int(bytes_gen_file(4))              # noqa: E222 E221
-        section_bytes  =              bytes_gen_file(section_length)  # noqa: E222 E221
+        if number_of_frames == 0:
+            return
 
-        assert section_id == b'\n\x00\x00\x00'
+        number_of_pixels_counted = 0
+        number_of_rows_counted = 0
+        ignore_global_assertions = False
 
-        sections.append(section_bytes)
-    else:
-        assert len(bytes_gen_file(sys.maxsize)) == 0
+        sections = []
 
-    section_1 = sections[0]
-    section_2 = sections[1]
-    section_3 = sections[2]
+        for _ in range(3):
+            assert buffer.unsigned(length=4) == 10
+            sections.append(buffer.bytes(buffer.unsigned(length=4)))
 
-    del sections, bytes_gen_file
+        assert len(sections[0]) == number_of_frames * 28
 
-    assert len(section_1) == num_frames*28
+        buffer_section_0 = BufferGiver(sections[0])
 
-    bytes_gen_section_1 = get_bytes_gen(section_1)
+        for frame_index in range(number_of_frames):
 
-    for frame_index in range(num_frames):
-        frame_type       =               bytes_to_int(bytes_gen_section_1(4))       # noqa: E222 E221
-        offset_x         = int_to_signed(bytes_to_int(bytes_gen_section_1(4)), 32)  # noqa: E222 E221
-        offset_y         = int_to_signed(bytes_to_int(bytes_gen_section_1(4)), 32)  # noqa: E222 E221
-        width            =               bytes_to_int(bytes_gen_section_1(4))       # noqa: E222 E221
-        length           =               bytes_to_int(bytes_gen_section_1(4))       # noqa: E222 E221
-        offset_section_3 =               bytes_to_int(bytes_gen_section_1(4))       # noqa: E222 E221
-        unknown_3        =               bytes_gen_section_1(4)
-        assert frame_type in range(5)
+            frame_type = buffer_section_0.unsigned(length=4)
+            offset_x = buffer_section_0.signed(length=4)
+            offset_y = buffer_section_0.signed(length=4)
+            width = buffer_section_0.unsigned(length=4)
+            height = buffer_section_0.unsigned(length=4)
 
-        bytes_gen_section_3_offset = get_bytes_gen(section_3[offset_section_3 * 4:])
+            assert frame_type in range(5)
+            assert frame_type != 0 or (width == height == 0)
 
-        frame = []
-        row = []
-        row_to_add = []
+            buffer_section_2 = BufferGiver(sections[2])
+            buffer_section_2.skip(buffer_section_0.unsigned(length=4) * 4)
+            buffer_section_0.unsigned(length=4)
 
-        for _ in range(length):
-            frame_row = bytes_to_bits_string(bytes_gen_section_3_offset(4))
+            frame_data = []
+            ignore_assertions = False
 
-            indent =           int_to_signed(int(frame_row[:10], 2), 10)  # noqa: E222 E221
-            offset_section_2 =               int(frame_row[10:], 2)       # noqa: E222 E221
+            for _ in range(height):
 
-            bytes_gen_section_2_offset = get_bytes_gen(section_2[offset_section_2:])
+                row = []
 
-            match frame_type:
-                case 0: raise ValueError
-                case 1: row = [alpha_index] * indent
-                case 2: row = [alpha_index] * indent
-                case 3: row = [alpha_index] * indent
-                case 4: row = [alpha_index, 0] * indent
+                row_header = buffer_section_2.binary(length=4, byteorder="little")
+                indent = warp_sign(int(row_header[:10], 2), 10)
 
-            while True:
-                head = int_to_signed(bytes_to_int(bytes_gen_section_2_offset(1)), 8)
-
-                if indent != -1:
-                    counted_pixels += 1
-
-                if head > 0:
+                if indent == -1:
                     match frame_type:
-                        case 0: raise ValueError
-                        case 1: row_to_add = bytes_to_list_of_ints(bytes_gen_section_2_offset(head))
-                        case 2: row_to_add = [0] * head
-                        case 3: row_to_add = [bytes_to_int(bytes_gen_section_2_offset(1))] * head
-                        case 4: row_to_add = bytes_to_list_of_ints(bytes_gen_section_2_offset(head * 2))
+                        case 1: row = [alpha_index] * width
+                        case 2: row = [alpha_index] * width
+                        case 3: row = [alpha_index] * width
+                        case 4: row = [alpha_index, 0] * width
+                    head = 0
 
-                    match frame_type:
-                        case 0: raise ValueError
-                        case 1: counted_pixels += len(row_to_add)
-                        case 2: counted_pixels += 0
-                        case 3: counted_pixels += 1
-                        case 4: counted_pixels += len(row_to_add)
-
-                elif head < 0:
-                    head += 128
-                    match frame_type:
-                        case 0: raise ValueError
-                        case 1: row_to_add = [alpha_index] * head
-                        case 2: row_to_add = [alpha_index] * head
-                        case 3: raise NotImplementedError  # TODO: implement this type of frame
-                        case 4: row_to_add = [alpha_index, 0] * head
                 else:
                     match frame_type:
-                        case 0: raise ValueError
-                        case 1: row_to_add = [alpha_index] * (width - len(row))
-                        case 2: row_to_add = [alpha_index] * (width - len(row))
-                        case 3: row_to_add = [alpha_index] * (width - len(row))
-                        case 4: row_to_add = [alpha_index, 0] * (width - len(row) // 2)
+                        case 1: row = [alpha_index] * indent
+                        case 2: row = [alpha_index] * indent
+                        case 3: row = [alpha_index] * indent
+                        case 4: row = [alpha_index, 0] * indent
 
-                row += row_to_add
+                    buffer_section_1 = BufferGiver(sections[1])
+                    buffer_section_1.skip(int(row_header[10:], 2))
+                    head = -1  # This value can be anything else than zero.
 
-                if head == 0:
-                    break
 
-            match frame_type:
-                case 0: raise ValueError
-                case 1: row = [(color, 255) if color != alpha_index else (0, 0) for color in row]
-                case 2: row = [(0, 128) if color != alpha_index else (0, 0) for color in row]
-                case 3: row = [(0, alpha) if alpha not in (alpha_index, 255) else (0, 0) for alpha in row]
-                case 4: row = [(row[i] if row[i] != alpha_index else 0, row[i + 1]) for i in range(0, len(row), 2)]
+                while head != 0:
+                    head = buffer_section_1.signed(length=1)  # noqa
 
-            assert len(row) == width
-            assert all(map(lambda pixel: isinstance(pixel, tuple) and len(pixel) == 2 and
-                           all(map(lambda var: 0 <= var <= 255, pixel)), row))
+                    if indent != -1:
+                        number_of_pixels_counted += 1
 
-            frame.append(row)
-            counted_rows += 1
+                    if head > 0:
+                        match frame_type:
+                            case 1: row_to_add = buffer_section_1.iterable(length=head)
+                            case 2: row_to_add = [0] * head
+                            case 3: row_to_add = buffer_section_1.iterable(length=1) * head
+                            case 4: row_to_add = buffer_section_1.iterable(length=head * 2)
 
-        frames_dict[frame_index] = Frame(frame_type, (offset_x, offset_y), frame)
+                        match frame_type:
+                            case 1: number_of_pixels_counted += head
+                            case 2: number_of_pixels_counted += 0
+                            case 3: number_of_pixels_counted += 1
+                            case 4: number_of_pixels_counted += head * 2
 
-    assert num_rows == counted_rows
-    assert num_pixels == counted_pixels
-    assert num_frames == len(frames_dict)
+                    elif head < 0:
+                        head += 128
+                        match frame_type:
+                            case 1: row_to_add = [alpha_index] * head
+                            case 2: row_to_add = [alpha_index] * head
+                            case 3: row_to_add = [alpha_index] * head ;\
+                                    ignore_assertions = True          ;\
+                                    ignore_global_assertions = True   # uncertain line
+                            case 4: row_to_add = [alpha_index, 0] * head
+                    else:
+                        match frame_type:
+                            case 1: row_to_add = [alpha_index] * (width - len(row))
+                            case 2: row_to_add = [alpha_index] * (width - len(row))
+                            case 3: row_to_add = [alpha_index] * (width - len(row))
+                            case 4: row_to_add = [alpha_index, 0] * (width - len(row) // 2)
 
-    return frames_dict
+                    row += row_to_add  # noqa
+
+                match frame_type:
+                    case 1: row = [(color, 255) if color != alpha_index else (0, 0) for color in row]
+                    case 2: row = [(0, shadow_alpha_value) if color != alpha_index else (0, 0) for color in row]
+                    case 3: row = [(alpha, 255) if alpha not in (alpha_index, 255) else (0, 0) for alpha in row]
+                    case 4: row = [(row[i] if row[i] != alpha_index else 0, row[i + 1]) for i in range(0, len(row), 2)]
+
+                if not ignore_assertions:
+                    assert len(row) == width
+
+                assert all(map(lambda pixel: isinstance(pixel, tuple) and len(pixel) == 2 and
+                                             all(map(lambda var: 0 <= var <= 255, pixel)), row))
+
+                frame_data.append(row)
+                number_of_rows_counted += 1
+
+            self[frame_index] = Frame(frame_type=frame_type,
+                                      rect=(width, height, offset_x, offset_y),
+                                      data=frame_data)
+
+        if not ignore_global_assertions:
+            assert number_of_pixels == number_of_pixels_counted
+            assert number_of_rows == number_of_rows_counted
+
+    def extract(self, directory: str, extension: str = "png"):
+        os.makedirs(directory, exist_ok=True)
+
+        for frame_index, frame in self.items():
+            try:
+                frame.extract(os.path.join(directory, f"{frame_index}.{extension}"))
+            except NotImplementedError:
+                pass
