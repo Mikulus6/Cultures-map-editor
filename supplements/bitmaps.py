@@ -2,6 +2,7 @@ import os
 import numpy as np
 from PIL import Image
 from scripts.buffer import BufferGiver
+from scripts.colormap import ColorMap
 from scripts.flags import warp_sign
 
 alpha_index = -1
@@ -14,7 +15,7 @@ class Frame:
         self.rect = rect
         self.data = data
 
-    def extract(self, filepath: str):
+    def extract(self, filepath: str, *, remaptable: ColorMap = None):
 
         if tuple(self.rect[:2]) == (0, 0):
             raise NotImplementedError  # Cannot export image with size 0 x 0.
@@ -22,7 +23,10 @@ class Frame:
         array = np.zeros((self.rect[1], self.rect[0], 4), dtype=np.uint8)
         for y, row in enumerate(self.data):
             for x, (value, alpha) in enumerate(row):
-                array[y, x] = (value, value, value, alpha)
+                if remaptable is None:
+                    array[y, x] = (value, value, value, alpha)
+                else:
+                    array[y, x] = (*remaptable[value], alpha)
         img = Image.fromarray(array, 'RGBA')
         img.save(filepath)
 
