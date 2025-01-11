@@ -7,7 +7,7 @@ from scripts.image import bits_difference_to_image
 
 # Letter case might be incorrect in original maps.
 landscapedefs_lowercase = dict()
-for key, value in list(landscapedefs.items()):
+for key, value in landscapedefs.items():
     assert key == key.lower() or key.lower() not in landscapedefs.keys()
     landscapedefs_lowercase[key.lower()] = value
 del key, value
