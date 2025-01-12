@@ -1,5 +1,5 @@
 from PIL import Image
-from scripts.colormap import apply_colormap_to_shorts, remove_colormap_to_shorts, ColorMap
+from scripts.colormap import apply_colormap_to_shorts, remove_colormap_from_shorts, ColorMap
 from scripts.expansions import expand_image
 
 
@@ -72,7 +72,7 @@ def image_to_bytes(filename: str, get_width=False):
 
 def image_to_shorts(filename: str, colormap: ColorMap = None) -> bytes:
     if colormap is not None:
-        return remove_colormap_to_shorts(list(Image.open(filename).getdata()), colormap)
+        return remove_colormap_from_shorts(list(Image.open(filename).getdata()), colormap)
 
     shorts = []
     for r, g, b in [x[:3] for x in Image.open(filename).getdata()]:

@@ -1,5 +1,5 @@
 from typing import Literal
-_encoding = "cp1252"
+data_encoding = "cp1252"
 
 
 class BufferGiver(bytes):
@@ -13,7 +13,7 @@ class BufferGiver(bytes):
         self.offset = 0
 
     def __repr__(self):
-        return str(self.sequence[self.offset:], encoding=_encoding)
+        return str(self.sequence[self.offset:], encoding=data_encoding)
 
     def __str__(self):
         return self.__repr__()
@@ -36,7 +36,7 @@ class BufferGiver(bytes):
         value_limit = 2 ** (self.__class__._bits_per_byte * length)
         return (self.unsigned(length) + value_limit // 2) % value_limit - value_limit // 2
 
-    def string(self, length, *, encoding=_encoding):
+    def string(self, length, *, encoding=data_encoding):
         return str(self.bytes(length), encoding=encoding)
 
     def binary(self, length, *, byteorder: Literal["big", "little"] = "big"):
@@ -60,7 +60,7 @@ class BufferTaker(bytes):
         self.sequence = b""
 
     def __repr__(self):
-        return str(self.sequence, encoding=_encoding)
+        return str(self.sequence, encoding=data_encoding)
 
     def __str__(self):
         return self.__repr__()
@@ -81,7 +81,7 @@ class BufferTaker(bytes):
         self.bytes(item.to_bytes(byteorder="little", length=length, signed=True))
 
     def string(self, item: str):
-        self.sequence += bytes(item, encoding=_encoding)
+        self.sequence += bytes(item, encoding=data_encoding)
 
     def iterable(self, item):
         for byte in item:
