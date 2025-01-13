@@ -13,7 +13,7 @@ class RemapTable:
 
     def __init__(self):
         self.bitmap = np.zeros(shape=self.__class__.bitmap_shape, dtype=np.ubyte)
-        self.palette = ColorMap(dict())
+        self.palette = ColorMap()
 
     def load(self, bytes_obj):
         buffer = BufferGiver(bytes_obj)
@@ -23,7 +23,7 @@ class RemapTable:
         assert buffer.unsigned(length=4) == 50
 
         palette_buffer = BufferGiver(buffer.bytes(length=1024))
-        self.palette = ColorMap(dict())
+        self.palette = ColorMap()
         for palette_index in range(256):
             value = palette_buffer.iterable(length=4)
             self.palette[palette_index] = tuple(value[:3][::-1])  # Channels: blue, green, red
@@ -104,7 +104,7 @@ class RemapTables:
             remaptable.load(buffer.bytes(length=1288))
             self.remaptables_data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
 
-        # RemapTable16 data stored in *.cdf file is redundant to RemapTable data stored in same file and additional
+        # RemapTable16 data stored in *.cdf file is redundant to RemapTable data stored in the same file and additional
         # metadata stored in *.cif file. It is suggested to not keep this data separately in memory.
 
     def save(self, cdf_path: str = remaptables_cdf_path):
@@ -155,6 +155,24 @@ class RemapTables:
 
     def __getitem__(self, item):
         return self.remaptables_data[item.lower()]["RemapTable"]
+
+    def __setitem__(self, key, value):
+        if isinstance(value, RemapTable):
+            self.remaptables_data[key.lower()]["RemapTable"] = value
+        elif isinstance(value, np.ndarray):
+            assert value.shape == RemapTable.bitmap_shape and value.dtype == np.ubyte
+            self.remaptables_data[key.lower()]["RemapTable"].bitmap = value
+        elif isinstance(value, ColorMap):
+            self.remaptables_data[key.lower()]["RemapTable"].palette = value
+        else:
+            raise TypeError
+
+    def __iter__(self):
+        yield from [value["RemapTable"] for value in self.remaptables_data.values()]
+
+    def __len__(self):
+        assert (length := len(self.remaptables_meta)) == len(self.remaptables_data)
+        return length
 
 
 remaptables = RemapTables()

@@ -5,9 +5,10 @@ from scripts.expansions import expand_image
 
 def get_rgb_hue_tuple(value):
     value %= 1
-    if 0 <= value < 1/3: color = 1, (value / 1/3), 0
-    elif 1/3 <= value < 2/3: color = (1 - (value - 1/3) / (1/3)), 1, ((value - 1/3) / (1/3))
-    else: color = ((value - (2/3)) / (1/3)), (1 - (value - (2/3)) / (1/3)), 1
+    kr, kg, kb = (5 + value * 6) % 6, (3 + value * 6) % 6, (1 + value * 6) % 6
+    color = (1-max((min((kr, 4 - kr, 1)), 0)),
+             1-max((min((kg, 4 - kg, 1)), 0)),
+             1-max((min((kb, 4 - kb, 1)), 0)))
     return tuple(map(lambda x: max(min(round(x * 255), 255), 0), color))
 
 

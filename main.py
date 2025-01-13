@@ -26,7 +26,7 @@ for item in os.listdir(directory_input):
         map_object_new._extract_to_raw_data(os.path.join(directory, "raw2"))
         del map_object_new
 
-        # compare 'raw' and 'raw2' folders to vertify the correctness of derivations.
+        # compare 'raw' and 'raw2' folders to verify the correctness of derivations.
 
     except NotImplementedError:
         print("*not implemented*")

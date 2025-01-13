@@ -10,7 +10,9 @@ inverse_dictionary = lambda dict_: {value: key for key, value in dict_.items()}
 
 
 class ColorMap(dict):
-    def __init__(self, dict_):
+    def __init__(self, dict_=None):
+        if dict_ is None:
+            dict_ = dict()
         super().__init__(dict_)
         assert all(map(lambda key: isinstance(key, int) and isinstance(self[key], tuple), self.keys()))
 
