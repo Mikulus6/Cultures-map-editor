@@ -1,6 +1,5 @@
 from supplements.read import read
 
-landscapedefs_path = "data_v\\ve_graphics\\landscape\\landscapedefs.cif"
 patterndefs_path   = "data_v\\ve_graphics\\pattern1\\patterndefs_normal.cif"
 
 def line_split(line_: str):
@@ -83,14 +82,6 @@ def load_ini_as_dict(filename, allowed_section_names,
     data_list = filter_section_by_name(data_list, allowed_section_names)
     data_list = merge_entries_to_dicts(data_list, entries_duplicated, merge_duplicates)
     return list_to_dict_by_global_key(data_list, global_key)
-
-
-landscapedefs = load_ini_as_dict(landscapedefs_path,
-                                 allowed_section_names=("LandscapeElement",),
-                                 entries_duplicated=("BaseArea", "ExtendedArea", "SpecialArea",
-                                                     "AddNextLandscape", "FlagSet"),
-                                 global_key = lambda x: x["Name"],
-                                 merge_duplicates=False)
 
 patterndefs_normal = load_ini_as_dict(patterndefs_path,
                                       allowed_section_names=("PatternDef",),

@@ -1,8 +1,8 @@
 import numpy as np
 from typing import Literal
-from scripts.data_loader import landscapedefs
 from scripts.flags import bool_ndarray_to_flag, sequence_to_flags
 from scripts.image import bits_difference_to_image
+from supplements.landscapedefs import landscapedefs
 
 
 # Letter case might be incorrect in original maps.

@@ -5,6 +5,8 @@ from scripts.buffer import BufferGiver, BufferTaker, data_encoding
 from scripts.colormap import ColorMap
 from scripts.data_loader import load_ini_as_dict
 
+name_max_length = 30
+
 remaptables_cdf_path = "data_v\\ve_graphics\\remaptables\\remaptables.cdf"
 remaptables_cif_path = "data_v\\ve_graphics\\remaptables\\remaptables.cif"
 
@@ -77,32 +79,30 @@ class RemapTables:
 
     def __init__(self, cif_path: str = remaptables_cif_path):
 
-        self.remaptables_data = dict()  # key: Name, values: (FileName, RemapTable)
-        self.remaptables_meta = load_ini_as_dict(cif_path, allowed_section_names=("RemapTable",),
-                                                 entries_duplicated=tuple(), global_key=lambda x: x["Name"],
-                                                 merge_duplicates=False)
+        self.data = dict()  # key: Name, values: (FileName, RemapTable)
+        self.meta = load_ini_as_dict(cif_path, allowed_section_names=("RemapTable",), entries_duplicated=tuple(),
+                                     global_key=lambda x: x["Name"], merge_duplicates=False)
 
-        self.remaptables16_meta = load_ini_as_dict(cif_path, allowed_section_names=("RemapTable16",),
-                                                   entries_duplicated=tuple(), global_key=lambda x: x["Name"],
-                                                   merge_duplicates=False)
+        self.meta_16 = load_ini_as_dict(cif_path, allowed_section_names=("RemapTable16",), entries_duplicated=tuple(),
+                                        global_key=lambda x: x["Name"], merge_duplicates=False)
 
     def load(self, cdf_path: str = remaptables_cdf_path):
         with open(cdf_path, "rb") as file:
             buffer = BufferGiver(file.read())
 
         for _ in range(buffer.unsigned(4)):
-            name_raw = buffer.bytes(length=30)
+            name_raw = buffer.bytes(length=name_max_length)
             name_length = name_raw.find(0)
 
             if name_length == -1:
-                name_length = 30
+                name_length = name_max_length
 
             name = str(name_raw[:name_length], encoding=data_encoding)
-            filename = self.remaptables_meta[name]["FileName"]
+            filename = self.meta[name]["FileName"]
 
             remaptable = RemapTable()
             remaptable.load(buffer.bytes(length=1288))
-            self.remaptables_data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
+            self.data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
 
         # RemapTable16 data stored in *.cdf file is redundant to RemapTable data stored in the same file and additional
         # metadata stored in *.cif file. It is suggested to not keep this data separately in memory.
@@ -112,40 +112,40 @@ class RemapTables:
             file.write(bytes(self))
 
     def pack(self, directory: str = os.path.dirname(remaptables_cdf_path)):
-        for name, meta in self.remaptables_meta.items():
+        for name, meta in self.meta.items():
             filename = meta["FileName"]
             remaptable = RemapTable()
             remaptable.pack(os.path.join(directory, filename))
-            self.remaptables_data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
+            self.data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
 
     def extract(self, directory: str = os.path.dirname(remaptables_cdf_path)):
-        for data in self.remaptables_data.values():
+        for data in self.data.values():
             data["RemapTable"].extract(os.path.join(directory, data["FileName"]))
 
     def clear(self):
-        self.remaptables_data.clear()
+        self.data.clear()
 
     def __bytes__(self):
         buffer_taker = BufferTaker()
-        buffer_taker.unsigned(len(self.remaptables_meta), length=4)
+        buffer_taker.unsigned(len(self.meta), length=4)
 
         sorted_remaptable_names = []
-        for name, meta in self.remaptables_meta.items():
+        for name, meta in self.meta.items():
 
-            assert len(name) <= 30
+            assert len(name) <= name_max_length
             buffer_taker.string(name)
-            buffer_taker.iterable([0] * (30 - len(name)))
+            buffer_taker.iterable([0] * (name_max_length - len(name)))
             sorted_remaptable_names.append(name)
 
-            remaptable = self.remaptables_data[name.lower()]["RemapTable"]
+            remaptable = self.data[name.lower()]["RemapTable"]
             buffer_taker.bytes(remaptable.save())
 
-        buffer_taker.unsigned(len(self.remaptables16_meta), length=4)
+        buffer_taker.unsigned(len(self.meta_16), length=4)
 
-        for name, meta in self.remaptables16_meta.items():
-            assert len(name) <= 30
+        for name, meta in self.meta_16.items():
+            assert len(name) <= name_max_length
             buffer_taker.string(name)
-            buffer_taker.iterable([0] * (30 - len(name)))
+            buffer_taker.iterable([0] * (name_max_length - len(name)))
 
             remaptable16_meta = meta["RemapTable"]
             buffer_taker.unsigned(sorted_remaptable_names.index(remaptable16_meta[0]), length=2)
@@ -154,24 +154,24 @@ class RemapTables:
         return bytes(buffer_taker)
 
     def __getitem__(self, item):
-        return self.remaptables_data[item.lower()]["RemapTable"]
+        return self.data[item.lower()]["RemapTable"]
 
     def __setitem__(self, key, value):
         if isinstance(value, RemapTable):
-            self.remaptables_data[key.lower()]["RemapTable"] = value
+            self.data[key.lower()]["RemapTable"] = value
         elif isinstance(value, np.ndarray):
             assert value.shape == RemapTable.bitmap_shape and value.dtype == np.ubyte
-            self.remaptables_data[key.lower()]["RemapTable"].bitmap = value
+            self.data[key.lower()]["RemapTable"].bitmap = value
         elif isinstance(value, ColorMap):
-            self.remaptables_data[key.lower()]["RemapTable"].palette = value
+            self.data[key.lower()]["RemapTable"].palette = value
         else:
             raise TypeError
 
     def __iter__(self):
-        yield from [value["RemapTable"] for value in self.remaptables_data.values()]
+        yield from [value["RemapTable"] for value in self.data.values()]
 
     def __len__(self):
-        assert (length := len(self.remaptables_meta)) == len(self.remaptables_data)
+        assert (length := len(self.meta)) == len(self.data)
         return length
 
 
