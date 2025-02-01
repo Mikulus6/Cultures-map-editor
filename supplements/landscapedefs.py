@@ -1,5 +1,6 @@
 from scripts.buffer import BufferGiver, data_encoding
 from scripts.data_loader import load_ini_as_dict
+from supplements.read import read
 
 name_max_length = 84
 group_name_max_length = 36
@@ -23,8 +24,7 @@ class LandscapeDefs(dict):
         self.data_groups = dict()
 
     def load_cdf(self, cdf_path: str = landscapedefs_cdf_path):
-        with open(cdf_path, "rb") as file:
-            buffer = BufferGiver(file.read())
+        buffer = BufferGiver(read(cdf_path, mode="rb"))
 
         landscapes = list()
         landscapes_add_next_data = dict()

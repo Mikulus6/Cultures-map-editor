@@ -1,27 +1,30 @@
+from io import BytesIO
 import os
 import numpy as np
 from PIL import Image
 from scripts.buffer import BufferGiver, BufferTaker, data_encoding
 from scripts.colormap import ColorMap
 from scripts.data_loader import load_ini_as_dict
+from supplements.read import read
 
 name_max_length = 30
 
+remaptable_defalut_path = "data_v\\gg_system\\palette.pcx"
 remaptables_cdf_path = "data_v\\ve_graphics\\remaptables\\remaptables.cdf"
 remaptables_cif_path = "data_v\\ve_graphics\\remaptables\\remaptables.cif"
 
 class RemapTable:
-    bitmap_shape = (16, 16)
+    bitmap_shape_default = (16, 16)
 
     def __init__(self):
-        self.bitmap = np.zeros(shape=self.__class__.bitmap_shape, dtype=np.ubyte)
+        self.bitmap = np.zeros(shape=self.__class__.bitmap_shape_default, dtype=np.ubyte)
         self.palette = ColorMap()
 
     def load(self, bytes_obj):
         buffer = BufferGiver(bytes_obj)
 
         assert buffer.unsigned(length=4) == 55
-        self.bitmap = np.array(buffer.iterable(length=256), dtype=np.ubyte).reshape(self.__class__.bitmap_shape)
+        self.bitmap = np.array(buffer.iterable(length=256), dtype=np.ubyte).reshape(self.__class__.bitmap_shape_default)
         assert buffer.unsigned(length=4) == 50
 
         palette_buffer = BufferGiver(buffer.bytes(length=1024))
@@ -40,10 +43,11 @@ class RemapTable:
             buffer_taker.iterable((*self.palette[palette_index][2::-1], 0))  # Channels: blue, green, red
         return bytes(buffer_taker)
 
-    def pack(self, filepath):
-        with Image.open(filepath) as img:
+    def pack(self, filepath, *, bitmap_shape=None):
+        with Image.open(BytesIO(read(filepath, mode="rb"))) as img:
             assert img.mode == 'P'
-            self.bitmap = np.array(img, dtype=np.ubyte).reshape(self.__class__.bitmap_shape)
+            self.bitmap = np.array(img, dtype=np.ubyte).reshape(self.__class__.bitmap_shape_default
+                                                                if bitmap_shape is None else bitmap_shape)
             self.palette = {np.ubyte(key): tuple(img.getpalette()[key*3: (key+1)*3]) for key in range(256)}
 
     def extract(self, filepath):
@@ -87,8 +91,7 @@ class RemapTables:
                                         global_key=lambda x: x["Name"], merge_duplicates=False)
 
     def load(self, cdf_path: str = remaptables_cdf_path):
-        with open(cdf_path, "rb") as file:
-            buffer = BufferGiver(file.read())
+        buffer = BufferGiver(read(cdf_path, mode="rb"))
 
         for _ in range(buffer.unsigned(4)):
             name_raw = buffer.bytes(length=name_max_length)
@@ -160,7 +163,7 @@ class RemapTables:
         if isinstance(value, RemapTable):
             self.data[key.lower()]["RemapTable"] = value
         elif isinstance(value, np.ndarray):
-            assert value.shape == RemapTable.bitmap_shape and value.dtype == np.ubyte
+            assert value.shape == RemapTable.bitmap_shape_default and value.dtype == np.ubyte
             self.data[key.lower()]["RemapTable"].bitmap = value
         elif isinstance(value, ColorMap):
             self.data[key.lower()]["RemapTable"].palette = value
@@ -174,6 +177,9 @@ class RemapTables:
         assert (length := len(self.meta)) == len(self.data)
         return length
 
+
+remaptable_default = RemapTable()
+remaptable_default.pack(remaptable_defalut_path, bitmap_shape=(4, 4))
 
 remaptables = RemapTables()
 remaptables.load()

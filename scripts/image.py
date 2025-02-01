@@ -3,6 +3,10 @@ from scripts.colormap import apply_colormap_to_shorts, remove_colormap_from_shor
 from scripts.expansions import expand_image
 
 
+def get_rgb_negative(rgb_tuple):
+    return tuple(map(lambda x: 255 - x, rgb_tuple))
+
+
 def get_rgb_hue_tuple(value):
     value %= 1
     kr, kg, kb = (5 + value * 6) % 6, (3 + value * 6) % 6, (1 + value * 6) % 6

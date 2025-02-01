@@ -22,6 +22,8 @@ def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
     """
     global loaded_libraries
 
+    filepath = filepath.lower()
+
     assert not skip_cif_check or filepath.endswith(".cif")
 
     if not (skip_file or skip_library or skip_cif_check):
