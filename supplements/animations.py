@@ -16,8 +16,11 @@ def load_animation(landscape_name) -> Animation:
     boblibs = landscape.get("BobLibs", ("", ""))
     remapname = landscape.get("RemapName", None)
 
-    if remapname is not None and landscape.get("RemapDisable", 0) == 0: remaptable = remaptables[remapname]
-    else:                                                               remaptable = None
+    # Note that remaptables are not responsible for landscapes display in-game, yet they are a good visual approximation
+    # for all landscapes.
+
+    if remapname is not None: remaptable = remaptables[remapname]
+    else:                     remaptable = None
 
     if boblibs[0] == "":
         return Animation.empty()

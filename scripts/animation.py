@@ -38,6 +38,9 @@ class Animation:
         assert isinstance(item, int) and 0 <= item < len(self.images)
         return self.images[item]
 
+    def __len__(self):
+        return len(self.images)
+
     def from_bitmap_dict(self, bitmap_dict, remaptable: RemapTable = None, shading_factor = 255,
                          first_bob = 0, elements = 1, high_color_shading_mode = 0, masked_file: bool = False):
 
