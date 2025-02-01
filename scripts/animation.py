@@ -1,4 +1,5 @@
 from PIL import Image
+from scripts.buffer import BufferGiver, BufferTaker
 from supplements.remaptables import RemapTable
 
 
@@ -40,6 +41,38 @@ class Animation:
 
     def __len__(self):
         return len(self.images)
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        return tuple(self.rect) == tuple(other.rect) and tuple(self.images) == tuple(other.images)
+
+    # Following two methods do not correspond to any binary data present in game files. This is merely a project
+    # convention for storing animations as bytes.
+
+    def __bytes__(self):
+        buffer_taker = BufferTaker()
+        for rect_element in self.rect:
+            buffer_taker.signed(rect_element, length=4)
+        buffer_taker.unsigned(len(self.images), length=4)
+        for image in self.images:
+            buffer_taker.bytes(image.tobytes())
+        return bytes(buffer_taker)
+
+    @classmethod
+    def from_bytes(cls, bytes_obj: bytes):
+        animation = cls()
+        buffer = BufferGiver(bytes_obj)
+        animation.rect = (buffer.signed(length=4),
+                          buffer.signed(length=4),
+                          buffer.signed(length=4),
+                          buffer.signed(length=4))
+        for _ in range(buffer.unsigned(length=4)):
+            animation.images.append(Image.frombytes(mode="RGBA",
+                                                    size=animation.rect[2:],
+                                                    data=buffer.bytes(animation.rect[2] * animation.rect[3] * 4)))
+        return animation
 
     def from_bitmap_dict(self, bitmap_dict, remaptable: RemapTable = None, shading_factor = 255,
                          first_bob = 0, elements = 1, high_color_shading_mode = 0, masked_file: bool = False):

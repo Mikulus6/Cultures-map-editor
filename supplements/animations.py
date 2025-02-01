@@ -1,8 +1,10 @@
 import os
+from math import ceil, log2
 from scripts.animation import Animation
+from scripts.buffer import BufferGiver, BufferTaker
 from scripts.report import Report
 from supplements.bitmaps import Bitmap
-from supplements.landscapedefs import landscapedefs
+from supplements.landscapedefs import landscapedefs, name_max_length
 from supplements.remaptables import remaptables
 
 
@@ -44,21 +46,64 @@ def load_animation(landscape_name) -> Animation:
     return animation_masked
 
 
-def load_all_animations(*, report=False) -> dict:
-    report = Report(muted=not report)
-    animations_dict = dict()
-    for name in landscapedefs.keys():
-        animations_dict[name] = load_animation(name)
-        report.report(f"Loaded landscape \"{name}\".")
-    return animations_dict
+class Animations(dict):
+    """Dictionary with animations of landscapes"""
+    initialized = False
+    cache_filepath = "cache.bin"
+    name_max_bytes = ceil(log2(name_max_length))
 
+    def __init__(self, *, report=False):
+        super().__init__(dict())
+        if self.__class__.initialized:
+            raise ValueError(f"{self.__class__.__name__} is a singleton.")
+        self.__class__.initialized = True
 
-def load_and_export_all_animations(directory: str, *, report=False) -> dict:
-    os.makedirs(directory, exist_ok=True)
-    report = Report(muted=not report)
-    animations_dict = dict()
-    for name in landscapedefs.keys():
-        animations_dict[name] = load_animation(name)
-        animations_dict[name].save(os.path.join(directory, name+".webp"))
-        report.report(f"Saved landscape \"{name}\".")
-    return animations_dict
+        # On device where this part of code was tested, loading all animations directly from *.bmd files and applying
+        # palettes takes around 15 minutes, while loading it from cache file takes around 3 seconds. Loading time is
+        # therefore improved by around 27500% by cache usage.
+
+        try:
+            self.load_cache()
+        except FileNotFoundError:
+            print("Warning: cache file not found. Animations will be extracted from game files.")
+            self.load_all_animations(report=report)
+
+    def load_all_animations(self, *, report=False) -> dict:
+        report = Report(muted=not report)
+        self.clear()
+        for name in landscapedefs.keys():
+            self[name] = load_animation(name)
+            report.report(f"Loaded landscape \"{name}\".")
+
+    def export_all_animations(self, directory: str, *, report=False) -> dict:
+        os.makedirs(directory, exist_ok=True)
+        report = Report(muted=not report)
+        for name in self.keys():
+            self[name].save(os.path.join(directory, name+".webp"))
+            report.report(f"Saved landscape \"{name}\".")
+
+    # Following two methods do not correspond to any binary data present in game files. This is merely a project
+    # convention for storing animations as bytes.
+
+    def save_cache(self):
+        buffer_taker = BufferTaker()
+        buffer_taker.unsigned(len(self), length=4)
+        for name, animation in self.items():
+            buffer_taker.unsigned(len(name), length=self.__class__.name_max_bytes)
+            buffer_taker.string(name)
+            buffer_taker.unsigned(len(bytes(animation)), length=4)
+            buffer_taker.bytes(bytes(animation))
+
+        with open(self.__class__.cache_filepath, "wb") as file:
+            file.write(bytes(buffer_taker))
+
+    def load_cache(self):
+        self.clear()
+        with open(self.__class__.cache_filepath, "rb") as file:
+            buffer = BufferGiver(file.read())
+        for _ in range(buffer.unsigned(length=4)):
+            name = buffer.string(length=buffer.unsigned(length=self.__class__.name_max_bytes))
+            animation = Animation.from_bytes(buffer.bytes(buffer.unsigned(length=4)))
+            self[name] = animation
+
+animations = Animations()

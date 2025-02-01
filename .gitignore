@@ -9,5 +9,7 @@ __pycache__/
 /data_m/
 /data_v/
 
+cache.bin
+
 /maps/
 /edit/
