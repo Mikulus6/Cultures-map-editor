@@ -33,29 +33,22 @@
 2c. Decide on engine/library to write a fully functional editor. (This engine must support packages import from python
     to make it compatible with already exisiting code). Proposition: OpenGL + Pygame
 
-3c. Finish code responsible for reading and displaying '*.bmd' files.
-    - Code for that is available on our Discord server from different project.
-    - There are some values in header with unknown meaning -> those meanings should be discovered
-    - '*.pcx' palettes should be applicable on raw bmd frames.
-    (This is necessary for landscapes' and static objects' display)
-
-4c. Program following features regarding pseudo-3D graphics render:
-    - Displaying landscapes/units/animals based on '*.bmd' and '*.pcx' files (Some of them are animated).
+3c. Program following features regarding pseudo-3D graphics render:
+    - Displaying units/animals based on '*.bmd', '*.pcx' and '*.cif'/'*.ini' files.
     - Displaying terrain patterns based on patterndefs_normal.ini file and 'data_v\ve_graphics\textures1' folder.
         - 'APixelCoords' and 'BPixelCoords' are responsible for determining triangle texture corners for display.
         - 'Transition' and 'TransitionDef' sections are responsible for determining corners of thin rhombuses which are
           meant to be drawn on edges between triangles in six possible configurations
           (hence 36 values - 3 corners of trianges on 2d plane each in 6 possible configuations).
     - Displaying overlay textures for 'mstr' section (road / water / snow)
-    - Applying shadow/light mask for textures accordingly to values stored in 'mlig' section.
     - Stretching terrain and overlay texutres to be displayed accordingly to heightmap.
     - Changing perspective and zooming in/out as in game with camera.
 
-5c. Write function that would convert building-related landscapes into plain text with proper '*.ini' syntax containing
+4c. Write function that would convert building-related landscapes into plain text with proper '*.ini' syntax containing
     same buildings but stored as 'real' buildings not as landscapes. This way it won't be necessary to program editing
     buildings on its own for '*.ini' files.
 
-6c. Write function that would generate heightmap and terrain based on generic image similar to those present in
+5c. Write function that would generate heightmap and terrain based on generic image similar to those present in
     'Editor/Premaps' folder in newer Cultures games.
 
 (D) ===== The end =====

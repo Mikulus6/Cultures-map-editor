@@ -119,3 +119,11 @@ class Animation:
     @classmethod
     def empty(cls):
         return cls(images=[Image.new("RGBA", size=(1, 1), color=(0, 0, 0, 0))], rect=(0, 0, 1, 1))
+
+    def convert_pygame(self):
+        # Note that this process is currently irreversible.
+        import pygame
+        for index_value, image in enumerate(self.images):
+            self.images[index_value] = pygame.image.frombytes(self.images[index_value].tobytes(),
+                                                              size=self.rect[2:],
+                                                              format="RGBA").convert_alpha()

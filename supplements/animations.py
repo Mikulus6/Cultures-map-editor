@@ -51,12 +51,14 @@ class Animations(dict):
     initialized = False
     cache_filepath = "cache.bin"
     name_max_bytes = ceil(log2(name_max_length))
+    pygame_converted = False
 
     def __init__(self, *, report=False):
         super().__init__(dict())
         if self.__class__.initialized:
             raise ValueError(f"{self.__class__.__name__} is a singleton.")
         self.__class__.initialized = True
+        self.__class__.pygame_converted = False
 
         # On device where this part of code was tested, loading all animations directly from *.bmd files and applying
         # palettes takes around 15 minutes, while loading it from cache file takes around 3 seconds. Loading time is
@@ -76,6 +78,10 @@ class Animations(dict):
             report.report(f"Loaded landscape \"{name}\".")
 
     def export_all_animations(self, directory: str, *, report=False) -> dict:
+
+        if self.__class__.pygame_converted:
+            raise ValueError("Animations cannot be saved after conversion to pygame.")
+
         os.makedirs(directory, exist_ok=True)
         report = Report(muted=not report)
         for name in self.keys():
@@ -86,6 +92,10 @@ class Animations(dict):
     # convention for storing animations as bytes.
 
     def save_cache(self):
+
+        if self.__class__.pygame_converted:
+            raise ValueError("Cache cannot be saved after conversion to pygame.")
+
         buffer_taker = BufferTaker()
         buffer_taker.unsigned(len(self), length=4)
         for name, animation in self.items():
@@ -105,5 +115,15 @@ class Animations(dict):
             name = buffer.string(length=buffer.unsigned(length=self.__class__.name_max_bytes))
             animation = Animation.from_bytes(buffer.bytes(buffer.unsigned(length=4)))
             self[name] = animation
+        self.__class__.pygame_converted = False
+
+    def pygame_convert(self):
+        # Note that this process is currently irreversible. It also requires pygame display to be present.
+        if self.__class__.pygame_converted:
+            return
+        for name, animation in self.items():
+            animation.convert_pygame()
+        self.__class__.pygame_converted = True
+
 
 animations = Animations()
