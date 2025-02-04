@@ -3,13 +3,13 @@ from map import Map
 from math import ceil, floor, sqrt
 from dataclasses import dataclass
 from interface.const import resolution
-from interface.interpolation import get_data_interpolated
 from time import time
 
 
 @dataclass
 class Camera:
     position: [float, float]
+    is_moving: bool = False
     triangle_width: int = 32
     triangle_height: int = 16
     height_factor: int = 1
@@ -34,12 +34,15 @@ class Camera:
         current_time = time()
         delta_time = (current_time - self.last_frame_move)
 
+        old_position = [self.position[0], self.position[1]]
+
         self.position[0] += move[0] * speed_effective * delta_time
         self.position[1] += move[1] * speed_effective * delta_time
 
-        self.last_frame_move = current_time
-
         self.warp(map_object)
+
+        self.is_moving = (old_position != self.position)
+        self.last_frame_move = current_time
 
     def warp(self, map_object: Map):
 
@@ -57,12 +60,30 @@ class Camera:
                floor(coordinates[1] - self.position[1] + (resolution[1] // 2))
 
     def point_coordinates(self, coordinates, map_object: Map):
-        x = coordinates[0] * self.triangle_width + (coordinates[1] % 2) * floor(0.5 * self.triangle_width)
-        y = coordinates[1] * self.triangle_height - self.height_factor * get_data_interpolated(coordinates,
-                                                                                               (map_object.map_width,
-                                                                                                map_object.map_height),
-                                                                                               map_object.mhei)
-        return x, y
+
+        x, y = coordinates
+
+        if (x % 2 == 0 and y % 4 == 0) or (x % 2 == 1 and y % 4 == 2):
+            x = coordinates[0] * self.triangle_width + (coordinates[1] % 2) * floor(0.5 * self.triangle_width)
+            y = coordinates[1] * self.triangle_height - self.height_factor * \
+                map_object.mhei[(coordinates[1] % map_object.map_height) * map_object.map_width // 4 +
+                                (coordinates[0] % map_object.map_width) // 2]
+            return x, y
+
+        elif (x % 2 == 1 and y % 4 == 0) or (x % 2 == 0 and y % 4 == 2):
+            vertices = [x - 1, y], [x + 1, y]
+        elif (x % 2 == 0 and y % 4 == 1) or (x % 2 == 1 and y % 4 == 3):
+            vertices = [x, y - 1], [x + 1, y + 1]
+        elif (x % 2 == 1 and y % 4 == 1) or (x % 2 == 0 and y % 4 == 3):
+            vertices = [x + 1, y - 1], [x, y + 1]
+
+        else:
+            raise IndexError  # this case should be unobtainable
+
+        x1, y1 = self.point_coordinates(vertices[0], map_object)
+        x2, y2 = self.point_coordinates(vertices[1], map_object)
+
+        return (x1 + x2) // 2, (y1 + y2) // 2
 
     def visible_range(self, map_object: Map, *, count_minor_vertices=True):
         x_range = floor((self.position[0] - (resolution[0] / 2)) / self.triangle_width)  - self.visible_margin, \

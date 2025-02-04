@@ -3,6 +3,7 @@ from map import Map
 from math import floor
 from interface.camera import Camera
 from interface.const import animation_frames_per_second, background_color, frames_per_second, resolution, window_name
+from interface.cursor import get_closest_vertex, get_touching_triange
 from interface.landscapes_light import adjust_opacity_pixels
 from interface.interpolation import get_data_interpolated
 from interface.triangles import get_major_triangle_color, get_major_triangle_corner_vertices
@@ -31,8 +32,15 @@ class Editor:
         self.map = Map()
 
         self.camera = Camera(position=[0.0, 0.0])
-        self.clock = pygame.time.Clock()
+
         self.pressed_state = pygame.key.get_pressed()
+        self.mouse_pos = pygame.mouse.get_pos()
+        self.mouse_pos_old = self.mouse_pos
+
+        self.cursor_vertex = None
+        self.cursor_triangle = None
+
+        self.clock = pygame.time.Clock()
 
     def loop(self):
         running = True
@@ -42,13 +50,16 @@ class Editor:
                 if event.type == pygame.QUIT:
                     running = False
 
-            self.pressed_state = pygame.key.get_pressed()
+            self.update_input()
 
             self.camera.move(self.pressed_state, self.map)
 
             self.draw_background()
             self.draw_terrain()
             self.draw_landscapes()
+
+            self.draw_cursor_triangle()
+            self.draw_cursor_vertex()
 
             pygame.display.flip()
             self.clock.tick(frames_per_second)
@@ -57,6 +68,17 @@ class Editor:
     def exit():
         pygame.quit()
         sys_exit()
+
+    def update_input(self):
+
+        self.pressed_state = pygame.key.get_pressed()
+        self.mouse_pos_old = self.mouse_pos
+        self.mouse_pos = pygame.mouse.get_pos()
+
+        if self.mouse_pos != self.mouse_pos_old or self.camera.is_moving:
+
+            self.cursor_vertex = get_closest_vertex(self.mouse_pos, self.camera, self.map)
+            self.cursor_triangle = get_touching_triange(self.mouse_pos, self.camera, self.map)
 
     def draw_background(self):
         self.root.fill(background_color)
@@ -95,3 +117,20 @@ class Editor:
                 pygame.draw.polygon(self.root, color, draw_corners)
 
                 triangles_on_screen += 1
+
+    def draw_cursor_vertex(self):
+        if self.cursor_vertex is not None:
+            draw_cursor_vertex = self.camera.draw_coordinates(self.cursor_vertex, self.map)
+
+            # This code is meant to mimic cursor icon present in editor from game "Cultures - Northland"
+            pygame.draw.circle(self.root, (0, 0, 0),       draw_cursor_vertex, 7, 1)
+            pygame.draw.circle(self.root, (255, 255, 255), draw_cursor_vertex, 6, 1)
+            pygame.draw.circle(self.root, (0, 0, 0),       draw_cursor_vertex, 5, 1)
+
+    def draw_cursor_triangle(self):
+        if self.cursor_triangle is not None:
+
+            draw_corners = tuple(map(lambda coords: self.camera.draw_coordinates(coords, self.map),
+                                     get_major_triangle_corner_vertices(*self.cursor_triangle)))
+
+            pygame.draw.polygon(self.root, (255, 255, 255), draw_corners, width=1)
