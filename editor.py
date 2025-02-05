@@ -8,6 +8,7 @@ from interface.landscapes_light import adjust_opacity_pixels
 from interface.interpolation import get_data_interpolated
 from interface.triangles import get_major_triangle_color, get_major_triangle_corner_vertices
 from supplements.animations import animations
+from supplements.textures import textures
 from sys import exit as sys_exit
 import time
 
@@ -26,6 +27,7 @@ class Editor:
         self.root = pygame.display.set_mode(resolution)
 
         animations.pygame_convert()
+        textures.pygame_convert()
 
         pygame.display.set_caption(window_name)
 
@@ -112,9 +114,12 @@ class Editor:
                 draw_corners = tuple(map(lambda coords: self.camera.draw_coordinates(coords, self.map), corners))
 
                 # TODO: this code is temporary. Terrain triangles must be composed of stretched textures and shading.
-                color = get_major_triangle_color(coordinates, triangle_type, self.map)
 
+                color = get_major_triangle_color(coordinates, triangle_type, self.map)
                 pygame.draw.polygon(self.root, color, draw_corners)
+
+                # texture = get_major_triangle_texture(coordinates, triangle_type, self.map)
+                # self.root.blit(texture.image, draw_corners[0])
 
                 triangles_on_screen += 1
 
@@ -122,7 +127,7 @@ class Editor:
         if self.cursor_vertex is not None:
             draw_cursor_vertex = self.camera.draw_coordinates(self.cursor_vertex, self.map)
 
-            # This code is meant to mimic cursor icon present in editor from game "Cultures - Northland"
+            # This code is meant to mimic cursor icon present in editor from game "Cultures - Northland".
             pygame.draw.circle(self.root, (0, 0, 0),       draw_cursor_vertex, 7, 1)
             pygame.draw.circle(self.root, (255, 255, 255), draw_cursor_vertex, 6, 1)
             pygame.draw.circle(self.root, (0, 0, 0),       draw_cursor_vertex, 5, 1)
