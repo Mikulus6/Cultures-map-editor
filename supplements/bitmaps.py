@@ -59,6 +59,9 @@ class Bitmap(dict):
 
     def load(self, filename: str):
 
+        # Following code written below was initially constructed in year 2013 on XeNTaX forum.
+        # Original discussion was available here: https://forum.xentax.com/viewtopic.php?t=10705
+
         buffer =  BufferGiver(read(filename, mode="rb"))
 
         assert buffer.unsigned(length=4) == 25

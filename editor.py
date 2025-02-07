@@ -2,11 +2,15 @@ import pygame
 from map import Map
 from math import floor
 from interface.camera import Camera
-from interface.const import animation_frames_per_second, background_color, frames_per_second, resolution, window_name
+from interface.const import animation_frames_per_second, background_color, frames_per_second, resolution, window_name, \
+    lru_cache_triangles_maxsize
 from interface.cursor import get_closest_vertex, get_touching_triange
 from interface.landscapes_light import adjust_opacity_pixels
 from interface.interpolation import get_data_interpolated
-from interface.triangles import get_major_triangle_color, get_major_triangle_corner_vertices
+from interface.projection import draw_projected_triangle, clear_triangle_projection_cache
+from interface.timeout import timeout_handler
+from interface.triangles import get_major_triangle_texture, get_major_triangle_corner_vertices, \
+                                get_major_triangle_light_values
 from supplements.animations import animations
 from supplements.textures import textures
 from sys import exit as sys_exit
@@ -66,6 +70,11 @@ class Editor:
             pygame.display.flip()
             self.clock.tick(frames_per_second)
 
+    def load(self, filepath):
+        self.map.load(filepath)
+        if lru_cache_triangles_maxsize is None:
+            self.cache_map_triangles()
+
     @staticmethod
     def exit():
         pygame.quit()
@@ -108,18 +117,18 @@ class Editor:
     def draw_terrain(self):
         triangles_on_screen = 0
         assert animations.__class__.pygame_converted
+
+        timeout_handler.get_camera_move_status(self.camera)
+        timeout_handler.start()
+
         for coordinates in self.camera.visible_range(self.map, count_minor_vertices=False):
             for triangle_type in ("a", "b"):
                 corners = get_major_triangle_corner_vertices(coordinates, triangle_type)
                 draw_corners = tuple(map(lambda coords: self.camera.draw_coordinates(coords, self.map), corners))
 
-                # TODO: this code is temporary. Terrain triangles must be composed of stretched textures and shading.
-
-                color = get_major_triangle_color(coordinates, triangle_type, self.map)
-                pygame.draw.polygon(self.root, color, draw_corners)
-
-                # texture = get_major_triangle_texture(coordinates, triangle_type, self.map)
-                # self.root.blit(texture.image, draw_corners[0])
+                texture = get_major_triangle_texture(coordinates, triangle_type, self.map)
+                light_values = get_major_triangle_light_values(coordinates, triangle_type, self.map)
+                draw_projected_triangle(self.root, texture, draw_corners, light_values)
 
                 triangles_on_screen += 1
 
@@ -139,3 +148,20 @@ class Editor:
                                      get_major_triangle_corner_vertices(*self.cursor_triangle)))
 
             pygame.draw.polygon(self.root, (255, 255, 255), draw_corners, width=1)
+
+    def cache_map_triangles(self):
+        clear_triangle_projection_cache()
+
+        # Warning: this method is very slow, it is not recommended to use it.
+
+        for x in range(0, self.map.map_width//2):
+            for y in range(0, self.map.map_height//2):
+                for triangle_type in ("a", "b"):
+                    corners = get_major_triangle_corner_vertices((x, y), triangle_type)
+                    draw_corners = tuple(map(lambda coords: self.camera.draw_coordinates(coords, self.map), corners))
+
+                    texture = get_major_triangle_texture((x, y), triangle_type, self.map)
+                    light_values = get_major_triangle_light_values((x, y), triangle_type, self.map)
+                    draw_projected_triangle(self.root, texture, draw_corners, light_values)
+
+        self.root.fill((0, 0, 0))

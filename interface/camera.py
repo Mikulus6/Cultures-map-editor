@@ -2,13 +2,14 @@ import pygame
 from map import Map
 from math import ceil, floor, sqrt
 from dataclasses import dataclass
-from interface.const import resolution
+from interface.const import resolution, camera_max_move_distance, camera_discretization_factor
 from time import time
 
 
 @dataclass
 class Camera:
     position: [float, float]
+    fixed_position: [int, int] = (0, 0)
     is_moving: bool = False
     triangle_width: int = 32
     triangle_height: int = 16
@@ -34,15 +35,33 @@ class Camera:
         current_time = time()
         delta_time = (current_time - self.last_frame_move)
 
-        old_position = [self.position[0], self.position[1]]
+        old_position = [self.position[0],
+                        self.position[1]]
 
-        self.position[0] += move[0] * speed_effective * delta_time
-        self.position[1] += move[1] * speed_effective * delta_time
+        move_vector = [move[0] * speed_effective * delta_time,
+                       move[1] * speed_effective * delta_time]
+        move_distance_squared = move_vector[0]**2 + move_vector[1]**2
+
+        if move_distance_squared > camera_max_move_distance ** 2:
+            move_vector[0] *= abs(camera_max_move_distance ** 2 / move_distance_squared)
+            move_vector[1] *= abs(camera_max_move_distance ** 2 / move_distance_squared)
+
+        self.position[0] += move_vector[0]
+        self.position[1] += move_vector[1]
+        self.fixed_position = self.fixed_postion_update()
 
         self.warp(map_object)
 
         self.is_moving = (old_position != self.position)
         self.last_frame_move = current_time
+
+    def fixed_postion_update(self):
+        if camera_discretization_factor == 0:
+            return self.position
+        return round(self.position[0] / (self.triangle_width * camera_discretization_factor)) * \
+                                            camera_discretization_factor * self.triangle_width, \
+               round(self.position[1] / (self.triangle_width * camera_discretization_factor)) * \
+                                            camera_discretization_factor * self.triangle_width
 
     def warp(self, map_object: Map):
 
@@ -56,8 +75,8 @@ class Camera:
 
     def draw_coordinates(self, coordinates, map_object: Map):
         coordinates = self.point_coordinates(coordinates, map_object)
-        return floor(coordinates[0] - self.position[0] + (resolution[0] // 2)), \
-               floor(coordinates[1] - self.position[1] + (resolution[1] // 2))
+        return floor(coordinates[0] - self.fixed_position[0] + (resolution[0] // 2)), \
+               floor(coordinates[1] - self.fixed_position[1] + (resolution[1] // 2))
 
     def point_coordinates(self, coordinates, map_object: Map):
 
@@ -86,10 +105,11 @@ class Camera:
         return (x1 + x2) // 2, (y1 + y2) // 2
 
     def visible_range(self, map_object: Map, *, count_minor_vertices=True):
-        x_range = floor((self.position[0] - (resolution[0] / 2)) / self.triangle_width)  - self.visible_margin, \
-                   ceil((self.position[0] + (resolution[0] / 2)) / self.triangle_width)  + self.visible_margin
-        y_range = floor((self.position[1] - (resolution[1] / 2)) / self.triangle_height) - self.visible_margin, \
-                   ceil((self.position[1] + (resolution[1] / 2)) / self.triangle_height) + self.visible_height_margin
+        x_range = floor((self.fixed_position[0] - (resolution[0] / 2)) / self.triangle_width)  - self.visible_margin, \
+                   ceil((self.fixed_position[0] + (resolution[0] / 2)) / self.triangle_width)  + self.visible_margin
+        y_range = floor((self.fixed_position[1] - (resolution[1] / 2)) / self.triangle_height) - self.visible_margin, \
+                   ceil((self.fixed_position[1] + (resolution[1] / 2)) / self.triangle_height) + \
+                                                                                              self.visible_height_margin
 
         if count_minor_vertices:
             x_range = max((0, x_range[0])), min((x_range[1], map_object.map_width))
