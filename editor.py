@@ -7,12 +7,13 @@ from interface.const import animation_frames_per_second, background_color, frame
 from interface.cursor import get_closest_vertex, get_touching_triange
 from interface.landscapes_light import adjust_opacity_pixels
 from interface.interpolation import get_data_interpolated
-from interface.projection import draw_projected_triangle, clear_triangle_projection_cache
+from interface.projection import draw_projected_triangle, clear_triangle_projection_cache, projection_report
 from interface.timeout import timeout_handler
+from interface.transitions import transitions_gen, reposition_transition_vertices, permutate_corners
 from interface.triangles import get_major_triangle_texture, get_major_triangle_corner_vertices, \
                                 get_major_triangle_light_values
 from supplements.animations import animations
-from supplements.textures import textures
+from supplements.textures import patterndefs_textures, transition_textures
 from sys import exit as sys_exit
 import time
 
@@ -31,7 +32,8 @@ class Editor:
         self.root = pygame.display.set_mode(resolution)
 
         animations.pygame_convert()
-        textures.pygame_convert()
+        patterndefs_textures.pygame_convert()
+        transition_textures.pygame_convert()
 
         pygame.display.set_caption(window_name)
 
@@ -67,6 +69,8 @@ class Editor:
             self.draw_cursor_triangle()
             self.draw_cursor_vertex()
 
+            projection_report.draw_loading_bar(self.root)
+
             pygame.display.flip()
             self.clock.tick(frames_per_second)
 
@@ -95,7 +99,6 @@ class Editor:
         self.root.fill(background_color)
 
     def draw_landscapes(self):
-        landscapes_on_screen = 0
         assert animations.__class__.pygame_converted
         for coordinates in self.camera.visible_range(self.map):
             draw_coordinates = self.camera.draw_coordinates(coordinates, self.map)
@@ -112,15 +115,14 @@ class Editor:
                 self.root.blit(image, (draw_coordinates[0] + animation.rect[0],
                                        draw_coordinates[1] + animation.rect[1]))
 
-                landscapes_on_screen += 1
-
     def draw_terrain(self):
-        triangles_on_screen = 0
         assert animations.__class__.pygame_converted
 
+        projection_report.reset()
         timeout_handler.get_camera_move_status(self.camera)
         timeout_handler.start()
 
+        transitions_to_draw = []
         for coordinates in self.camera.visible_range(self.map, count_minor_vertices=False):
             for triangle_type in ("a", "b"):
                 corners = get_major_triangle_corner_vertices(coordinates, triangle_type)
@@ -130,7 +132,14 @@ class Editor:
                 light_values = get_major_triangle_light_values(coordinates, triangle_type, self.map)
                 draw_projected_triangle(self.root, texture, draw_corners, light_values)
 
-                triangles_on_screen += 1
+                for transition_texture, transition_key in transitions_gen(coordinates, triangle_type, self.map):
+                    transitions_to_draw.append((transition_texture, transition_key, draw_corners, light_values))
+
+        for transition_texture, transition_key, draw_corners, light_values in transitions_to_draw:
+            transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
+            transition_light_values = permutate_corners(light_values, transition_key)
+            draw_projected_triangle(self.root, transition_texture, transition_draw_corners,
+                                    transition_light_values)
 
     def draw_cursor_vertex(self):
         if self.cursor_vertex is not None:

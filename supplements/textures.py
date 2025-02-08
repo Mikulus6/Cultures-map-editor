@@ -3,7 +3,7 @@ import os
 from math import sqrt
 import numpy as np
 from PIL import Image, ImageDraw
-from scripts.data_loader import patterndefs_normal
+from scripts.data_loader import patterndefs_normal, transition_defs
 from supplements.read import read
 from typing import Literal
 
@@ -15,7 +15,7 @@ def get_average_color(image: Image.Image) -> tuple:
     non_transparent_pixels = img_array[:, :, :3][img_array[:, :, 3] > 0]
 
     if len(non_transparent_pixels) > 0: return tuple(np.mean(non_transparent_pixels, axis=0).astype(int))
-    else:                               return 0, 0, 0
+    else:                               return None
 
 
 def rect_bound(coordinates):
@@ -77,12 +77,12 @@ class Texture:
 
         self.image = Image.new("RGBA", image_texture.size, (0, 0, 0, 0))
         self.image.paste(image_texture, mask=mask)
-        self.average_color = get_average_color(self.image)
 
         image_array = np.array(self.image)
         mask = (image_array[:, :, :3] == transparent_color).all(axis=-1)  # noqa
         image_array[mask] = [0, 0, 0, 0]
         self.image = Image.fromarray(image_array)
+        self.average_color = get_average_color(self.image)
 
     def pygame_convert(self):
         import pygame
@@ -92,44 +92,85 @@ class Texture:
 
 
 class Textures(dict):
-    initialized = False
-    pygame_converted = False
 
-    def __init__(self):
+    def __init__(self, transitions: bool = False):
         super().__init__(dict())
-        if self.__class__.initialized:
-            raise ValueError(f"{self.__class__.__name__} is a singleton.")
-        self.__class__.initialized = True
-        self.__class__.pygame_converted = False
+        self.pygame_converted = False
+        self.transitions = transitions
 
-        self.load()
-
-    def load(self, *, pygame_convert: bool = False):
+    def load(self, source_dict: dict, *, pygame_convert: bool = False):
         super().clear()
-        for patterndef in patterndefs_normal.values():
-            a_pixel_coords = self.flat_pixel_coords_to_pairs(patterndef["APixelCoords"])
-            b_pixel_coords = self.flat_pixel_coords_to_pairs(patterndef["BPixelCoords"])
+        for source in source_dict.values():
 
-            texture_a = Texture(a_pixel_coords, patterndef["SetId"])
-            texture_b = Texture(b_pixel_coords, patterndef["SetId"])
+            if not self.transitions:
 
-            if pygame_convert:
-                texture_a.pygame_convert()
-                texture_b.pygame_convert()
+                a_pixel_coords = self.flat_pixel_coords_to_pairs(source["APixelCoords"])
+                b_pixel_coords = self.flat_pixel_coords_to_pairs(source["BPixelCoords"])
 
-            mep_id = patterndef["Id"] + patterndef["SetId"] * 256
+                texture_a = Texture(a_pixel_coords, source["SetId"])
+                texture_b = Texture(b_pixel_coords, source["SetId"])
 
-            self[mep_id] = {"a": texture_a, "b": texture_b}
+                if pygame_convert:
+                    texture_a.pygame_convert()
+                    texture_b.pygame_convert()
 
-        self.__class__.pygame_converted = pygame_convert
+                mep_id = source["Id"] + source["SetId"] * 256
+
+                self[mep_id] = {"a": texture_a, "b": texture_b}
+
+            else:
+
+                try:
+                    aa_pixel_coords = self.flat_pixel_coords_to_pairs(source["TAAPixelCoords"])
+                    ab_pixel_coords = self.flat_pixel_coords_to_pairs(source["TABPixelCoords"])
+                    ac_pixel_coords = self.flat_pixel_coords_to_pairs(source["TACPixelCoords"])
+                    ba_pixel_coords = self.flat_pixel_coords_to_pairs(source["TBAPixelCoords"])
+                    bb_pixel_coords = self.flat_pixel_coords_to_pairs(source["TBBPixelCoords"])
+                    bc_pixel_coords = self.flat_pixel_coords_to_pairs(source["TBCPixelCoords"])
+
+                except KeyError:
+                    pixel_coords = self.flat_pixel_coords_to_pairs(source["TPixelCoords"])
+                    aa_pixel_coords = pixel_coords; ab_pixel_coords = pixel_coords; ac_pixel_coords = pixel_coords
+                    ba_pixel_coords = pixel_coords; bb_pixel_coords = pixel_coords; bc_pixel_coords = pixel_coords
+
+                texture_aa = Texture(aa_pixel_coords, source["SetId"])
+                texture_ab = Texture(ab_pixel_coords, source["SetId"])
+                texture_ac = Texture(ac_pixel_coords, source["SetId"])
+                texture_ba = Texture(ba_pixel_coords, source["SetId"])
+                texture_bb = Texture(bb_pixel_coords, source["SetId"])
+                texture_bc = Texture(bc_pixel_coords, source["SetId"])
+
+                if pygame_convert:
+                    texture_aa.pygame_convert()
+                    texture_ab.pygame_convert()
+                    texture_ac.pygame_convert()
+                    texture_ba.pygame_convert()
+                    texture_bb.pygame_convert()
+                    texture_bc.pygame_convert()
+
+                assert source["Name"] not in self.keys()
+
+                self[source["Name"].lower()] = {"aa": texture_aa, "ab": texture_ab, "ac": texture_ac,
+                                                "ba": texture_ba, "bb": texture_bb, "bc": texture_bc}
+
+        self.pygame_converted = pygame_convert
 
     def pygame_convert(self):
 
         for key in self.keys():
-            self[key]["a"].pygame_convert()
-            self[key]["b"].pygame_convert()
 
-        self.__class__.pygame_converted = True
+            if not self.transitions:
+                self[key]["a"].pygame_convert()
+                self[key]["b"].pygame_convert()
+            else:
+                self[key]["aa"].pygame_convert()
+                self[key]["ab"].pygame_convert()
+                self[key]["ac"].pygame_convert()
+                self[key]["ba"].pygame_convert()
+                self[key]["bb"].pygame_convert()
+                self[key]["bc"].pygame_convert()
+
+        self.pygame_converted = True
 
     @staticmethod
     def flat_pixel_coords_to_pairs(pixel_coords):
@@ -138,4 +179,8 @@ class Textures(dict):
                (pixel_coords[4], pixel_coords[5])
 
 
-textures = Textures()
+patterndefs_textures = Textures(transitions=False)
+patterndefs_textures.load(source_dict=patterndefs_normal)
+
+transition_textures = Textures(transitions=True)
+transition_textures.load(source_dict=transition_defs)

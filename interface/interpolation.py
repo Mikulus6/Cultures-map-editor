@@ -22,4 +22,4 @@ def get_data_interpolated(coordinates, map_size: [int, int], map_section_bytes: 
                 for vertex in vertices]
 
     return (map_section_bytes[vertices[0][1] * map_size[0] // 2 + vertices[0][0]] +
-            map_section_bytes[vertices[1][1] * map_size[1] // 2 + vertices[1][0]]) // 2
+            map_section_bytes[vertices[1][1] * map_size[0] // 2 + vertices[1][0]]) // 2

@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 from functools import lru_cache
-from interface.const import transparent_triangle_color, lru_cache_triangles_maxsize
+from interface.const import background_color, lru_cache_triangles_maxsize, resolution
 from interface.timeout import timeout_handler
 from supplements.textures import Texture, rect_bound
 
@@ -13,13 +13,24 @@ def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: 
 
     bounds_x, bounds_y = rect_bound(corners)
 
+    if resolution[0] < bounds_x[0] or bounds_x[1] < 0 or resolution[1] < bounds_y[0] or bounds_y[1] < 0:
+        return # Triangle canvas are outside of visible screen
+
     relative_corners = ((corners[0][0] - bounds_x[0], corners[0][1] - bounds_y[0]),
                         (corners[1][0] - bounds_x[0], corners[1][1] - bounds_y[0]),
                         (corners[2][0] - bounds_x[0], corners[2][1] - bounds_y[0]))
 
+    if texture.average_color is None:
+        return # If average color of texture is not defined, it means that the whole texture is transparent,
+               # and it is unnecessary to project it.
+
+    projection_report.triangles_total += 1
     try:
         surface.blit(project_triangle(texture, relative_corners, light_corners), (bounds_x[0], bounds_y[0]))
+
+        projection_report.triangles_textured += 1
     except TimeoutError:
+
         average_light = sum(light_corners) / 3
 
         average_color = tuple(map(lambda value: round(min(max(value * (average_light + 1), 0), 255)),
@@ -42,7 +53,7 @@ def project_triangle(texture: Texture, relative_corners: tuple, light_corners: t
     bounds_x, bounds_y = rect_bound(relative_corners)
     assert bounds_x[0] == bounds_y[0] == 0
 
-    frame = np.full((bounds_x[1] * 2, bounds_y[1] * 2, 3), transparent_triangle_color, dtype='uint8')
+    frame = np.full((bounds_x[1] * 2, bounds_y[1] * 2, 3), background_color, dtype='uint8')
 
     sorted_y = np.argsort([relative_corners[0][1], relative_corners[1][1], relative_corners[2][1]])
 
@@ -99,8 +110,51 @@ def project_triangle(texture: Texture, relative_corners: tuple, light_corners: t
         frame[x_range, y, :] = np.clip(texture.image[u_valid, v_valid] * brightness_range[:, None], 0, 255)
 
     surf = pygame.surfarray.make_surface(frame)
-    surf.set_colorkey(transparent_triangle_color)
+    surf.set_colorkey(background_color)
     return surf
 
 def clear_triangle_projection_cache():
     project_triangle.cache_clear()
+
+
+class ProjectionReport:
+    initialized = False
+    def __init__(self, rect, margin):
+        if self.__class__.initialized:
+            raise ValueError(f"{self.__class__.__name__} is a singleton.")
+        self.__class__.initialized = True
+        self.rect = rect
+        self.margin = margin
+
+        self.triangles_textured = 0
+        self.triangles_total = 0
+
+    def reset(self):
+        self.triangles_textured = 0
+        self.triangles_total = 0
+
+    @property
+    def is_loading(self):
+        return timeout_handler.calls > 0
+
+    @property
+    def loading_value(self):
+        try:
+            return self.triangles_textured / self.triangles_total
+        except ZeroDivisionError:
+            return 1
+
+    def draw_loading_bar(self, surface):
+        if self.loading_value < 1:
+            pygame.draw.rect(surface, (0, 0, 0), self.rect)
+            pygame.draw.rect(surface, (85, 85, 85), (self.rect[0] + self.margin, self.rect[1] + self.margin,
+                                                     self.rect[2] - 2 * self.margin, self.rect[3] - 2 * self.margin))
+            pygame.draw.rect(surface, (255, 255, 255) if self.is_loading else (171, 171, 171),
+                             (self.rect[0] + self.margin, self.rect[1] + self.margin,
+                              (self.rect[2] - 2 * self.margin) * self.loading_value, self.rect[3] - 2 * self.margin))
+
+_rect_screen_margin = 3
+_rect_size = (200, 10)
+
+projection_report = ProjectionReport(rect = (_rect_screen_margin, resolution[1] - _rect_screen_margin - _rect_size[1],
+                                             *_rect_size), margin=1)
