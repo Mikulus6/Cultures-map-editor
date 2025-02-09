@@ -1,7 +1,7 @@
 from typing import Literal
 import numpy as np
-from scripts.data_loader import patterndefs_normal
 from scripts.flags import sequence_to_flags, flags_to_sequence
+from supplements.patterns import patterndefs_normal
 
 structural_bonus_value = 10
 

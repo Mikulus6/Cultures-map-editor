@@ -6,8 +6,8 @@ from supplements.initialization import decode
 
 
 libraries_directory = "data_l"
-
 loaded_libraries = dict()
+
 def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
          skip_file = False, skip_library = False, skip_cif_check = False,
          cultures_1 = True) -> bytes | str:

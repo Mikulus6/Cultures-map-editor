@@ -1,7 +1,7 @@
 window_name = "Editor"
 resolution = (800, 600)
 frames_per_second = 20
-animation_frames_per_second = 4
+animation_frames_per_second = 6
 background_color = (0, 0, 0)
 lru_cache_landscapes_light_maxsize = 1024
 lru_cache_triangles_maxsize = 4096

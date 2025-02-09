@@ -30,25 +30,16 @@
     and output some objects of type 'bytes' so it wouldn't be necessary to save and immediately load some data).
     This point might be relevant if we want to separate editor-related code from direct-map-edition code.
 
-2c. Decide on engine/library to write a fully functional editor. (This engine must support packages import from python
-    to make it compatible with already exisiting code). Proposition: OpenGL + Pygame
-
-3c. Program following features regarding pseudo-3D graphics render:
+2c. Program following features regarding pseudo-3D graphics render:
     - Displaying units/animals based on '*.bmd', '*.pcx' and '*.cif'/'*.ini' files.
-    - Displaying terrain patterns based on patterndefs_normal.ini file and 'data_v\ve_graphics\textures1' folder.
-        - 'APixelCoords' and 'BPixelCoords' are responsible for determining triangle texture corners for display.
-        - 'Transition' and 'TransitionDef' sections are responsible for determining corners of thin rhombuses which are
-          meant to be drawn on edges between triangles in six possible configurations
-          (hence 36 values - 3 corners of trianges on 2d plane each in 6 possible configuations).
     - Displaying overlay textures for 'mstr' section (road / water / snow)
-    - Stretching terrain and overlay texutres to be displayed accordingly to heightmap.
     - Changing perspective and zooming in/out as in game with camera.
 
-4c. Write function that would convert building-related landscapes into plain text with proper '*.ini' syntax containing
+3c. Write function that would convert building-related landscapes into plain text with proper '*.ini' syntax containing
     same buildings but stored as 'real' buildings not as landscapes. This way it won't be necessary to program editing
     buildings on its own for '*.ini' files.
 
-5c. Write function that would generate heightmap and terrain based on generic image similar to those present in
+4c. Write function that would generate heightmap and terrain based on generic image similar to those present in
     'Editor/Premaps' folder in newer Cultures games.
 
 (D) ===== The end =====

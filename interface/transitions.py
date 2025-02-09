@@ -1,7 +1,7 @@
 from map import Map
 from interface.const import transition_stretch_factor
 from interface.triangles import get_neighbouring_triangles
-from scripts.data_loader import patterndefs_normal, transitions
+from supplements.patterns import patterndefs_normal, transitions
 from supplements.textures import transition_textures
 from typing import Literal
 
@@ -54,6 +54,7 @@ def reposition_transition_vertices(corners, key: Literal["aa", "ab", "ac", "ba",
     midpoint = (corners[0][0] + corners[1][0])/2,\
                (corners[0][1] + corners[1][1])/2
 
+    # If transition_strech_factor is set to 1/3, following procedure is exactly the same as finding center of triangle.
     center = round(corners[2][0] * transition_stretch_factor + midpoint[0] * (1 - transition_stretch_factor)),\
              round(corners[2][1] * transition_stretch_factor + midpoint[1] * (1 - transition_stretch_factor))
 

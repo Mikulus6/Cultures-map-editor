@@ -1,6 +1,5 @@
 from supplements.read import read
 
-patterndefs_path   = "data_v\\ve_graphics\\pattern1\\patterndefs_normal.cif"
 
 def line_split(line_: str):
     list_ = [""]
@@ -82,21 +81,3 @@ def load_ini_as_dict(filename, allowed_section_names,
     data_list = filter_section_by_name(data_list, allowed_section_names)
     data_list = merge_entries_to_dicts(data_list, entries_duplicated, merge_duplicates)
     return list_to_dict_by_global_key(data_list, global_key)
-
-patterndefs_normal = load_ini_as_dict(patterndefs_path,
-                                      allowed_section_names=("PatternDef",),
-                                      entries_duplicated=("GroundFlagSet", ),
-                                      global_key = lambda x: x["Id"] + x["SetId"] * 256,
-                                      merge_duplicates=True)
-
-transitions = load_ini_as_dict(patterndefs_path,
-                               allowed_section_names=("Transition",),
-                               entries_duplicated=tuple(),
-                               global_key = lambda x: (x["SrcGroup"], x["DestGroup"]),
-                               merge_duplicates=False)
-
-transition_defs = load_ini_as_dict(patterndefs_path,
-                                   allowed_section_names=("TransitionDef",),
-                                   entries_duplicated=tuple(),
-                                   global_key = lambda x: x["Name"],
-                                   merge_duplicates=False)

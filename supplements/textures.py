@@ -3,7 +3,7 @@ import os
 from math import sqrt
 import numpy as np
 from PIL import Image, ImageDraw
-from scripts.data_loader import patterndefs_normal, transition_defs
+from supplements.patterns import patterndefs_normal, transition_defs
 from supplements.read import read
 from typing import Literal
 
