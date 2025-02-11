@@ -154,7 +154,7 @@ class ProjectionReport:
                               (self.rect[2] - 2 * self.margin) * self.loading_value, self.rect[3] - 2 * self.margin))
 
 _rect_screen_margin = 3
-_rect_size = (200, 10)
+_rect_size = ((resolution[0] - 2*_rect_screen_margin) // 3, 10)
 
 projection_report = ProjectionReport(rect = (_rect_screen_margin, resolution[1] - _rect_screen_margin - _rect_size[1],
                                              *_rect_size), margin=1)

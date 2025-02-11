@@ -32,7 +32,6 @@
 
 2c. Program following features regarding pseudo-3D graphics render:
     - Displaying units/animals based on '*.bmd', '*.pcx' and '*.cif'/'*.ini' files.
-    - Displaying overlay textures for 'mstr' section (road / water / snow)
     - Changing perspective and zooming in/out as in game with camera.
 
 3c. Write function that would convert building-related landscapes into plain text with proper '*.ini' syntax containing
@@ -41,6 +40,8 @@
 
 4c. Write function that would generate heightmap and terrain based on generic image similar to those present in
     'Editor/Premaps' folder in newer Cultures games.
+
+5c. Program functional minimap display.
 
 (D) ===== The end =====
 
