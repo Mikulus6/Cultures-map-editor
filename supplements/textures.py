@@ -19,10 +19,16 @@ def get_average_color(image: Image.Image) -> tuple:
 
 
 def rect_bound(coordinates):
-    min_x = min(map(lambda coords: coords[0], coordinates))
-    max_x = max(map(lambda coords: coords[0], coordinates))
-    min_y = min(map(lambda coords: coords[1], coordinates))
-    max_y = max(map(lambda coords: coords[1], coordinates))
+    min_x = float('inf')
+    max_x = float('-inf')
+    min_y = float('inf')
+    max_y = float('-inf')
+
+    for x, y in coordinates:
+        if x < min_x: min_x = x
+        if x > max_x: max_x = x
+        if y < min_y: min_y = y
+        if y > max_y: max_y = y
 
     return (min_x, max_x), (min_y, max_y)
 

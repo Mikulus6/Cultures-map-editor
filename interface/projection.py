@@ -33,8 +33,9 @@ def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: 
 
         average_light = sum(light_corners) / 3
 
-        average_color = tuple(map(lambda value: round(min(max(value * (average_light + 1), 0), 255)),
-                                  texture.average_color))
+        average_color = (round(min(max(texture.average_color[0] * (average_light + 1), 0), 255)),
+                         round(min(max(texture.average_color[1] * (average_light + 1), 0), 255)),
+                         round(min(max(texture.average_color[2] * (average_light + 1), 0), 255)))
 
         pygame.draw.polygon(surface, average_color, corners)
 

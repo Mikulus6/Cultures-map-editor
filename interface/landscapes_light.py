@@ -5,7 +5,7 @@ import numpy as np
 
 
 @lru_cache(maxsize=lru_cache_landscapes_light_maxsize)
-def adjust_opacity_pixels(surface: pygame.Surface, factor: int):
+def adjust_opaque_pixels(surface: pygame.Surface, factor: int):
 
     assert 0 <= factor <= 255 and isinstance(factor, int)
 

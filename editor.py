@@ -2,11 +2,11 @@ import pygame
 from map import Map
 from math import floor
 
-from interface.camera import Camera
+from interface.camera import Camera, clear_point_coordinates_cache
 from interface.const import animation_frames_per_second, background_color, frames_per_second, resolution, window_name, \
                             lru_cache_triangles_maxsize, lru_cache_landscapes_light_maxsize
 from interface.cursor import get_closest_vertex, get_touching_triange
-from interface.landscapes_light import adjust_opacity_pixels
+from interface.landscapes_light import adjust_opaque_pixels
 from interface.interpolation import get_data_interpolated
 from interface.projection import draw_projected_triangle, projection_report
 from interface.structures import get_structure
@@ -81,6 +81,7 @@ class Editor:
             self.draw_cursor_triangle()
             self.draw_cursor_vertex()
 
+            clear_point_coordinates_cache()
             projection_report.draw_loading_bar(self.root)
 
             pygame.display.flip()
@@ -118,10 +119,10 @@ class Editor:
             if landscape_name is not None:
                 animation = animations[landscape_name]
                 frame = floor(time.time() * animation_frames_per_second) % len(animation.images)
-                image = adjust_opacity_pixels(animation.images[frame], get_data_interpolated(coordinates,
-                                                                                             (self.map.map_width,
-                                                                                              self.map.map_height),
-                                                                                             self.map.mlig))
+                image = adjust_opaque_pixels(animation.images[frame], get_data_interpolated(coordinates,
+                                                                                            (self.map.map_width,
+                                                                                             self.map.map_height),
+                                                                                            self.map.mlig))
                 self.root.blit(image, (draw_coordinates[0] + animation.rect[0],
                                        draw_coordinates[1] + animation.rect[1]))
                 landscapes_on_screen += 1
@@ -142,7 +143,9 @@ class Editor:
         for coordinates in self.camera.visible_range(self.map, count_minor_vertices=False):
             for triangle_type in ("a", "b"):
                 corners = get_major_triangle_corner_vertices(coordinates, triangle_type)
-                draw_corners = tuple(map(lambda coords: self.camera.draw_coordinates(coords, self.map), corners))
+                draw_corners = (self.camera.draw_coordinates(corners[0], self.map),
+                                self.camera.draw_coordinates(corners[1], self.map),
+                                self.camera.draw_coordinates(corners[2], self.map))
 
                 texture = get_major_triangle_texture(coordinates, triangle_type, self.map)
                 light_values = get_major_triangle_light_values(coordinates, triangle_type, self.map)
@@ -165,7 +168,9 @@ class Editor:
             for coordinates in self.camera.visible_range(self.map):
                 for triangle_type, texture in get_structure(coordinates, self.map).items():
                     corners = get_triangle_corner_vertices(coordinates, triangle_type)
-                    draw_corners = tuple(map(lambda coords: self.camera.draw_coordinates(coords, self.map), corners))
+                    draw_corners = (self.camera.draw_coordinates(corners[0], self.map),
+                                    self.camera.draw_coordinates(corners[1], self.map),
+                                    self.camera.draw_coordinates(corners[2], self.map))
                     light_values = get_minor_triangle_light_values(coordinates, triangle_type, self.map)
                     draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values)
                     triangles_on_screen += 1

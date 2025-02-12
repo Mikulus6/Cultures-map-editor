@@ -1,5 +1,5 @@
 from interface.camera import Camera
-from interface.const import resolution
+from interface.const import triangle_width, triangle_height, resolution
 from interface.triangles import get_major_triangle_corner_vertices
 from itertools import product
 from map import Map
@@ -11,8 +11,8 @@ def area_of_triangle(corners):
                corners[2][0] * (corners[0][1] - corners[1][1])) // 2
 
 def coordinates_prediction(cursor_coordinates, camera: Camera):
-    return round((cursor_coordinates[0] - resolution[0] // 2 + camera.position[0]) // camera.triangle_width),\
-           round((cursor_coordinates[1] - resolution[1] // 2 + camera.position[1]) // camera.triangle_height)
+    return round((cursor_coordinates[0] - resolution[0] // 2 + camera.position[0]) // triangle_width),\
+           round((cursor_coordinates[1] - resolution[1] // 2 + camera.position[1]) // triangle_height)
 
 def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map):
     prediction_vertex = coordinates_prediction(cursor_coordinates, camera)
@@ -35,7 +35,7 @@ def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map):
             closest_distance_squared = distance_squared
             closest_vertex = (x, y)
 
-    if closest_distance_squared > 2 * (camera.triangle_width ** 2 + camera.triangle_height ** 2):
+    if closest_distance_squared > 2 * (triangle_width ** 2 + triangle_height ** 2):
         return None
 
     return closest_vertex
