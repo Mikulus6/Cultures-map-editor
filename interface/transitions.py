@@ -5,18 +5,17 @@ from supplements.patterns import patterndefs_normal, transitions
 from supplements.textures import transition_textures
 from typing import Literal
 
-# prepare lookup table for quickly finding correct transition textures
+
+# Prepare lookup table for quickly finding correct transition textures.
 transitions_by_group = dict()
 for transition in transitions.values():
     src_key = transition["SrcGroup"].lower()
     dest_key = transition["DestGroup"].lower()
     textures = transition_textures[transition["Name"].lower()]
 
-    nested = transitions_by_group.get(src_key)
-    if nested is None:
-        transitions_by_group[src_key] = nested = dict()
+    transitions_by_group.setdefault(src_key, dict())
+    transitions_by_group[src_key][dest_key] = textures
 
-    nested[dest_key] = textures
 
 def transitions_gen(coordinates, triangle_type: Literal["a", "b"], map_object: Map):
 
@@ -28,11 +27,13 @@ def transitions_gen(coordinates, triangle_type: Literal["a", "b"], map_object: M
         case "b": mep_id_src = int.from_bytes(map_object.mepb[value_index: value_index+2], byteorder="little")
         case _: raise ValueError
 
-    source_group = patterndefs_normal[mep_id_src]["Group"].lower()
-    source_maingroup = patterndefs_normal[mep_id_src]["MainGroup"].lower()
-    destinations_dict = transitions_by_group.get(source_group) or transitions_by_group.get(source_maingroup)
+    source_group = patterndefs_normal[mep_id_src]["Group"]
+    source_maingroup = patterndefs_normal[mep_id_src]["MainGroup"]
 
-    if destinations_dict is None:
+    destinations_group_dict = transitions_by_group.get(source_group)
+    destinations_maingroup_dict = transitions_by_group.get(source_maingroup)
+
+    if (destinations_group_dict or destinations_maingroup_dict) is None:
         return
 
     for trans_coordinates, trans_type in zip(get_neighbouring_triangles(coordinates, triangle_type), ("a", "b", "c")):
@@ -44,10 +45,16 @@ def transitions_gen(coordinates, triangle_type: Literal["a", "b"], map_object: M
             case "b": mep_id_dest = int.from_bytes(map_object.mepb[trans_index: trans_index+2], byteorder="little")
             case _: raise ValueError
 
-        destination_group = patterndefs_normal[mep_id_dest]["Group"].lower()
-        destination_maingroup = patterndefs_normal[mep_id_dest]["MainGroup"].lower()
+        destination_group = patterndefs_normal[mep_id_dest]["Group"]
+        destination_maingroup = patterndefs_normal[mep_id_dest]["MainGroup"]
 
-        textures_dict = destinations_dict.get(destination_group) or destinations_dict.get(destination_maingroup)
+        textures_dict = None
+        if destinations_group_dict is not None:
+            textures_dict = destinations_group_dict.get(destination_group) or \
+                            destinations_group_dict.get(destination_maingroup)
+        if destinations_maingroup_dict is not None and textures_dict is None:
+            textures_dict = destinations_maingroup_dict.get(destination_group) or \
+                            destinations_maingroup_dict.get(destination_maingroup)
         if textures_dict is None:
             continue
 

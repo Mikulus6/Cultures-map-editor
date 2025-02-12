@@ -152,15 +152,15 @@ class Editor:
                 for transition_texture, transition_key in transitions_gen(coordinates, triangle_type, self.map):
                     transitions_to_draw.append((transition_texture, transition_key, draw_corners, light_values))
 
-        if not self.camera.is_moving:
-            # Transitions and structures are ignored when camera is in motion, to make its motion smooth.
+        for transition_texture, transition_key, draw_corners, light_values in transitions_to_draw:
+            transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
+            transition_light_values = permutate_corners(light_values, transition_key)
+            draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
+                                    transition_light_values)
+            triangles_on_screen += 1
 
-            for transition_texture, transition_key, draw_corners, light_values in transitions_to_draw:
-                transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
-                transition_light_values = permutate_corners(light_values, transition_key)
-                draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
-                                        transition_light_values)
-                triangles_on_screen += 1
+        if not self.camera.is_moving:
+            # Structures are ignored when camera is in motion, to make it smooth.
 
             for coordinates in self.camera.visible_range(self.map):
                 for triangle_type, texture in get_structure(coordinates, self.map).items():
