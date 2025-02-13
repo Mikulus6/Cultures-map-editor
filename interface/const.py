@@ -1,5 +1,6 @@
 window_name = "Editor"
-resolution = (800, 600)
+resolution = (1067, 600)
+map_canvas_rect = (267, 0, 800, 600)
 frames_per_second = 30
 animation_frames_per_second = 8
 background_color = (0, 0, 0)
@@ -15,3 +16,7 @@ transition_stretch_factor = 1/3
 triangle_width = 32
 triangle_height = 16
 height_factor = 1
+font_name = "Arial"
+font_size = 16
+font_color = (255, 255, 255)
+font_antialias = True

@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 from functools import lru_cache
-from interface.const import background_color, lru_cache_triangles_maxsize, resolution
+from interface.const import background_color, lru_cache_triangles_maxsize, resolution, map_canvas_rect
 from interface.timeout import timeout_handler
 from supplements.textures import Texture, rect_bound
 
@@ -13,7 +13,8 @@ def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: 
 
     bounds_x, bounds_y = rect_bound(corners)
 
-    if resolution[0] < bounds_x[0] or bounds_x[1] < 0 or resolution[1] < bounds_y[0] or bounds_y[1] < 0:
+    if map_canvas_rect[0] + map_canvas_rect[2] < bounds_x[0] or bounds_x[1] < 0 or\
+       map_canvas_rect[1] + map_canvas_rect[3] < bounds_y[0] or bounds_y[1] < 0:
         return # Triangle canvas are outside of visible screen
 
     relative_corners = ((corners[0][0] - bounds_x[0], corners[0][1] - bounds_y[0]),
@@ -146,16 +147,19 @@ class ProjectionReport:
             return 1
 
     def draw_loading_bar(self, surface):
-        if self.loading_value < 1:
-            pygame.draw.rect(surface, (0, 0, 0), self.rect)
-            pygame.draw.rect(surface, (85, 85, 85), (self.rect[0] + self.margin, self.rect[1] + self.margin,
-                                                     self.rect[2] - 2 * self.margin, self.rect[3] - 2 * self.margin))
-            pygame.draw.rect(surface, (255, 255, 255) if self.is_loading else (171, 171, 171),
-                             (self.rect[0] + self.margin, self.rect[1] + self.margin,
-                              (self.rect[2] - 2 * self.margin) * self.loading_value, self.rect[3] - 2 * self.margin))
+        pygame.draw.rect(surface, (0, 0, 0), self.rect)
+        pygame.draw.rect(surface, (85, 85, 85), (self.rect[0] + self.margin, self.rect[1] + self.margin,
+                                                 self.rect[2] - 2 * self.margin, self.rect[3] - 2 * self.margin))
+        if self.loading_value == 1: color = (137, 224, 118)
+        elif self.is_loading:       color = (255, 255, 255)
+        else:                       color = (171, 171, 171)
 
-_rect_screen_margin = 3
-_rect_size = ((resolution[0] - 2*_rect_screen_margin) // 3, 10)
+        pygame.draw.rect(surface, color, (self.rect[0] + self.margin, self.rect[1] + self.margin,
+                                         (self.rect[2] - 2 * self.margin) * self.loading_value,
+                                          self.rect[3] - 2 * self.margin))
+
+_rect_screen_margin = 9
+_rect_size = (((resolution[0] - map_canvas_rect[2]) - 2*_rect_screen_margin), 10)
 
 projection_report = ProjectionReport(rect = (_rect_screen_margin, resolution[1] - _rect_screen_margin - _rect_size[1],
                                              *_rect_size), margin=1)

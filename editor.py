@@ -1,10 +1,10 @@
 import pygame
+import easygui
 from map import Map
 from math import floor
 
 from interface.camera import Camera, clear_point_coordinates_cache
-from interface.const import animation_frames_per_second, background_color, frames_per_second, resolution, window_name, \
-                            lru_cache_triangles_maxsize, lru_cache_landscapes_light_maxsize
+from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
 from interface.landscapes_light import adjust_opaque_pixels
 from interface.interpolation import get_data_interpolated
@@ -35,8 +35,11 @@ class Editor:
 
         self.root = pygame.display.set_mode(resolution)
 
-        self.terrain_surface = pygame.Surface(resolution)
+        self.terrain_surface = pygame.Surface(map_canvas_rect[2:])
         self.terrain_loaded = False
+
+        self.font = pygame.font.SysFont(font_name, font_size)
+        self.font_text = ""
 
         animations.pygame_convert()
         patterndefs_textures.pygame_convert()
@@ -75,11 +78,13 @@ class Editor:
                 self.draw_terrain()
 
             self.root.fill(background_color)
-            self.root.blit(self.terrain_surface)
+            self.root.blit(self.terrain_surface, map_canvas_rect[:2])
             self.draw_landscapes()
 
             self.draw_cursor_triangle()
             self.draw_cursor_vertex()
+
+            self.draw_user_interface()
 
             clear_point_coordinates_cache()
             projection_report.draw_loading_bar(self.root)
@@ -87,7 +92,9 @@ class Editor:
             pygame.display.flip()
             self.clock.tick(frames_per_second)
 
-    def load(self, filepath):
+    def load(self, filepath: str = None):
+        if filepath is None:
+            filepath = easygui.fileopenbox(title="Open map", filetypes=("map",))
         self.map.load(filepath)
 
     @staticmethod
@@ -112,7 +119,7 @@ class Editor:
         landscapes_on_screen = 0
 
         for coordinates in self.camera.visible_range(self.map):
-            draw_coordinates = self.camera.draw_coordinates(coordinates, self.map)
+            draw_coordinates = self.camera.draw_coordinates(coordinates, self.map, include_canvas_offset=True)
 
             landscape_name = self.map.llan.get(coordinates, None)
 
@@ -186,7 +193,8 @@ class Editor:
 
     def draw_cursor_vertex(self):
         if self.cursor_vertex is not None:
-            draw_cursor_vertex = self.camera.draw_coordinates(self.cursor_vertex, self.map)
+            draw_cursor_vertex = self.camera.draw_coordinates(self.cursor_vertex, self.map,
+                                                              include_canvas_offset=True)
 
             # This code is meant to mimic cursor icon present in editor from game "Cultures - Northland".
             pygame.draw.circle(self.root, (0, 0, 0),       draw_cursor_vertex, 7, 1)
@@ -196,7 +204,24 @@ class Editor:
     def draw_cursor_triangle(self):
         if self.cursor_triangle is not None:
 
-            draw_corners = tuple(map(lambda coords: self.camera.draw_coordinates(coords, self.map),
-                                     get_major_triangle_corner_vertices(*self.cursor_triangle)))
+            corners = get_major_triangle_corner_vertices(*self.cursor_triangle)
+
+            draw_corners = (self.camera.draw_coordinates(corners[0], self.map, include_canvas_offset=True),
+                            self.camera.draw_coordinates(corners[1], self.map, include_canvas_offset=True),
+                            self.camera.draw_coordinates(corners[2], self.map, include_canvas_offset=True))
+
 
             pygame.draw.polygon(self.root, (255, 255, 255), draw_corners, width=1)
+
+    def draw_user_interface(self):
+
+        pygame.draw.rect(self.root, (101, 67, 33), (0, 0, 267, 600))
+        pygame.draw.rect(self.root, (50, 33, 16),  (0, 0, 267, 600), 6)
+
+        if self.cursor_vertex is not None:
+            self.font_text = f"vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
+        else:
+            self.font_text = ""
+
+        self.root.blit(self.font.render(self.font_text, antialias=font_antialias, color=font_color),
+                       (10, resolution[1] - 40))

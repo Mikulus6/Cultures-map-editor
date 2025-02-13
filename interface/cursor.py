@@ -1,5 +1,5 @@
 from interface.camera import Camera
-from interface.const import triangle_width, triangle_height, resolution
+from interface.const import triangle_width, triangle_height, map_canvas_rect
 from interface.triangles import get_major_triangle_corner_vertices
 from itertools import product
 from map import Map
@@ -11,10 +11,14 @@ def area_of_triangle(corners):
                corners[2][0] * (corners[0][1] - corners[1][1])) // 2
 
 def coordinates_prediction(cursor_coordinates, camera: Camera):
-    return round((cursor_coordinates[0] - resolution[0] // 2 + camera.position[0]) // triangle_width),\
-           round((cursor_coordinates[1] - resolution[1] // 2 + camera.position[1]) // triangle_height)
+    return round((cursor_coordinates[0] - map_canvas_rect[0] - map_canvas_rect[2] // 2 + camera.position[0]) // triangle_width),\
+           round((cursor_coordinates[1] - map_canvas_rect[1] - map_canvas_rect[3] // 2 + camera.position[1]) // triangle_height)
 
-def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map):
+def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map, ignore_minor_vertices: bool = False):
+
+    if not cursor_on_canvas(cursor_coordinates):
+        return None
+
     prediction_vertex = coordinates_prediction(cursor_coordinates, camera)
     closest_distance_squared = float("inf")
     closest_vertex = None
@@ -23,11 +27,13 @@ def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map):
                               prediction_vertex[0] + camera.visible_margin),
                         range(prediction_vertex[1] - camera.visible_margin,
                               prediction_vertex[1] + camera.visible_height_margin)):
+        if ignore_minor_vertices and not is_vertex_major((x, y)):
+            continue
 
         if not(0 <= x < map_object.map_width and 0 <= y < map_object.map_height):
             continue  # out of bounds
 
-        draw_x, draw_y = camera.draw_coordinates((x, y), map_object)
+        draw_x, draw_y = camera.draw_coordinates((x, y), map_object, include_canvas_offset=True)
         distance_squared = (cursor_coordinates[0] - draw_x) ** 2 +\
                            (cursor_coordinates[1] - draw_y) ** 2
 
@@ -41,6 +47,10 @@ def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map):
     return closest_vertex
 
 def get_touching_triange(cursor_coordinates, camera: Camera, map_object: Map):
+
+    if not cursor_on_canvas(cursor_coordinates):
+        return None
+
     prediction_vertex = coordinates_prediction(cursor_coordinates, camera)
     prediction_vertex = (prediction_vertex[0] // 2, prediction_vertex[1] // 2)
 
@@ -56,7 +66,8 @@ def get_touching_triange(cursor_coordinates, camera: Camera, map_object: Map):
 
             vertices = get_major_triangle_corner_vertices((x, y), triangle_type)
 
-            draw_vertices = tuple(map(lambda coords: camera.draw_coordinates(coords, map_object), vertices))
+            draw_vertices = tuple(map(lambda coords: camera.draw_coordinates(coords, map_object,
+                                                                             include_canvas_offset=True), vertices))
 
             reference_area = area_of_triangle(draw_vertices)
 
@@ -75,3 +86,12 @@ def get_touching_triange(cursor_coordinates, camera: Camera, map_object: Map):
         triangle_found = None
 
     return triangle_found
+
+
+def cursor_on_canvas(cursor_coordinates):
+    return (map_canvas_rect[0] <= cursor_coordinates[0] < map_canvas_rect[0] + map_canvas_rect[2] and
+            map_canvas_rect[1] <= cursor_coordinates[1] < map_canvas_rect[1] + map_canvas_rect[3])
+
+def is_vertex_major(coordinates):
+    return (coordinates[0] % 2 == 0 and coordinates[1] % 4 == 0) or\
+           (coordinates[0] % 2 == 1 and coordinates[1] % 4 == 2)

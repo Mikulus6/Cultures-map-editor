@@ -3,8 +3,8 @@ from functools import lru_cache
 from map import Map
 from math import ceil, floor, sqrt
 from dataclasses import dataclass
-from interface.const import triangle_width, triangle_height, height_factor, resolution, camera_max_move_distance,\
-                            camera_discretization_factor
+from interface.const import triangle_width, triangle_height, height_factor, camera_max_move_distance,\
+                            camera_discretization_factor, map_canvas_rect
 from time import time
 
 
@@ -47,10 +47,9 @@ class Camera:
 
         self.position[0] += move_vector[0]
         self.position[1] += move_vector[1]
-        self.fixed_position = self.fixed_postion_update()
 
         self.warp(map_object)
-
+        self.fixed_position = self.fixed_postion_update()
         self.is_moving = (old_position != self.position)
         self.last_frame_move = current_time
 
@@ -64,26 +63,31 @@ class Camera:
 
     def warp(self, map_object: Map):
 
-        max_pos_x = map_object.map_width  * triangle_width
-        max_pos_y = map_object.map_height * triangle_height
+        max_pos_x = map_object.map_width  * triangle_width  - map_canvas_rect[0]
+        max_pos_y = map_object.map_height * triangle_height - map_canvas_rect[1]
+        min_pos_x = 0
+        min_pos_y = 0
 
-        if self.position[0] < 0:           self.position[0] = 0
+        if self.position[0] < min_pos_x:   self.position[0] = min_pos_x
         elif self.position[0] > max_pos_x: self.position[0] = max_pos_x
-        if self.position[1] < 0:           self.position[1] = 0
+        if self.position[1] < min_pos_y:   self.position[1] = min_pos_y
         elif self.position[1] > max_pos_y: self.position[1] = max_pos_y
 
-    def draw_coordinates(self, coordinates, map_object: Map):
+    def draw_coordinates(self, coordinates, map_object: Map, include_canvas_offset: bool = False):
         coordinates = point_coordinates(coordinates, map_object)
-        return floor(coordinates[0] - self.fixed_position[0] + (resolution[0] // 2)), \
-               floor(coordinates[1] - self.fixed_position[1] + (resolution[1] // 2))
+        if include_canvas_offset:
+            return floor(coordinates[0] - self.fixed_position[0] + map_canvas_rect[0] + (map_canvas_rect[2] // 2)), \
+                   floor(coordinates[1] - self.fixed_position[1] + map_canvas_rect[1] + (map_canvas_rect[3] // 2))
+        else:
+            return floor(coordinates[0] - self.fixed_position[0] + (map_canvas_rect[2] // 2)), \
+                   floor(coordinates[1] - self.fixed_position[1] + (map_canvas_rect[3] // 2))
 
     def visible_range(self, map_object: Map, *, count_minor_vertices=True):
-        x_range = floor((self.fixed_position[0] - (resolution[0] / 2)) / triangle_width)  - self.visible_margin, \
-                   ceil((self.fixed_position[0] + (resolution[0] / 2)) / triangle_width)  + self.visible_margin
-        y_range = floor((self.fixed_position[1] - (resolution[1] / 2)) / triangle_height) - self.visible_margin, \
-                   ceil((self.fixed_position[1] + (resolution[1] / 2)) / triangle_height) + \
+        x_range = floor((self.fixed_position[0] - (map_canvas_rect[2] / 2)) / triangle_width)  - self.visible_margin, \
+                   ceil((self.fixed_position[0] + (map_canvas_rect[2] / 2)) / triangle_width)  + self.visible_margin
+        y_range = floor((self.fixed_position[1] - (map_canvas_rect[3] / 2)) / triangle_height) - self.visible_margin, \
+                   ceil((self.fixed_position[1] + (map_canvas_rect[3] / 2)) / triangle_height) + \
                                                                                               self.visible_height_margin
-
         if count_minor_vertices:
             x_range = max((0, x_range[0])), min((x_range[1], map_object.map_width))
             y_range = max((0, y_range[0])), min((y_range[1], map_object.map_height))
