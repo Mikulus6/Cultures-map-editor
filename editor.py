@@ -8,6 +8,7 @@ from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
 from interface.landscapes_light import adjust_opaque_pixels
 from interface.interpolation import get_data_interpolated
+from interface.minimap import Minimap
 from interface.projection import draw_projected_triangle, projection_report
 from interface.structures import get_structure
 from interface.timeout import timeout_handler
@@ -48,6 +49,7 @@ class Editor:
         pygame.display.set_caption(window_name)
 
         self.map = Map()
+        self.minimap = Minimap(minimap_rect)
 
         self.camera = Camera(position=[0.0, 0.0])
 
@@ -58,18 +60,53 @@ class Editor:
         self.cursor_vertex = None
         self.cursor_triangle = None
 
+        self.mouse_press_left = False
+        self.mouse_press_left_old = False
+        self.mouse_press_right = False
+        self.mouse_press_right_old = False
+
         self.clock = pygame.time.Clock()
 
     def loop(self):
         running = True
 
         while running:
+
+            self.mouse_press_left_old = self.mouse_press_left
+            self.mouse_press_right_old = self.mouse_press_right
+
+            button_left_detected = False
+            button_right_detected = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1 and not button_left_detected:
+                       self.mouse_press_left = True
+                       button_left_detected = True
+                    if event.button == 3 and not button_right_detected:
+                       self.mouse_press_right = True
+                       button_right_detected = True
+
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1 and not button_left_detected:
+                       self.mouse_press_left = False
+                       button_left_detected = True
+                    if event.button == 3 and not button_right_detected:
+                       self.mouse_press_right = False
+                       button_right_detected = True
+
+            pressed_state = pygame.mouse.get_pressed(3)
+            if not button_left_detected:
+                self.mouse_press_left = pressed_state[0]
+            if not button_right_detected:
+                self.mouse_press_right = pressed_state[2]
 
             self.update_input()
 
+            self.minimap.update_camera(self. map, self.camera,
+                                       self.mouse_pos, self.mouse_press_left,
+                                       self.mouse_press_left_old)
             self.camera.move(self.pressed_state, self.map)
 
             if self.camera.is_moving or not self.terrain_loaded:
@@ -96,6 +133,7 @@ class Editor:
         if filepath is None:
             filepath = easygui.fileopenbox(title="Open map", filetypes=("map",))
         self.map.load(filepath)
+        self.minimap.update_image(self.map)
 
     @staticmethod
     def exit():
@@ -220,8 +258,12 @@ class Editor:
 
         if self.cursor_vertex is not None:
             self.font_text = f"vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
+        elif self.minimap.mouse_hover:
+            self.font_text = "minimap (click or hold to move)"
         else:
             self.font_text = ""
 
         self.root.blit(self.font.render(self.font_text, antialias=font_antialias, color=font_color),
                        (10, resolution[1] - 40))
+
+        self.minimap.draw(self.root, self.map, self.camera)

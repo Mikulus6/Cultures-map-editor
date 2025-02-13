@@ -1,6 +1,8 @@
 window_name = "Editor"
 resolution = (1067, 600)
 map_canvas_rect = (267, 0, 800, 600)
+minimap_rect = (8, 310, 250, 250)
+minimap_frequency = 1
 frames_per_second = 30
 animation_frames_per_second = 8
 background_color = (0, 0, 0)

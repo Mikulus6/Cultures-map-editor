@@ -17,8 +17,15 @@ class Camera:
     visible_margin: int = 2
     visible_height_margin: int = 20
     last_frame_move = time()
+    suspend_motion = False
 
     def move(self, pressed_state, map_object: Map):
+
+        if self.suspend_motion:
+            self.suspend_motion = False
+            self.fixed_position = self.fixed_postion_update()
+            return
+
         move = [0, 0]
 
         if pressed_state[pygame.K_UP] and not pressed_state[pygame.K_DOWN]:      move[1] = -1
@@ -61,17 +68,18 @@ class Camera:
                round(self.position[1] / (triangle_width * camera_discretization_factor)) * \
                                             camera_discretization_factor * triangle_width
 
+    @staticmethod
+    def get_camera_bounds(map_object: Map):
+        return (0, map_object.map_width * triangle_width), (0, map_object.map_height * triangle_height)
+
     def warp(self, map_object: Map):
 
-        max_pos_x = map_object.map_width  * triangle_width  - map_canvas_rect[0]
-        max_pos_y = map_object.map_height * triangle_height - map_canvas_rect[1]
-        min_pos_x = 0
-        min_pos_y = 0
+        bounds_x, bounds_y = self.get_camera_bounds(map_object)
 
-        if self.position[0] < min_pos_x:   self.position[0] = min_pos_x
-        elif self.position[0] > max_pos_x: self.position[0] = max_pos_x
-        if self.position[1] < min_pos_y:   self.position[1] = min_pos_y
-        elif self.position[1] > max_pos_y: self.position[1] = max_pos_y
+        if self.position[0] < bounds_x[0]:   self.position[0] = bounds_x[0]
+        elif self.position[0] > bounds_x[1]: self.position[0] = bounds_x[1]
+        if self.position[1] < bounds_y[0]:   self.position[1] = bounds_y[0]
+        elif self.position[1] > bounds_y[1]: self.position[1] = bounds_y[1]
 
     def draw_coordinates(self, coordinates, map_object: Map, include_canvas_offset: bool = False):
         coordinates = point_coordinates(coordinates, map_object)
@@ -98,6 +106,10 @@ class Camera:
         for y in range(*y_range):
             for x in range(*x_range):
                 yield x, y
+
+    @property
+    def position_on_map(self):
+        return self.position[0] // triangle_width, self.position[1] // triangle_height
 
 
 @lru_cache(maxsize=None)
