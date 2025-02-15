@@ -2,25 +2,26 @@ import pygame
 import easygui
 from map import Map
 from math import floor
+from supplements.animations import animations
+from supplements.textures import patterndefs_textures, transition_textures
+from sys import exit as sys_exit
+import time
+from typing import Literal
 
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
-from interface.landscapes_light import adjust_opaque_pixels
 from interface.interpolation import get_data_interpolated
+from interface.landscapes_light import adjust_opaque_pixels
+from interface.light import update_light_local
 from interface.minimap import Minimap
 from interface.projection import draw_projected_triangle, projection_report
-from interface.structures import get_structure
+from interface.structures import get_structure, update_structures
 from interface.timeout import timeout_handler
 from interface.transitions import transitions_gen, reposition_transition_vertices, permutate_corners
 from interface.triangles import get_major_triangle_texture, get_major_triangle_corner_vertices, \
                                 get_major_triangle_light_values, get_triangle_corner_vertices, \
                                 get_minor_triangle_light_values
-
-from supplements.animations import animations
-from supplements.textures import patterndefs_textures, transition_textures
-from sys import exit as sys_exit
-import time
 
 
 class Editor:
@@ -57,6 +58,7 @@ class Editor:
         self.mouse_pos = pygame.mouse.get_pos()
         self.mouse_pos_old = self.mouse_pos
 
+        self.cursor_ignore_minor_vertices = True
         self.cursor_vertex = None
         self.cursor_triangle = None
 
@@ -129,16 +131,17 @@ class Editor:
             pygame.display.flip()
             self.clock.tick(frames_per_second)
 
-    def load(self, filepath: str = None):
-        if filepath is None:
-            filepath = easygui.fileopenbox(title="Open map", filetypes=("map",))
-        self.map.load(filepath)
-        self.minimap.update_image(self.map)
-
     @staticmethod
     def exit():
         pygame.quit()
         sys_exit()
+
+    def load(self, filepath: str = None):
+        if filepath is None:
+            filepath = easygui.fileopenbox(title="Open map", default="*.map", filetypes=("*.map", "*.*"))
+        self.map.load(filepath)
+        self.map.to_bytearrays()
+        self.minimap.update_image(self.map)
 
     def update_input(self):
 
@@ -148,7 +151,8 @@ class Editor:
 
         if self.mouse_pos != self.mouse_pos_old or self.camera.is_moving:
 
-            self.cursor_vertex = get_closest_vertex(self.mouse_pos, self.camera, self.map)
+            self.cursor_vertex = get_closest_vertex(self.mouse_pos, self.camera, self.map,
+                                                    ignore_minor_vertices=self.cursor_ignore_minor_vertices)
             self.cursor_triangle = get_touching_triange(self.mouse_pos, self.camera, self.map)
 
     def draw_landscapes(self):
@@ -210,6 +214,8 @@ class Editor:
         if not self.camera.is_moving:
             # Structures are ignored when camera is in motion, to make it smooth.
 
+            # TODO: when terrain is very steep structures and landscapes aren't displayed correctly
+            #  (they are on top of triangles which have higher y coordinate)
             for coordinates in self.camera.visible_range(self.map):
                 for triangle_type, texture in get_structure(coordinates, self.map).items():
                     corners = get_triangle_corner_vertices(coordinates, triangle_type)
@@ -231,8 +237,13 @@ class Editor:
 
     def draw_cursor_vertex(self):
         if self.cursor_vertex is not None:
-            draw_cursor_vertex = self.camera.draw_coordinates(self.cursor_vertex, self.map,
-                                                              include_canvas_offset=True)
+            if self.cursor_ignore_minor_vertices:
+                cursor_vertex = (self.cursor_vertex[0] * 2 + (self.cursor_vertex[1] % 2),
+                                 self.cursor_vertex[1] * 2)
+            else:
+                cursor_vertex = self.cursor_vertex
+
+            draw_cursor_vertex = self.camera.draw_coordinates(cursor_vertex, self.map, include_canvas_offset=True)
 
             # This code is meant to mimic cursor icon present in editor from game "Cultures - Northland".
             pygame.draw.circle(self.root, (0, 0, 0),       draw_cursor_vertex, 7, 1)
@@ -256,8 +267,10 @@ class Editor:
         pygame.draw.rect(self.root, (101, 67, 33), (0, 0, 267, 600))
         pygame.draw.rect(self.root, (50, 33, 16),  (0, 0, 267, 600), 6)
 
-        if self.cursor_vertex is not None:
-            self.font_text = f"vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
+        if self.cursor_vertex is not None and self.cursor_ignore_minor_vertices:
+            self.font_text = f"major vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
+        elif self.cursor_vertex is not None and not self.cursor_ignore_minor_vertices:
+            self.font_text = f"minor vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
         elif self.minimap.mouse_hover:
             self.font_text = "minimap (click or hold to move)"
         else:
@@ -267,3 +280,33 @@ class Editor:
                        (10, resolution[1] - 40))
 
         self.minimap.draw(self.root, self.map, self.camera)
+
+    def update_triange(self, coordinates, triangle_type: Literal["a", "b"], mep_id: int):
+        index_bytes = coordinates[1] * self.map.map_width + coordinates[0] * 2
+        match triangle_type:
+            case "a": self.map.mepa[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
+            case "b": self.map.mepb[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
+        self.terrain_loaded = False
+
+    def update_height(self, coordinates, height_delta: int = 1):
+        index_value = coordinates[1] * (self.map.map_width // 2) + coordinates[0]
+        self.map.mhei[index_value] = min(max(self.map.mhei[index_value] + height_delta, 0), 255)
+        self.terrain_loaded = False
+
+    def update_landscape(self, coordinates, landscape_name: str | None):
+        if landscape_name is None and (*coordinates,) in self.map.llan.keys():
+            del self.map.llan[*coordinates]
+        else:
+            self.map.llan[*coordinates] = landscape_name
+
+    def update_structures(self, coordinates, structure_type: Literal[None, "road", "river", "snow"]):
+        update_structures(self.map, coordinates, structure_type)
+        self.terrain_loaded = False
+
+    def update_local_secondary_data(self, coordinates, margin: int = 1):
+
+        update_light_local(self.map, x_range_start=coordinates[0] - margin, x_range_stop=coordinates[0] + margin,
+                                     y_range_start=coordinates[1] - margin, y_range_stop=coordinates[1] + margin)
+        self.minimap.update_image(self.map, x_range_start=coordinates[0] - margin, x_range_stop=coordinates[0] + margin,
+                                            y_range_start=coordinates[1] - margin, y_range_stop=coordinates[1] + margin)
+        self.terrain_loaded = False

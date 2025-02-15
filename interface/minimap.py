@@ -54,10 +54,11 @@ class Minimap:
             self.image_ndarray = np.zeros(shape=(map_object.map_width // 2,
                                                  map_object.map_height // 2,
                                                  3), dtype=np.ubyte)
-        if x_range_start is None: x_range_start = 0
-        if x_range_stop  is None: x_range_stop  = map_object.map_width // 2
-        if y_range_start is None: y_range_start = 0
-        if y_range_stop  is None: y_range_stop  = map_object.map_height // 2
+
+        if x_range_start is None or x_range_start < 0:                        x_range_start = 0
+        if x_range_stop is None or x_range_stop > map_object.map_width // 2:  x_range_stop = map_object.map_width // 2
+        if y_range_start is None or y_range_start < 0:                        y_range_start = 0
+        if y_range_stop is None or y_range_stop > map_object.map_height // 2: y_range_stop = map_object.map_height // 2
 
         for y in range(y_range_start, y_range_stop):
             for x in range(x_range_start, x_range_stop):

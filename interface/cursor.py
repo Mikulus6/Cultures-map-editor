@@ -11,8 +11,10 @@ def area_of_triangle(corners):
                corners[2][0] * (corners[0][1] - corners[1][1])) // 2
 
 def coordinates_prediction(cursor_coordinates, camera: Camera):
-    return round((cursor_coordinates[0] - map_canvas_rect[0] - map_canvas_rect[2] // 2 + camera.position[0]) // triangle_width),\
-           round((cursor_coordinates[1] - map_canvas_rect[1] - map_canvas_rect[3] // 2 + camera.position[1]) // triangle_height)
+    return round((cursor_coordinates[0] - map_canvas_rect[0] - map_canvas_rect[2] // 2 +
+                  camera.position[0]) // triangle_width),\
+           round((cursor_coordinates[1] - map_canvas_rect[1] - map_canvas_rect[3] // 2 +
+                  camera.position[1]) // triangle_height)
 
 def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map, ignore_minor_vertices: bool = False):
 
@@ -43,6 +45,9 @@ def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map, igno
 
     if closest_distance_squared > 2 * (triangle_width ** 2 + triangle_height ** 2):
         return None
+
+    if ignore_minor_vertices:
+        closest_vertex = (closest_vertex[0] // 2, closest_vertex[1] // 2)
 
     return closest_vertex
 

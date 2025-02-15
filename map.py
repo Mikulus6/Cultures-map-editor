@@ -474,3 +474,11 @@ class Map:
             draw_sectors_connections(self.mco2, self.xsec, self.map_width, self.map_height,
                                      expansion_mode="hexagon" if expand else None).save(os.path.join(directory,
                                                                                                      "xsec.png"))
+
+    def to_bytearrays(self):
+        for section_name in map_const.keys():
+            vars(self)[section_name] = bytearray(vars(self)[section_name])
+
+    def from_bytearrays(self):
+        for section_name in map_const.keys():
+            vars(self)[section_name] = bytes(vars(self)[section_name])
