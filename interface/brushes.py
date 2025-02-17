@@ -1,8 +1,11 @@
 from map import Map
 from interface.const import max_scroll_radius
 from interface.cursor import is_vertex_major
+from interface.triangles import get_major_triangle_corner_vertices
 from sections.structures import coordinates_in_radius
 from sections.walk_sector_points import get_tile_in_direction
+
+assert max_scroll_radius % 2 == 0
 
 
 def warp_coordinates_in_bounds(map_object: Map, coordinates):
@@ -45,6 +48,18 @@ def edge_coordinates_ordered_in_radius(start_position, radius, ignore_minor_vert
 
     return tuple(result)
 
+def generate_major_triangles(map_object: Map, start_position: (int, int), radius: int, points: set):
+    radius //= 2
+
+    for y in range(max(start_position[1] - radius - 1, 0),
+                   min(start_position[1] + radius + 1, map_object.map_height)):
+        for x in range(max(start_position[0] - radius - 1, 0),
+                       min(start_position[0] + radius + 1, map_object.map_width)):
+            for triangle_type in ("a", "b"):
+                corners = get_major_triangle_corner_vertices((x, y), triangle_type)
+                if points.issuperset(corners):
+                    yield (x, y), triangle_type
+
 
 class Brush:
     instances = dict()
@@ -81,11 +96,11 @@ class Brush:
             points = [(x + shift_vector[0], y + shift_vector[1]) for x, y in instance.major_points]
             edge_points = tuple(filter(lambda coords: coords[1] % 2 == 0, edge_points))
 
-        points = tuple(filter(lambda coords: is_in_bounds(map_object, coords), points))
+        points = set(filter(lambda coords: is_in_bounds(map_object, coords), points))
 
         return points, edge_points
 
 
 for start_pos in ((0, 0), (0, 1)):
-    for current_radius in range(max_scroll_radius + 1):
+    for current_radius in range(1, max_scroll_radius + 1):
         Brush(start_pos, current_radius)

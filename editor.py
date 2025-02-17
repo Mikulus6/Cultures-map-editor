@@ -59,7 +59,7 @@ class Editor:
         self.mouse_pos = pygame.mouse.get_pos()
         self.mouse_pos_old = self.mouse_pos
 
-        self.ignore_minor_vertices = False
+        self.ignore_minor_vertices = True
 
         self.cursor_vertex = None
         self.cursor_triangle = None
@@ -296,7 +296,6 @@ class Editor:
         points, edge_points = Brush.get_points_and_edge_points(self.map, self.cursor_vertex, self.scroll_radius,
                                                                ignore_minor_vertices=self.ignore_minor_vertices)
 
-        last_dest_point = None
         for edge_point_1, edge_point_2 in zip(edge_points, [*edge_points[1:], edge_points[0]]):
 
             if self.ignore_minor_vertices and \
@@ -305,9 +304,6 @@ class Editor:
 
             edge_point_1 = warp_coordinates_in_bounds(self.map, edge_point_1)
             edge_point_2 = warp_coordinates_in_bounds(self.map, edge_point_2)
-
-            if edge_point_2 == last_dest_point:
-                continue
 
             if self.ignore_minor_vertices:
 
@@ -324,13 +320,21 @@ class Editor:
 
             pygame.draw.line(self.root, (255, 255, 255), edge_point_1_draw, edge_point_2_draw)
 
-            last_dest_point = edge_point_2
-
         """
         # For debug purposes.
         for point in points:
             draw_point = self.camera.draw_coordinates(point, self.map, include_canvas_offset=True)
             pygame.draw.circle(self.root, (255, 255, 255), draw_point, 4)
+        if self.ignore_minor_vertices:
+            for coordinates, triangle_type in generate_major_triangles(self.map, self.cursor_vertex, self.scroll_radius,
+                                                                       points):
+                corners = get_major_triangle_corner_vertices(coordinates, triangle_type)
+
+                draw_corners = (self.camera.draw_coordinates(corners[0], self.map, include_canvas_offset=True),
+                                self.camera.draw_coordinates(corners[1], self.map, include_canvas_offset=True),
+                                self.camera.draw_coordinates(corners[2], self.map, include_canvas_offset=True))
+
+                pygame.draw.polygon(self.root, (255, 255, 255), draw_corners, width=4)
         """
 
     def draw_user_interface(self):
