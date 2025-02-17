@@ -8,6 +8,7 @@ from sys import exit as sys_exit
 import time
 from typing import Literal
 
+from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
@@ -58,7 +59,8 @@ class Editor:
         self.mouse_pos = pygame.mouse.get_pos()
         self.mouse_pos_old = self.mouse_pos
 
-        self.cursor_ignore_minor_vertices = True
+        self.ignore_minor_vertices = False
+
         self.cursor_vertex = None
         self.cursor_triangle = None
 
@@ -66,6 +68,9 @@ class Editor:
         self.mouse_press_left_old = False
         self.mouse_press_right = False
         self.mouse_press_right_old = False
+        self.scroll_delta = 0
+        self.scroll_radius = 0
+        self.last_time_scroll_updated = time.time() - 2 * scroll_radius_message_duration
 
         self.clock = pygame.time.Clock()
 
@@ -79,6 +84,7 @@ class Editor:
 
             button_left_detected = False
             button_right_detected = False
+            scroll_detected = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -98,11 +104,17 @@ class Editor:
                        self.mouse_press_right = False
                        button_right_detected = True
 
+                elif event.type == pygame.MOUSEWHEEL:
+                    scroll_detected = True
+                    self.scroll_delta = event.y
+
             pressed_state = pygame.mouse.get_pressed(3)
             if not button_left_detected:
                 self.mouse_press_left = pressed_state[0]
             if not button_right_detected:
                 self.mouse_press_right = pressed_state[2]
+            if not scroll_detected:
+                self.scroll_delta = 0
 
             self.update_input()
 
@@ -120,8 +132,8 @@ class Editor:
             self.root.blit(self.terrain_surface, map_canvas_rect[:2])
             self.draw_landscapes()
 
-            self.draw_cursor_triangle()
             self.draw_cursor_vertex()
+            self.draw_cursor_hexagonal_radius()
 
             self.draw_user_interface()
 
@@ -152,8 +164,20 @@ class Editor:
         if self.mouse_pos != self.mouse_pos_old or self.camera.is_moving:
 
             self.cursor_vertex = get_closest_vertex(self.mouse_pos, self.camera, self.map,
-                                                    ignore_minor_vertices=self.cursor_ignore_minor_vertices)
+                                                    ignore_minor_vertices=self.ignore_minor_vertices)
             self.cursor_triangle = get_touching_triange(self.mouse_pos, self.camera, self.map)
+
+        old_scroll_radius = self.scroll_radius
+        if self.ignore_minor_vertices and self.scroll_delta % 2 != 0:
+            if self.scroll_radius % 2 != 0:
+                self.scroll_radius = (self.scroll_radius // 2) * 2
+            self.scroll_delta *= 2
+
+        if self.cursor_vertex is not None and self.scroll_delta != 0:
+            self.scroll_radius = min(max(self.scroll_radius - self.scroll_delta, 0), max_scroll_radius)
+
+        if old_scroll_radius != self.scroll_radius:
+            self.last_time_scroll_updated = time.time()
 
     def draw_landscapes(self):
         assert animations.__class__.pygame_converted
@@ -237,7 +261,7 @@ class Editor:
 
     def draw_cursor_vertex(self):
         if self.cursor_vertex is not None:
-            if self.cursor_ignore_minor_vertices:
+            if self.ignore_minor_vertices:
                 cursor_vertex = (self.cursor_vertex[0] * 2 + (self.cursor_vertex[1] % 2),
                                  self.cursor_vertex[1] * 2)
             else:
@@ -262,14 +286,66 @@ class Editor:
 
             pygame.draw.polygon(self.root, (255, 255, 255), draw_corners, width=1)
 
+    def draw_cursor_hexagonal_radius(self, draw_if_major_radius_zero: bool = True):
+        if self.ignore_minor_vertices and draw_if_major_radius_zero and self.scroll_radius == 0:
+            self.draw_cursor_triangle()
+            return
+        elif self.scroll_radius == 0 or self.cursor_vertex is None:
+            return
+
+        points, edge_points = Brush.get_points_and_edge_points(self.map, self.cursor_vertex, self.scroll_radius,
+                                                               ignore_minor_vertices=self.ignore_minor_vertices)
+
+        last_dest_point = None
+        for edge_point_1, edge_point_2 in zip(edge_points, [*edge_points[1:], edge_points[0]]):
+
+            if self.ignore_minor_vertices and \
+               not edge_point_1[1] % 2 == 0 and edge_point_2[1] % 2 == 0:
+                continue
+
+            edge_point_1 = warp_coordinates_in_bounds(self.map, edge_point_1)
+            edge_point_2 = warp_coordinates_in_bounds(self.map, edge_point_2)
+
+            if edge_point_2 == last_dest_point:
+                continue
+
+            if self.ignore_minor_vertices:
+
+                # Major triangles on the edge on the map, which have some of their vertices out of bounds, are excluded
+                # from hexagonal radius due to edge being displayed based on in-bound major vertices. This would be a
+                # significant issue if maps would mean to be editable there, but since there is void margin present
+                # there anyway, it is not that much of a problem.
+
+                edge_point_1 = warp_to_major(edge_point_1)
+                edge_point_2 = warp_to_major(edge_point_2)
+
+            edge_point_1_draw = self.camera.draw_coordinates(edge_point_1, self.map, include_canvas_offset=True)
+            edge_point_2_draw = self.camera.draw_coordinates(edge_point_2, self.map, include_canvas_offset=True)
+
+            pygame.draw.line(self.root, (255, 255, 255), edge_point_1_draw, edge_point_2_draw)
+
+            last_dest_point = edge_point_2
+
+        """
+        # For debug purposes.
+        for point in points:
+            draw_point = self.camera.draw_coordinates(point, self.map, include_canvas_offset=True)
+            pygame.draw.circle(self.root, (255, 255, 255), draw_point, 4)
+        """
+
     def draw_user_interface(self):
 
         pygame.draw.rect(self.root, (101, 67, 33), (0, 0, 267, 600))
         pygame.draw.rect(self.root, (50, 33, 16),  (0, 0, 267, 600), 6)
 
-        if self.cursor_vertex is not None and self.cursor_ignore_minor_vertices:
+        if time.time() - self.last_time_scroll_updated <= scroll_radius_message_duration:
+            if self.ignore_minor_vertices:
+                self.font_text = f"major brush radius: {self.scroll_radius // 2}"
+            else:
+                self.font_text = f"minor brush radius: {self.scroll_radius}"
+        elif self.cursor_vertex is not None and self.ignore_minor_vertices:
             self.font_text = f"major vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
-        elif self.cursor_vertex is not None and not self.cursor_ignore_minor_vertices:
+        elif self.cursor_vertex is not None and not self.ignore_minor_vertices:
             self.font_text = f"minor vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
         elif self.minimap.mouse_hover:
             self.font_text = "minimap (click or hold to move)"

@@ -9,7 +9,7 @@ def coordinates_in_radius(start_position, radius):
     coordinates_set = {start_position}
     coordinates_set_new = set()
 
-    for _ in range(radius - 1):
+    for _ in range(radius):
         for coordinates in coordinates_set:
             if coordinates[1] % 2 == 0:
 
@@ -48,7 +48,7 @@ def derive_structures_water_flag(mstr, mco2, xcot, map_width, map_height):
         for x in range(map_width):
 
             deep_water = True
-            for coordinates in coordinates_in_radius((x, y), 6):
+            for coordinates in coordinates_in_radius((x, y), 5):
                 coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
 
                 if mco2_ndarray[*coordinates[::-1]] == 255 or xcot[mco2_ndarray[*coordinates[::-1]]][0] == 0:

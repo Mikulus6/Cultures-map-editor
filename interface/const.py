@@ -22,3 +22,5 @@ font_name = "Arial"
 font_size = 16
 font_color = (255, 255, 255)
 font_antialias = True
+max_scroll_radius = 24
+scroll_radius_message_duration = 1
