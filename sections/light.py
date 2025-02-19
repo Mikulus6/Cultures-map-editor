@@ -66,12 +66,12 @@ def derive_light_map(mhei: bytes, mepa: bytes, mepb: bytes, map_width: int, map_
 
             try:
                 for coordinates in mepb_coordinates:
-                    coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
+                    coordinates = (coordinates[0] % (map_width // 2), coordinates[1] % (map_height // 2))
                     if mepb_ndarray[*coordinates[::-1]] in border_full_ids:
                         raise ValueError
 
                 for coordinates in mepa_coordinates:
-                    coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
+                    coordinates = (coordinates[0] % (map_width // 2), coordinates[1] % (map_height // 2))
                     if mepa_ndarray[*coordinates[::-1]] in border_full_ids:
                         raise ValueError
 

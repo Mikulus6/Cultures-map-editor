@@ -181,8 +181,6 @@ class Bitmap(dict):
                         case 4: row = [(row[i] if row[i] != alpha_index else 0, row[i + 1]) for i in range(0, len(row), 2)]
 
                     assert len(row) == width
-                    assert all(map(lambda pixel: isinstance(pixel, tuple) and len(pixel) == 2 and
-                                                 all(map(lambda var: 0 <= var <= 255, pixel)), row))
 
                     frame_data.append(row)
                     number_of_rows_counted += 1

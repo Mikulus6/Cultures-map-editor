@@ -217,16 +217,16 @@ def update_sectors(mgfs, mco2, xcot, map_width, map_height):
 
         largest_continent_id = largest_land_continent_in_sector(mco2_ndarray, sector_x, sector_y, xcot)
 
-        if xcot[largest_continent_id][0] == land_marker:
-            validity_subarray = np.logical_and(mco2_subarray == largest_continent_id, mgfs_flag_7_subarray == False)
-        else:
-            validity_subarray = np.zeros_like(mco2_subarray).astype(np.bool_)
-
         try:
+            if xcot[largest_continent_id][0] == land_marker:
+                validity_subarray = np.logical_and(mco2_subarray == largest_continent_id, mgfs_flag_7_subarray == False)
+            else:
+                validity_subarray = np.zeros_like(mco2_subarray).astype(np.bool_)
+
             coordinates = search_valid_coordinates(validity_subarray)
             coordinates = (coordinates[0] + sector_x, coordinates[1] + sector_y)
             sector_type = 1
-        except ValueError:
+        except (IndexError, ValueError):
             coordinates = (0, 0)
             sector_type = 0
 

@@ -33,15 +33,14 @@ def pathfinder_blockers_area_shifted(mgfs_7th_flag, mepa, mepb, mhei, map_width,
             if y % 2 == shift_vector[1] % 2 == 1: local_shift_vector = shift_vector[0] + 1, shift_vector[1]
             else:                                 local_shift_vector = shift_vector
 
-            displacement = [x + local_shift_vector[0],
-                            y + local_shift_vector[1]]
+            displacement = (x + local_shift_vector[0],
+                            y + local_shift_vector[1])
 
             if mep_walkability((x, y), displacement, mepa_ndarray, mepb_ndarray, map_width, map_height):
                 build_vertices_ndarray[y, x] = True
 
-            for coordinates in ([x, y], displacement):
-                coordinates[0] %= map_width
-                coordinates[1] %= map_height
+            for coordinates in ((x, y), displacement):
+                coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
 
                 if mgfs_7_ndarray[*coordinates[::-1]] == 1 or steepness_blockades[y, x]:
                     build_vertices_ndarray[y, x] = False
@@ -54,8 +53,10 @@ def mep_walkability(coordinates_1, coordinates_2, mepa_ndarray, mepb_ndarray, ma
     mepa_triangles_1, mepb_triangles_1 = get_adjacent_mep_coordinates(coordinates_1)
     mepa_triangles_2, mepb_triangles_2 = get_adjacent_mep_coordinates(coordinates_2)
 
-    mepa_triangles_common = [(x % (map_width//2), y % (map_height//2)) for x, y in mepa_triangles_1 if (x, y) in mepa_triangles_2]
-    mepb_triangles_common = [(x % (map_width//2), y % (map_height//2)) for x, y in mepb_triangles_1 if (x, y) in mepb_triangles_2]
+    mepa_triangles_common = [(x % (map_width//2), y % (map_height//2)) for x, y in mepa_triangles_1
+                             if (x, y) in mepa_triangles_2]
+    mepb_triangles_common = [(x % (map_width//2), y % (map_height//2)) for x, y in mepb_triangles_1
+                             if (x, y) in mepb_triangles_2]
 
     for mep_ndarray, mep_triangles_common in zip((mepa_ndarray, mepb_ndarray),
                                                  (mepa_triangles_common, mepb_triangles_common)):

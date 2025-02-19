@@ -37,6 +37,8 @@ def coordinates_in_radius(start_position, radius):
 
     return coordinates_set_old
 
+even_row_reference = (coordinates_in_radius((0, 0), 5), (0, 0))
+odd_row_reference  = (coordinates_in_radius((0, 1), 5), (0, 1))
 
 def derive_structures_water_flag(mstr, mco2, xcot, map_width, map_height):
 
@@ -47,14 +49,16 @@ def derive_structures_water_flag(mstr, mco2, xcot, map_width, map_height):
     for y in range(map_height):
         for x in range(map_width):
 
-            deep_water = True
-            for coordinates in coordinates_in_radius((x, y), 5):
-                coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
+            row_referece = even_row_reference if y % 2 == 0 else odd_row_reference
+
+            for coordinates in row_referece[0]:
+                coordinates = ((x + coordinates[0] - row_referece[1][0]) % map_width,
+                               (y + coordinates[1] - row_referece[1][1]) % map_height)
 
                 if mco2_ndarray[*coordinates[::-1]] == 255 or xcot[mco2_ndarray[*coordinates[::-1]]][0] == 0:
-                    deep_water = False
+                    break
 
-            if deep_water:
+            else:
                 mstr_new_ndarray[y, x] = 1
 
 
