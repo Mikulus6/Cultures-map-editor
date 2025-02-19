@@ -54,6 +54,7 @@ class Map:
 
     def update_all(self, *, exclude_continents=False, report: Report = None):
         if report is None: report = Report(muted=True)
+        elif report is True: report = Report(muted=False)
         if not exclude_continents:
             report.report("Updating continents.")
             self.update_continents()
@@ -482,3 +483,22 @@ class Map:
     def from_bytearrays(self):
         for section_name in map_const.keys():
             vars(self)[section_name] = bytes(vars(self)[section_name])
+
+    # ================================ create empty map =================================
+
+    def empty(self, size):
+        new_map_default_mep_id = 126
+
+        assert size[0] % 20 == size[1] % 20 == 0
+
+        self.map_version = 12
+        self.map_width = size[0]
+        self.map_height = size[1]
+
+        self.mhei = b"\x00" * (size[0] * size[1] // 4)
+        self.mepa = int.to_bytes(new_map_default_mep_id, length=2, byteorder="little") * (size[0] * size[1] // 4)
+        self.mepb = int.to_bytes(new_map_default_mep_id, length=2, byteorder="little") * (size[0] * size[1] // 4)
+        self.mstr = b"\x00" * (size[0] * size[1] * 2)
+        self.llan = dict()
+
+        self.update_light()

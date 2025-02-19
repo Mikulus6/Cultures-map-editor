@@ -72,6 +72,11 @@ class Camera:
     def get_camera_bounds(map_object: Map):
         return (0, map_object.map_width * triangle_width), (0, map_object.map_height * triangle_height)
 
+    def set_to_center(self, map_object: Map):
+        bounds = self.get_camera_bounds(map_object)
+        self.position[0] = (bounds[0][0] + bounds[0][1]) // 2
+        self.position[1] = (bounds[1][0] + bounds[1][1]) // 2
+
     def warp(self, map_object: Map):
 
         bounds_x, bounds_y = self.get_camera_bounds(map_object)

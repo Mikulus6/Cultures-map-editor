@@ -15,10 +15,12 @@ class Minimap:
         self.mouse_pressed_inside = False
         self.mouse_hover = False
         if map_object is None:
+            self.map_size = (0, 0)
             self.image_ndarray = None
         else:
-            self.image_ndarray = np.zeros(shape=(map_object.map_width // 2,
-                                                 map_object.map_height // 2,
+            self.map_size = (map_object.map_width, map_object.map_height)
+            self.image_ndarray = np.zeros(shape=(self.map_size[0] // 2,
+                                                 self.map_size[1] // 2,
                                                  3), dtype=np.ubyte)
         self.surface = pygame.Surface(rect[2:])
         if map_object is not None:
@@ -29,10 +31,13 @@ class Minimap:
         x = camera.position_on_map[0] * self.rect[2] / map_object.map_width  + self.rect[0]
         y = camera.position_on_map[1] * self.rect[3] / map_object.map_height + self.rect[1]
 
-        rect = [ceil(x - map_canvas_rect[2] / (2 * triangle_width)),
-                ceil(y - map_canvas_rect[3] / (2 * triangle_height)),
-                ceil(map_canvas_rect[2] / triangle_width),
-                ceil(map_canvas_rect[3] / triangle_height)]
+        size_x = self.rect[2] * (map_canvas_rect[2] // triangle_width) // self.map_size[0]
+        size_y = self.rect[3] * (map_canvas_rect[3] // triangle_width) // self.map_size[1]
+
+        rect = [ceil(x - size_x // 2),
+                ceil(y - size_y // 2),
+                ceil(size_x),
+                ceil(size_y)]
 
         if rect[0] < self.rect[0]:
             rect[2] -= self.rect[0] - rect[0]

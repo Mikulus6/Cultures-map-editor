@@ -1,7 +1,9 @@
+import copy
+import os
 import pygame
-import easygui
 from map import Map
 from math import floor
+from sections.walk_sector_points import sector_width
 from supplements.animations import animations
 from supplements.textures import patterndefs_textures, transition_textures
 from sys import exit as sys_exit
@@ -9,12 +11,15 @@ import time
 from typing import Literal
 
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
+from interface.buttons import load_buttons
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
+from interface.external import askopenfilename, asksaveasfilename, ask_new_map
 from interface.interpolation import get_data_interpolated
 from interface.landscapes_light import adjust_opaque_pixels
 from interface.light import update_light_local
+from interface.message import message, set_font_text, one_frame_popup
 from interface.minimap import Minimap
 from interface.projection import draw_projected_triangle, projection_report
 from interface.structures import get_structure, update_structures
@@ -51,9 +56,13 @@ class Editor:
         pygame.display.set_caption(window_name)
 
         self.map = Map()
-        self.minimap = Minimap(minimap_rect)
+        self.map.empty((sector_width, sector_width))
+        self.minimap = Minimap(minimap_rect, self.map)
+
+        self.map_filepath: str = None
 
         self.camera = Camera(position=[0.0, 0.0])
+        self.buttons_list = load_buttons(self)
 
         self.pressed_state = pygame.key.get_pressed()
         self.mouse_pos = pygame.mouse.get_pos()
@@ -70,7 +79,6 @@ class Editor:
         self.mouse_press_right_old = False
         self.scroll_delta = 0
         self.scroll_radius = 0
-        self.last_time_scroll_updated = time.time() - 2 * scroll_radius_message_duration
 
         self.clock = pygame.time.Clock()
 
@@ -140,6 +148,9 @@ class Editor:
             clear_point_coordinates_cache()
             projection_report.draw_loading_bar(self.root)
 
+            for button in self.buttons_list:
+                button.action()
+
             pygame.display.flip()
             self.clock.tick(frames_per_second)
 
@@ -147,13 +158,6 @@ class Editor:
     def exit():
         pygame.quit()
         sys_exit()
-
-    def load(self, filepath: str = None):
-        if filepath is None:
-            filepath = easygui.fileopenbox(title="Open map", default="*.map", filetypes=("*.map", "*.*"))
-        self.map.load(filepath)
-        self.map.to_bytearrays()
-        self.minimap.update_image(self.map)
 
     def update_input(self):
 
@@ -177,7 +181,80 @@ class Editor:
             self.scroll_radius = min(max(self.scroll_radius - self.scroll_delta, 0), max_scroll_radius)
 
         if old_scroll_radius != self.scroll_radius:
-            self.last_time_scroll_updated = time.time()
+            if self.ignore_minor_vertices:
+                message.set_message(f"major brush radius: {self.scroll_radius // 2}")
+            else:
+                message.set_message(f"minor brush radius: {self.scroll_radius}")
+
+    # ================================  functionalities  ================================
+
+    def new(self, size: tuple[int, int] = None):
+        if size is None:
+            size = ask_new_map()
+        old_map = copy.deepcopy(self.map)
+        try:
+            one_frame_popup(self, "Creating new map...")
+            self.map.empty(size)
+            self._update()
+            self.map_filepath = None
+        except TypeError:
+            self.map = old_map
+            message.set_message(f"Error: Couldn't create map.")
+
+    def open(self, filepath: str = None):
+        if filepath is None:
+            filepath = askopenfilename(title="Open map", default="*.map", filetypes=(("map files", "*.map"),
+                                                                                     ("all files", "*.*")))
+        old_map = copy.deepcopy(self.map)
+        try:
+            one_frame_popup(self, "Opening map...")
+            self.map.load(filepath)
+            self._update()
+            self.map_filepath = os.path.abspath(filepath)
+            message.set_message(f"Map has been opened.")
+        except (FileNotFoundError, TypeError, NotImplementedError):
+            self.map = old_map
+            message.set_message(f"Error: Couldn't open map file.")
+
+    def save(self):
+        if self.map_filepath is None:
+            self.save_as()
+        else:
+            try:
+                self.map.from_bytearrays()
+                one_frame_popup(self, "Saving map...")
+                self.map.update_all()
+                self.map.save(self.map_filepath)
+                message.set_message(f"Map has been saved.")
+            except TypeError:
+                message.set_message(f"Error: Couldn't save map file.")
+
+    def save_as(self, filepath: str = None):
+        if filepath is None:
+            filepath = asksaveasfilename(title="Save map", default=self.map_filepath, filetypes=(("map files", "*.map"),
+                                                                                                 ("all files", "*.*")))
+        try:
+            if filepath is None:
+                raise TypeError
+            one_frame_popup(self, "Saving map...")
+            self.map.from_bytearrays()
+            self.map.update_all()
+            self.map.save(filepath)
+            self.map_filepath = filepath
+            message.set_message(f"Map has been saved.")
+        except TypeError:
+            message.set_message(f"Error: Couldn't save map file.")
+
+    def _update(self):
+        """Update editor data according to external change in map object."""
+        self.map.to_bytearrays()
+        self.camera = Camera(position=[0.0, 0.0])
+        self.camera.set_to_center(self.map)
+        self.minimap = Minimap(minimap_rect, self.map)
+        self.minimap.update_image(self.map)
+        self.terrain_loaded = False
+
+    # ====================================  visuals  ====================================
 
     def draw_landscapes(self):
         assert animations.__class__.pygame_converted
@@ -320,46 +397,24 @@ class Editor:
 
             pygame.draw.line(self.root, (255, 255, 255), edge_point_1_draw, edge_point_2_draw)
 
-        """
-        # For debug purposes.
-        for point in points:
-            draw_point = self.camera.draw_coordinates(point, self.map, include_canvas_offset=True)
-            pygame.draw.circle(self.root, (255, 255, 255), draw_point, 4)
-        if self.ignore_minor_vertices:
-            for coordinates, triangle_type in generate_major_triangles(self.map, self.cursor_vertex, self.scroll_radius,
-                                                                       points):
-                corners = get_major_triangle_corner_vertices(coordinates, triangle_type)
-
-                draw_corners = (self.camera.draw_coordinates(corners[0], self.map, include_canvas_offset=True),
-                                self.camera.draw_coordinates(corners[1], self.map, include_canvas_offset=True),
-                                self.camera.draw_coordinates(corners[2], self.map, include_canvas_offset=True))
-
-                pygame.draw.polygon(self.root, (255, 255, 255), draw_corners, width=4)
-        """
-
     def draw_user_interface(self):
 
         pygame.draw.rect(self.root, (101, 67, 33), (0, 0, 267, 600))
         pygame.draw.rect(self.root, (50, 33, 16),  (0, 0, 267, 600), 6)
 
-        if time.time() - self.last_time_scroll_updated <= scroll_radius_message_duration:
-            if self.ignore_minor_vertices:
-                self.font_text = f"major brush radius: {self.scroll_radius // 2}"
-            else:
-                self.font_text = f"minor brush radius: {self.scroll_radius}"
-        elif self.cursor_vertex is not None and self.ignore_minor_vertices:
-            self.font_text = f"major vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
-        elif self.cursor_vertex is not None and not self.ignore_minor_vertices:
-            self.font_text = f"minor vertex coordinates: ({self.cursor_vertex[0]}, {self.cursor_vertex[1]})"
-        elif self.minimap.mouse_hover:
-            self.font_text = "minimap (click or hold to move)"
-        else:
-            self.font_text = ""
+        self.font_text = None
+
+        for button in self.buttons_list:
+            button.draw()
+
+        set_font_text(self)
 
         self.root.blit(self.font.render(self.font_text, antialias=font_antialias, color=font_color),
                        (10, resolution[1] - 40))
 
         self.minimap.draw(self.root, self.map, self.camera)
+
+    # ====================================  updates  ====================================
 
     def update_triange(self, coordinates, triangle_type: Literal["a", "b"], mep_id: int):
         index_bytes = coordinates[1] * self.map.map_width + coordinates[0] * 2

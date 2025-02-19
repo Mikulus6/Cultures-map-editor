@@ -1,4 +1,3 @@
-easygui
 numpy
 Pillow
 pygame-ce
