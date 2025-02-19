@@ -291,7 +291,7 @@ def draw_sectors_connections(mco2: bytes, sectors: list, map_width: int, map_hei
             color_primary, color_secondary = continents_colors[int(mco2_ndarray[coordinates[::-1]])]
 
             if int(sector_value[neighbour_relative_index]) == 1:
-                # Warning: rectangular line can became discontinuous when interpreted on hexagonal grid.
+                # Warning: rectangular line can become discontinuous when interpreted on hexagonal grid.
                 image.line((coordinates, neighbour_coordinates), fill=color_secondary)
 
     for sector in sectors:
