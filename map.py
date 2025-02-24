@@ -25,7 +25,7 @@ from sections.sectors import load_sectors_from_xsec, load_xsec_from_sectors
 from sections.sectors_flag import sectors_flag
 from sections.structures import update_structures, validate_structures_continuity, structures_to_rgb, rgb_to_structures
 from sections.summary import update_summary
-from sections.walk_sector_points import update_sectors, draw_sectors_connections
+from sections.walk_sector_points import update_sectors, draw_sectors_connections, sector_width
 
 
 class Map:

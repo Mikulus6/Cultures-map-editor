@@ -54,6 +54,7 @@ class Editor:
         transition_textures.pygame_convert()
 
         pygame.display.set_caption(window_name)
+        pygame.display.set_icon(pygame.image.load(window_icon_filepath))
 
         self.map = Map()
         self.map.empty((sector_width, sector_width))

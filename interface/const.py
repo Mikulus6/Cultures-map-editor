@@ -1,4 +1,5 @@
 window_name = "Editor"
+window_icon_filepath = "interface\\images\\icon.png"
 resolution = (1067, 600)
 map_canvas_rect = (267, 0, 800, 600)
 minimap_rect = (8, 310, 250, 250)
