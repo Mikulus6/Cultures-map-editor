@@ -1,5 +1,7 @@
+import numpy as np
 import os
 
+from scripts.array_paste import paste_in_bounds
 from scripts.buffer import BufferGiver, BufferTaker
 from scripts.colormap import mep_colormap
 from scripts.const import map_const, section_names
@@ -484,10 +486,14 @@ class Map:
         for section_name in map_const.keys():
             vars(self)[section_name] = bytes(vars(self)[section_name])
 
-    # ================================ create empty map =================================
+    # ============================ editor-related functions =============================
+
+    # Following functions operate only on primary sections. All secondary sections should be updated after using those
+    # functions if they are meant to be used outside regular editor.
+
+    new_map_default_mep_id = 126
 
     def empty(self, size):
-        new_map_default_mep_id = 126
 
         assert size[0] % 20 == size[1] % 20 == 0
 
@@ -496,9 +502,54 @@ class Map:
         self.map_height = size[1]
 
         self.mhei = b"\x00" * (size[0] * size[1] // 4)
-        self.mepa = int.to_bytes(new_map_default_mep_id, length=2, byteorder="little") * (size[0] * size[1] // 4)
-        self.mepb = int.to_bytes(new_map_default_mep_id, length=2, byteorder="little") * (size[0] * size[1] // 4)
+        self.mepa = int.to_bytes(Map.new_map_default_mep_id, length=2, byteorder="little") * (size[0] * size[1] // 4)
+        self.mepb = int.to_bytes(Map.new_map_default_mep_id, length=2, byteorder="little") * (size[0] * size[1] // 4)
         self.mstr = b"\x00" * (size[0] * size[1] * 2)
         self.llan = dict()
 
         self.update_light()
+
+    def resize_visible(self, deltas: (int, int, int, int)):
+        # deltas = (top, bottom, left, right)
+        deltas = deltas[3], deltas[2], deltas[0], deltas[1]
+        are_arrays = isinstance(self.mhei, bytearray)
+
+        old_height, old_width = self.map_height, self.map_width
+        new_height = self.map_height + deltas[2] + deltas[3]
+        new_width = self.map_width + deltas[0] + deltas[1]
+
+        mhei_ndarray = np.frombuffer(self.mhei, dtype=np.ubyte).reshape((old_height // 2, old_width // 2))
+        mlig_ndarray = np.frombuffer(self.mlig, dtype=np.ubyte).reshape((old_height // 2, old_width // 2))
+        mepa_ndarray = np.frombuffer(self.mepa, dtype=np.ushort).reshape((old_height // 2, old_width // 2))
+        mepb_ndarray = np.frombuffer(self.mepb, dtype=np.ushort).reshape((old_height // 2, old_width // 2))
+        mstr_ndarray = np.frombuffer(self.mstr, dtype=np.ushort).reshape((self.map_height, self.map_width))
+
+        self.map_width += deltas[0] + deltas[1]
+        self.map_height += deltas[2] + deltas[3]
+
+        self.llan = {(key[0] + deltas[0], key[1] + deltas[2]): value for key, value in self.llan.items()
+                     if 0 <= key[0] + deltas[0] < self.map_width and 0 <= key[1] + deltas[2] < self.map_height}
+
+        mhei_ndarray_new = np.zeros((new_height // 2, new_width // 2), dtype=np.ubyte)
+        mlig_ndarray_new = np.ones((new_height // 2, new_width // 2), dtype=np.ubyte) * 127
+        mepa_ndarray_new = np.ones((new_height // 2, new_width // 2), dtype=np.ushort) * Map.new_map_default_mep_id
+        mepb_ndarray_new = np.ones((new_height // 2, new_width // 2), dtype=np.ushort) * Map.new_map_default_mep_id
+        mstr_ndarray_new = np.zeros((new_height, new_width), dtype=np.ushort)
+
+        paste_in_bounds(mhei_ndarray_new, mhei_ndarray, deltas[2] // 2, deltas[0] // 2)
+        paste_in_bounds(mlig_ndarray_new, mlig_ndarray, deltas[2] // 2, deltas[0] // 2)
+        paste_in_bounds(mepa_ndarray_new, mepa_ndarray, deltas[2] // 2, deltas[0] // 2)
+        paste_in_bounds(mepb_ndarray_new, mepb_ndarray, deltas[2] // 2, deltas[0] // 2)
+        paste_in_bounds(mstr_ndarray_new, mstr_ndarray, deltas[2], deltas[0])
+
+        self.mhei = mhei_ndarray_new.tobytes()
+        self.mlig = mlig_ndarray_new.tobytes()
+        self.mepa = mepa_ndarray_new.tobytes()
+        self.mepb = mepb_ndarray_new.tobytes()
+        self.mstr = mstr_ndarray_new.tobytes()
+
+        self.update_light()
+
+        self.xsec = [[0, "00000000", (0, 0)]] * (self.map_width * self.map_height // sector_width**2)
+        if are_arrays:
+            self.to_bytearrays()

@@ -8,8 +8,8 @@ class BufferGiver(bytes):
     _bits_per_byte = 8
 
     def __init__(self, sequence: bytes):
-        assert isinstance(sequence, bytes)
-        self.sequence = sequence
+        assert isinstance(sequence, bytes) or isinstance(sequence, bytearray)
+        self.sequence = bytes(sequence)
         self.offset = 0
 
     def __repr__(self):

@@ -73,7 +73,8 @@ class Button:
 buttons_data = (0, "new", "create new map"),\
                (1, "open", "open map file"),\
                (2, "save", "save map file"),\
-               (3, "save_as", "save map file as")
+               (3, "save_as", "save map file as"),\
+               (4, "resize", "resize map")
 
 def load_buttons(parent_editor):
 

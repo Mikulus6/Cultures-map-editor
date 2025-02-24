@@ -15,7 +15,7 @@ from interface.buttons import load_buttons
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
-from interface.external import askopenfilename, asksaveasfilename, ask_new_map
+from interface.external import askopenfilename, asksaveasfilename, ask_new_map, ask_resize_map
 from interface.interpolation import get_data_interpolated
 from interface.landscapes_light import adjust_opaque_pixels
 from interface.light import update_light_local
@@ -244,6 +244,26 @@ class Editor:
             message.set_message(f"Map has been saved.")
         except TypeError:
             message.set_message(f"Error: Couldn't save map file.")
+
+    def resize(self, deltas : (int, int, int, int) = None):
+        # deltas = (top, bottom, left, right)
+        if deltas is None:
+            deltas = ask_resize_map(self.map.map_width, self.map.map_height)
+        try:
+            one_frame_popup(self, "Resizing map...")
+            camera_old_pos = self.camera.position
+            self.map.resize_visible(deltas)
+            self._update()
+            self.camera.position = [camera_old_pos[0] + deltas[3] * triangle_width,
+                                    camera_old_pos[1] + deltas[0] * triangle_height]
+            for x in (0, self.map.map_width - 1):
+                for y in range(0, self.map.map_height):
+                    self.update_structures((x, y), None)
+            for y in (0, self.map.map_height - 1):
+                for x in range(0, self.map.map_width):
+                    self.update_structures((x, y), None)
+        except TypeError:
+            message.set_message(f"Error: Couldn't resize map.")
 
     def _update(self):
         """Update editor data according to external change in map object."""
