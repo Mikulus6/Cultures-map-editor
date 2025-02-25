@@ -511,36 +511,33 @@ class Map:
 
     def resize_visible(self, deltas: (int, int, int, int)):
         # deltas = (top, bottom, left, right)
-        deltas = deltas[3], deltas[2], deltas[0], deltas[1]
         are_arrays = isinstance(self.mhei, bytearray)
 
-        old_height, old_width = self.map_height, self.map_width
-        new_height = self.map_height + deltas[2] + deltas[3]
-        new_width = self.map_width + deltas[0] + deltas[1]
-
-        mhei_ndarray = np.frombuffer(self.mhei, dtype=np.ubyte).reshape((old_height // 2, old_width // 2))
-        mlig_ndarray = np.frombuffer(self.mlig, dtype=np.ubyte).reshape((old_height // 2, old_width // 2))
-        mepa_ndarray = np.frombuffer(self.mepa, dtype=np.ushort).reshape((old_height // 2, old_width // 2))
-        mepb_ndarray = np.frombuffer(self.mepb, dtype=np.ushort).reshape((old_height // 2, old_width // 2))
+        mhei_ndarray = np.frombuffer(self.mhei, dtype=np.ubyte).reshape((self.map_height // 2, self.map_width // 2))
+        mlig_ndarray = np.frombuffer(self.mlig, dtype=np.ubyte).reshape((self.map_height // 2, self.map_width // 2))
+        mepa_ndarray = np.frombuffer(self.mepa, dtype=np.ushort).reshape((self.map_height // 2, self.map_width // 2))
+        mepb_ndarray = np.frombuffer(self.mepb, dtype=np.ushort).reshape((self.map_height // 2, self.map_width // 2))
         mstr_ndarray = np.frombuffer(self.mstr, dtype=np.ushort).reshape((self.map_height, self.map_width))
 
-        self.map_width += deltas[0] + deltas[1]
-        self.map_height += deltas[2] + deltas[3]
+        self.map_width += deltas[2] + deltas[3]
+        self.map_height += deltas[0] + deltas[1]
 
-        self.llan = {(key[0] + deltas[0], key[1] + deltas[2]): value for key, value in self.llan.items()
-                     if 0 <= key[0] + deltas[0] < self.map_width and 0 <= key[1] + deltas[2] < self.map_height}
+        self.llan = {(key[0] + deltas[2], key[1] + deltas[0]): value for key, value in self.llan.items()
+                     if 0 <= key[0] + deltas[2] < self.map_width and 0 <= key[1] + deltas[0] < self.map_height}
 
-        mhei_ndarray_new = np.zeros((new_height // 2, new_width // 2), dtype=np.ubyte)
-        mlig_ndarray_new = np.ones((new_height // 2, new_width // 2), dtype=np.ubyte) * 127
-        mepa_ndarray_new = np.ones((new_height // 2, new_width // 2), dtype=np.ushort) * Map.new_map_default_mep_id
-        mepb_ndarray_new = np.ones((new_height // 2, new_width // 2), dtype=np.ushort) * Map.new_map_default_mep_id
-        mstr_ndarray_new = np.zeros((new_height, new_width), dtype=np.ushort)
+        mhei_ndarray_new = np.zeros((self.map_height // 2, self.map_width // 2), dtype=np.ubyte)
+        mlig_ndarray_new = np.ones((self.map_height // 2, self.map_width // 2), dtype=np.ubyte) * 127
+        mepa_ndarray_new = np.ones((self.map_height // 2, self.map_width // 2), dtype=np.ushort) * \
+                                                                                              Map.new_map_default_mep_id
+        mepb_ndarray_new = np.ones((self.map_height // 2, self.map_width // 2), dtype=np.ushort) * \
+                                                                                              Map.new_map_default_mep_id
+        mstr_ndarray_new = np.zeros((self.map_height, self.map_width), dtype=np.ushort)
 
-        paste_in_bounds(mhei_ndarray_new, mhei_ndarray, deltas[2] // 2, deltas[0] // 2)
-        paste_in_bounds(mlig_ndarray_new, mlig_ndarray, deltas[2] // 2, deltas[0] // 2)
-        paste_in_bounds(mepa_ndarray_new, mepa_ndarray, deltas[2] // 2, deltas[0] // 2)
-        paste_in_bounds(mepb_ndarray_new, mepb_ndarray, deltas[2] // 2, deltas[0] // 2)
-        paste_in_bounds(mstr_ndarray_new, mstr_ndarray, deltas[2], deltas[0])
+        paste_in_bounds(mhei_ndarray_new, mhei_ndarray, deltas[0] // 2, deltas[2] // 2)
+        paste_in_bounds(mlig_ndarray_new, mlig_ndarray, deltas[0] // 2, deltas[2] // 2)
+        paste_in_bounds(mepa_ndarray_new, mepa_ndarray, deltas[0] // 2, deltas[2] // 2)
+        paste_in_bounds(mepb_ndarray_new, mepb_ndarray, deltas[0] // 2, deltas[2] // 2)
+        paste_in_bounds(mstr_ndarray_new, mstr_ndarray, deltas[0], deltas[2])
 
         self.mhei = mhei_ndarray_new.tobytes()
         self.mlig = mlig_ndarray_new.tobytes()
@@ -549,7 +546,7 @@ class Map:
         self.mstr = mstr_ndarray_new.tobytes()
 
         self.update_light()
-
         self.xsec = [[0, "00000000", (0, 0)]] * (self.map_width * self.map_height // sector_width**2)
+
         if are_arrays:
             self.to_bytearrays()

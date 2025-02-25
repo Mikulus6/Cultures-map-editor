@@ -59,7 +59,8 @@ def run_length_encryption(sequence: bytes, *, bytes_per_entry: int, header_digit
             current_count += 1
         else:
             if current_count == 1:
-                if isinstance(pre_compressed_data[-1], bytes) and len(pre_compressed_data[-1]) < 127:
+                if len(pre_compressed_data) != 0 and isinstance(pre_compressed_data[-1], bytes) and\
+                   len(pre_compressed_data[-1]) < 127:
                     pre_compressed_data[-1] += current_entry
                 else:
                     pre_compressed_data.append(current_entry)

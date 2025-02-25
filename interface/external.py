@@ -131,7 +131,7 @@ def ask_resize_map(current_map_width, current_map_height):
             messagebox.showwarning("Warning", f"Resulting map dimensions must be positive.")
         else:
 
-            result = (north_val, south_val, east_val, west_val)
+            result = (north_val, south_val, west_val, east_val)
             root.quit()
             root.destroy()
 
