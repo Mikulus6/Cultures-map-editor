@@ -1,4 +1,5 @@
 import copy
+from datetime import datetime
 import os
 import pygame
 from map import Map
@@ -11,12 +12,13 @@ import time
 from typing import Literal
 
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
-from interface.buttons import load_buttons
+from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
-from interface.external import askopenfilename, asksaveasfilename, ask_new_map, ask_resize_map
+from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map
 from interface.interpolation import get_data_interpolated
+from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
 from interface.landscapes_light import adjust_opaque_pixels
 from interface.light import update_light_local
 from interface.message import message, set_font_text, one_frame_popup
@@ -43,6 +45,8 @@ class Editor:
 
         self.root = pygame.display.set_mode(resolution)
 
+        self.invisible_landscapes_display = False
+        self.terrian_textures_suspension = False
         self.terrain_surface = pygame.Surface(map_canvas_rect[2:])
         self.terrain_loaded = False
 
@@ -52,6 +56,7 @@ class Editor:
         animations.pygame_convert()
         patterndefs_textures.pygame_convert()
         transition_textures.pygame_convert()
+        self.invisible_landscapes_legend = render_legend(self)
 
         pygame.display.set_caption(window_name)
         pygame.display.set_icon(pygame.image.load(window_icon_filepath))
@@ -63,6 +68,8 @@ class Editor:
         self.map_filepath: str = None
 
         self.camera = Camera(position=[0.0, 0.0])
+        self.camera.set_to_center(self.map)
+
         self.buttons_list = load_buttons(self)
 
         self.pressed_state = pygame.key.get_pressed()
@@ -146,6 +153,10 @@ class Editor:
 
             self.draw_user_interface()
 
+            if self.invisible_landscapes_display:
+                self.root.blit(self.invisible_landscapes_legend, (map_canvas_rect[0] + invisible_legend_draw_margin,
+                                                                  map_canvas_rect[1] + invisible_legend_draw_margin))
+
             clear_point_coordinates_cache()
             projection_report.draw_loading_bar(self.root)
 
@@ -200,7 +211,7 @@ class Editor:
             self.map_filepath = None
         except TypeError:
             self.map = old_map
-            message.set_message(f"Error: Couldn't create map.")
+            message.set_message(f"error: couldn't create map.")
 
     def open(self, filepath: str = None):
         if filepath is None:
@@ -215,7 +226,7 @@ class Editor:
             message.set_message(f"Map has been opened.")
         except (FileNotFoundError, TypeError, NotImplementedError):
             self.map = old_map
-            message.set_message(f"Error: Couldn't open map file.")
+            message.set_message(f"error: couldn't open map file.")
 
     def save(self):
         if self.map_filepath is None:
@@ -228,7 +239,7 @@ class Editor:
                 self.map.save(self.map_filepath)
                 message.set_message(f"Map has been saved.")
             except TypeError:
-                message.set_message(f"Error: Couldn't save map file.")
+                message.set_message(f"error: couldn't save map file.")
 
     def save_as(self, filepath: str = None):
         if filepath is None:
@@ -244,7 +255,45 @@ class Editor:
             self.map_filepath = filepath
             message.set_message(f"Map has been saved.")
         except TypeError:
-            message.set_message(f"Error: Couldn't save map file.")
+            message.set_message(f"error: couldn't save map file.")
+
+    def extract(self):
+        dirpath = askdirectory()
+
+        try:
+            one_frame_popup(self, "Exporting map...")
+            dirpath = os.path.join(dirpath, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+            self.map.extract(dirpath)
+            message.set_message(f"Map has been exported.")
+        except TypeError:
+            message.set_message(f"error: couldn't export map.")
+
+    def pack(self):
+        dirpath = askdirectory()
+
+        try:
+            one_frame_popup(self, "Importing map...")
+            self.map.pack(dirpath)
+            message.set_message(f"Map has been imported.")
+            self._update()
+            self.map_filepath = None
+        except (FileNotFoundError, TypeError):
+            message.set_message(f"error: couldn't import map.")
+
+    def terrain_textures(self):
+        self.terrian_textures_suspension = not self.terrian_textures_suspension
+        self.terrain_loaded = False
+        if self.terrian_textures_suspension:
+            message.set_message(f"Terrain textures are now disabled.")
+        else:
+            message.set_message(f"Terrain textures are now enabled.")
+
+    def invisible_landscapes(self):
+        self.invisible_landscapes_display = not self.invisible_landscapes_display
+        if self.invisible_landscapes_display:
+            message.set_message(f"Invisible landscapes are now shown.")
+        else:
+            message.set_message(f"Invisible landscapes are now hidden.")
 
     def resize(self, deltas : (int, int, int, int) = None):
         # deltas = (top, bottom, left, right)
@@ -255,7 +304,7 @@ class Editor:
             camera_old_pos = self.camera.position
             self.map.resize_visible(deltas)
             self._update()
-            self.camera.position = [camera_old_pos[0] + deltas[3] * triangle_width,
+            self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
                                     camera_old_pos[1] + deltas[0] * triangle_height]
             for x in (0, self.map.map_width - 1):
                 for y in range(0, self.map.map_height):
@@ -264,7 +313,7 @@ class Editor:
                 for x in range(0, self.map.map_width):
                     self.update_structures((x, y), None)
         except TypeError:
-            message.set_message(f"Error: Couldn't resize map.")
+            message.set_message(f"error: couldn't resize map.")
 
     def _update(self):
         """Update editor data according to external change in map object."""
@@ -287,8 +336,14 @@ class Editor:
 
             landscape_name = self.map.llan.get(coordinates, None)
 
-            if landscape_name is not None:
-                animation = animations[landscape_name]
+            if self.invisible_landscapes_display and landscape_name in transparent_landscapes_color_match.keys():
+
+                pygame.draw.circle(self.root, transparent_landscapes_color_match[landscape_name], draw_coordinates,
+                                   color_circle_radius)
+
+
+            elif landscape_name is not None:
+                animation = animations[landscape_name.lower()]
                 frame = floor(time.time() * animation_frames_per_second) % len(animation.images)
                 image = adjust_opaque_pixels(animation.images[frame], get_data_interpolated(coordinates,
                                                                                             (self.map.map_width,
@@ -320,7 +375,8 @@ class Editor:
 
                 texture = get_major_triangle_texture(coordinates, triangle_type, self.map)
                 light_values = get_major_triangle_light_values(coordinates, triangle_type, self.map)
-                draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values)
+                draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
+                                        suspend_loading_textures=self.terrian_textures_suspension)
                 triangles_on_screen += 1
 
                 for transition_texture, transition_key in transitions_gen(coordinates, triangle_type, self.map):
@@ -330,7 +386,7 @@ class Editor:
             transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
             transition_light_values = permutate_corners(light_values, transition_key)
             draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
-                                    transition_light_values)
+                                    transition_light_values, suspend_loading_textures=self.terrian_textures_suspension)
             triangles_on_screen += 1
 
         if not self.camera.is_moving:
@@ -345,7 +401,8 @@ class Editor:
                                     self.camera.draw_coordinates(corners[1], self.map),
                                     self.camera.draw_coordinates(corners[2], self.map))
                     light_values = get_minor_triangle_light_values(coordinates, triangle_type, self.map)
-                    draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values)
+                    draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
+                                            suspend_loading_textures = self.terrian_textures_suspension)
                     triangles_on_screen += 1
 
         try:
@@ -420,10 +477,10 @@ class Editor:
 
     def draw_user_interface(self):
 
-        pygame.draw.rect(self.root, (101, 67, 33), (0, 0, 267, 600))
-        pygame.draw.rect(self.root, (50, 33, 16),  (0, 0, 267, 600), 6)
+        self.root.blit(background, (0, 0))
 
         self.font_text = None
+        self.font_text = message.get_message()
 
         for button in self.buttons_list:
             button.draw()

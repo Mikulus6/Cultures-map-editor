@@ -11,6 +11,9 @@ def asksaveasfilename(*args, **kwargs):
     filepath = filedialog.asksaveasfilename(*args, **kwargs)
     return filepath if filepath != "" else None
 
+def askdirectory(*args, **kwargs):
+    directory = filedialog.askdirectory(*args, **kwargs)
+    return directory if directory != "" else None
 
 def ask_new_map():
     def validate_entries():

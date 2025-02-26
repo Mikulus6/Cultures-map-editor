@@ -9,7 +9,8 @@ from supplements.textures import Texture, rect_bound
 epsylon = 1e-16
 
 
-def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: tuple, light_corners: tuple):
+def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: tuple, light_corners: tuple, *,
+                            suspend_loading_textures: bool = False):
 
     bounds_x, bounds_y = rect_bound(corners)
 
@@ -27,9 +28,12 @@ def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: 
 
     projection_report.triangles_total += 1
     try:
-        surface.blit(project_triangle(texture, relative_corners, light_corners), (bounds_x[0], bounds_y[0]))
+        if suspend_loading_textures:
+            raise TimeoutError
 
+        surface.blit(project_triangle(texture, relative_corners, light_corners), (bounds_x[0], bounds_y[0]))
         projection_report.triangles_textured += 1
+
     except TimeoutError:
 
         average_light = sum(light_corners) / 3

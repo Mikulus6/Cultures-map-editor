@@ -14,7 +14,7 @@ class LandscapeDefs(dict):
 
         super().__init__(load_ini_as_dict(cif_path, allowed_section_names=("LandscapeElement",),
                          entries_duplicated=("BaseArea", "ExtendedArea", "SpecialArea", "AddNextLandscape", "FlagSet"),
-                         global_key=lambda x: x["Name"], merge_duplicates=False))
+                         global_key=lambda x: x["Name"].lower(), merge_duplicates=False))
 
         # Following fields are meant for storing info which present in *.cdf file is not redundant to *.cif file
         # content. This is most likely a result of unused leftover data with no deeper meaning. Remember that *.cdf file
@@ -36,7 +36,7 @@ class LandscapeDefs(dict):
             if name_length == -1:
                 name_length = name_max_length
 
-            name = str(name_raw[:name_length], encoding=data_encoding)
+            name = str(name_raw[:name_length], encoding=data_encoding).lower()
 
             bob_libs_packed = ""
             bob_libs_masked = ""

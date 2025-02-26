@@ -1,48 +1,34 @@
-(A) ===== Game-extraction related tasks =====
+User interface:
+    - scrollable list with tiles (terrain, landscapes, structures)
+    - buttons with edit options (terrain, height, landscapes, structures)
+    - add map margin (when resizeing and editing)
+    - fill selected area with chosen landscape (custom density)
+    - modify height of selected area (increase, decrease, randomize, average)
+    - modify terrain triangles (one type, set of multiple types with random frequency)
+    - button: mark X-Y-Radius area (tkinter input)
+    - load terrain & height template from image (applying pcx to existing empty map)
 
-1a. Document in-game meaning of all entries from '*.cif' / '*.ini' files responsible for maps content.
-    (Some possible entries might not be present anywhere, all of them probably are stored as strings in *.exe file.)
-    Categories of entries necessary to document:
-        - animals                           - buildings
-        - units (+ jobs)                    - tribes
-        - mission results                   - mission goals
-        - 'Control' parameters              - ai conditions and actions
-        - remaining 'StartUp' parameters    - remaining 'Mission' parameters
-        *- all remaining useful information not mentioned here
+    - function for smoothening border between different types of terrain (e.g. water and beach)
+    - choose and fill terrain according to data in ve_edit directory
+    - choose and fill landscapes according to data in ve_edit directory
 
-2a. (Bonus Task) Try to find version of Cultures released before 22nd August 2000 (for checking landscapes BaseArea and
-    ExtendedArea values from later modified landscapes.)-> This is not a programming challenge, but a research-like one.
+    - speed up bmd loading process to make cache.bin unnecessary
+    - add loading visuals if speeding loading cache.bin is not possible
+    - speed up map saving algorithm (all derivations together are slow)
+    - speed up map display if possible (show mstr when camera is in motion if possible)
+    - make shifting perspective possible
+    - move camera by using mouse wheel button
 
+Scripts documentation:
+    - describe in pdf: animalis, buildings, units (jobs), tribes
+    - describe in pdf: missions (goals, results, etc.)
+    - describe in pdf: AI conditions and actions
+    - describe in pdf: control & startup parameters (and all remaining information)
+    - portable cif - ini converter and lib extractor and archiver (either incorporated in editor or as a separated exe)
+    - write a pdf with techincal documentation (referece: bmd format.pdf file)
+    - write a pdf with map-making tutorial & pipeline (referece: existing Polish & German tutorials for 8th wonder)
+    - clean up code and add comments where it's necessary
+    - write markdown readme for GitHub repository
+    - decide which licence we want to use after making repo public
 
-
-(B) ===== Repository related tasks =====
-
-1b. Write proper README.md file for github repository.
-2b. Write additional comments in code as a form of documentation.
-3b. If necessary, write '*.tex' file with technical documentation that would be too broad for comments in code.
-4b. Decide which licence we want to use after making repo public.
-
-
-
-(C) ===== Editor related tasks =====
-
-1c. Turn all previously written code into nicely portable package. (It might be very useful to use instead of file input
-    and output some objects of type 'bytes' so it wouldn't be necessary to save and immediately load some data).
-    This point might be relevant if we want to separate editor-related code from direct-map-edition code.
-
-2c. Program following features regarding pseudo-3D graphics render:
-    - Displaying units/animals based on '*.bmd', '*.pcx' and '*.cif'/'*.ini' files.
-    - Changing perspective and zooming in/out as in game with camera.
-
-3c. Write function that would convert building-related landscapes into plain text with proper '*.ini' syntax containing
-    same buildings but stored as 'real' buildings not as landscapes. This way it won't be necessary to program editing
-    buildings on its own for '*.ini' files.
-
-4c. Write function that would generate heightmap and terrain based on generic image similar to those present in
-    'Editor/Premaps' folder in newer Cultures games.
-
-5c. Program functional minimap display.
-
-(D) ===== The end =====
-
-1d. Use created tools to make actuall Cultures 1 Fan-Made map :)
+After finishing everything make an actuall fan-made Cultures 1 map :)

@@ -69,6 +69,7 @@ class Animations(dict):
         except FileNotFoundError:
             print("Warning: cache file not found. Animations will be extracted from game files.")
             self.load_all_animations(report=report)
+            self.save_cache()
 
     def load_all_animations(self, *, report=False) -> dict:
         report = Report(muted=not report)

@@ -24,8 +24,6 @@ class Message:
 
 
 def set_font_text(editor):
-    if editor.font_text is None:
-        editor.font_text = message.get_message()
 
     if editor.font_text is not None:
         pass
@@ -36,7 +34,7 @@ def set_font_text(editor):
     elif editor.minimap.mouse_hover:
         editor.font_text = "minimap (click or hold to move)"
     else:
-        editor.font_text = ""
+        editor.font_text = "..."
 
 def one_frame_popup(editor, text):
     """Show message for one frame when application is about to get a one-frame lag spike (e.g. loading message)."""

@@ -1,7 +1,8 @@
 import pygame
 from math import ceil
+from interface.const import resolution, map_canvas_rect
 
-button_initial_offset = (8, 8)
+button_initial_offset = (4, 2)
 button_tile_size = (24, 24)
 buttons_margin = 2
 buttons_per_row = 10
@@ -60,7 +61,7 @@ class Button:
     def draw(self):
         self.editor.root.blit(self.image_hover if self.check_hover() else self.image, self.rect[:2])
 
-        if self.check_hover():
+        if self.check_hover() and self.editor.font_text is None:
             self.editor.font_text = self.hover_text
 
 
@@ -74,7 +75,22 @@ buttons_data = (0, "new", "create new map"),\
                (1, "open", "open map file"),\
                (2, "save", "save map file"),\
                (3, "save_as", "save map file as"),\
-               (4, "resize", "resize map")
+               (4, "pack", "import from external data"),\
+               (5, "extract", "export to external data"),\
+               (6, "terrain_textures", "disable / enable terrain textures"),\
+               (7, "invisible_landscapes", "show / hide invisible landscapes"),\
+               (8, "", ""),\
+               (9, "", "about editor"),\
+               (10, "resize", "resize map"),\
+               (11, "", "modify terrain by singular patterns"),\
+               (12, "", "modify terrain by pattern groups"),\
+               (13, "", "modify height"),\
+               (14, "", "modify landscapes by singular elements"),\
+               (15, "", "modify landscapes by landscapes groups"),\
+               (16, "", "modify structures"),\
+               (17, "", "mark hexagonal area"),\
+               (18, "", ""),\
+               (19, "", "close current tool")  # TODO: write missing methods for buttons
 
 def load_buttons(parent_editor):
 
@@ -84,11 +100,17 @@ def load_buttons(parent_editor):
 
     for index_value, method_name, hover_text in buttons_data:
         button = Button(parent_editor,
-                        (button_initial_offset[0] + index_value * (button_tile_size[0] + buttons_margin),
-                         button_initial_offset[1] + (index_value // buttons_per_row) *\
+                        (button_initial_offset[0] + (index_value % buttons_per_row) * \
+                                                    (button_tile_size[0] + buttons_margin),
+                         button_initial_offset[1] + (index_value // buttons_per_row) * \
                                                     (button_tile_size[1] + buttons_margin)),
                         tileset[index_value, 0], tileset[index_value, 1],
                         lambda editor, method=method_name: getattr(editor, method)(), hover_text)
         result_buttons.append(button)
 
     return tuple(result_buttons)
+
+
+background_path = "interface\\images\\background.png"
+background = pygame.image.load(background_path)
+assert background.size == (resolution[0] - map_canvas_rect[2], resolution[1])
