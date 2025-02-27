@@ -1,9 +1,8 @@
 User interface:
-    - scrollable list with tiles (structures remain)
-    - buttons with edit options (height + structures remain)
+    - buttons with edit options (height remain)
     - add map margin (when resizeing and editing)
     - modify height of selected area (increase, decrease, randomize, average)
-    - modify terrain triangles (one type, set of multiple types with random frequency)
+    - modify terrain triangles (set of multiple types with random frequency)
     - button: mark X-Y-Radius area (tkinter input)
     - load terrain & height template from image (applying pcx to existing empty map)
 

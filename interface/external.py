@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from sections.walk_sector_points import sector_width
+from interface.message import message
+from interface.states import landscapes_draw_parameters
+
 
 def askopenfilename(*args, **kwargs):
     filepath = filedialog.askopenfilename(*args, **kwargs)
@@ -185,3 +188,73 @@ def ask_resize_map(current_map_width, current_map_height):
 
     root.mainloop()
     return result
+
+
+def ask_landscapes_parameters():
+    def validate_entries():
+        try:
+            density_val = float(density_entry.get())
+            tickrate_val = float(tickrate_entry.get())
+            density_val = min(max((density_val, 0)), 1)
+            tickrate_val = 1 if tickrate_val <= 0 else tickrate_val
+            density_entry.delete(0, tk.END)
+            density_entry.insert(0, str(density_val))
+            tickrate_entry.delete(0, tk.END)
+            tickrate_entry.insert(0, str(tickrate_val))
+            ok_button.config(state=tk.NORMAL)
+        except ValueError:
+            ok_button.config(state=tk.DISABLED)
+
+    def on_update():
+
+        try:
+            density_val = float(density_entry.get())
+            tickrate_val = float(tickrate_entry.get())
+        except ValueError:
+            messagebox.showwarning("Warning", f"Given values must be integers.")
+            return
+
+        if not (0 <= density_val <= 1):
+            messagebox.showwarning("Warning", f"Density must be between zero and one.")
+            return
+        elif tickrate_val <= 0:
+            messagebox.showwarning("Warning", f"Tickrate must be greater than zero.")
+            return
+
+        landscapes_draw_parameters.density = density_val
+        landscapes_draw_parameters.tickrate = tickrate_val
+
+        root.quit()
+        root.destroy()
+
+        message.set_message(f"Brush parameters have been changed.")
+
+    def on_close():
+        root.quit()
+        root.destroy()
+
+    root = tk.Tk()
+    root.title("Landscape")
+    root.geometry("225x125")
+    root.resizable(False, False)
+    root.protocol("WM_DELETE_WINDOW", on_close)
+
+    frame = tk.Frame(root)
+    frame.pack(expand=True)
+
+    tk.Label(frame, text="Density:").grid(row=0, column=0, padx=5, pady=5, sticky='ew')
+    density_entry = tk.Entry(frame)
+    density_entry.grid(row=0, column=1, padx=5, pady=5, sticky='ew')
+    density_entry.insert(0, f"{landscapes_draw_parameters.density}")
+    density_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=1, column=0, padx=5, pady=5, sticky='ew')
+    tickrate_entry = tk.Entry(frame)
+    tickrate_entry.grid(row=1, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
+    tickrate_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    ok_button = tk.Button(frame, text="Update", state=tk.NORMAL, command=on_update)
+    ok_button.grid(row=2, column=0, columnspan=2, pady=10)
+
+    root.mainloop()

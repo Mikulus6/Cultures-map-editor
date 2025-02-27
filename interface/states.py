@@ -7,7 +7,7 @@ from interface.brushes import generate_major_triangles, Brush
 @dataclass
 class LandscapesDrawParameters:
     density: float = 0.1
-    tickrate: int = 10
+    tickrate: float = 10.0
     last_tick_time = time.time() - 1 / tickrate
 
 landscapes_draw_parameters = LandscapesDrawParameters()
@@ -86,7 +86,27 @@ class StatesMachine:
                                 continue
                             editor.update_landscape(point, name)
                         landscapes_draw_parameters.last_tick_time = time.time()
-                    else:
+                    elif editor.scroll_radius == 0:
                         editor.update_landscape(editor.cursor_vertex, name)
+    @staticmethod
+    def structures(editor):
+        editor.ignore_singular_triangle = True
+        editor.ignore_minor_vertices = False
+        editor.structures_catalogue.update_and_draw(editor)
+        if editor.cursor_vertex is not None:
+            for pressed, selected_pattern in zip((editor.mouse_press_left, editor.mouse_press_right),
+                                                 (editor.structures_catalogue.selected_index_left,
+                                                  editor.structures_catalogue.selected_index_right)):
+                if pressed:
+                    name = editor.structures_catalogue.items[selected_pattern].identificator
+
+                    if editor.scroll_radius != 0:
+                        for point in Brush.get_points_and_edge_points(editor.map,
+                                                                      editor.cursor_vertex,
+                                                                      editor.scroll_radius,
+                                                                      ignore_minor_vertices=False)[0]:
+                            editor.update_structures(point, name)
+                    else:
+                        editor.update_structures(editor.cursor_vertex, name)
 
 states_machine = StatesMachine()

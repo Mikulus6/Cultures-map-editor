@@ -3,9 +3,9 @@ from math import floor
 from dataclasses import dataclass
 from interface.const import font_antialias, font_color, frame_color
 from interface.projection import draw_projected_triangle
-from supplements.landscapedefs import landscapedefs
 from supplements.animations import animations
-from supplements.patterns import patterndefs_normal
+from supplements.landscapedefs import landscapedefs
+from supplements.patterns import patterndefs_normal, road
 from supplements.textures import patterndefs_textures
 from typing import Literal
 
@@ -218,6 +218,27 @@ def load_landscapes_catalogue():
         entry.image.blit(pygame.transform.scale(image, size),
                          ((entry_size[0] - 2 * icon_margin - size[0]) // 2,
                           (entry_size[1] - 2 * icon_margin - size[1]) // 2))
+        entries.append(entry)
+
+    return Catalogue(entries)
+
+
+def load_structures_catalogue():
+    assert patterndefs_textures.pygame_converted
+
+    entries = [CatalogueEntry("", None, image=pygame.Surface(entry_size, pygame.SRCALPHA))]
+    entries[0].image.fill(entry_background_color)
+
+    for name, data in road.items():
+        mep_id = data['patterna'][12] * 256 + data['patterna'][13]
+        entry = CatalogueEntry(patterndefs_normal[mep_id]["Name"], identificator=name,
+                               image=pygame.Surface(entry_size, pygame.SRCALPHA))
+        entry.image.fill(entry_background_color)
+        draw_projected_triangle(entry.image, patterndefs_textures[mep_id]["a"],
+                                ((entry_size[0] // 2, icon_margin),
+                                 (entry_size[0] - icon_margin, entry_size[1] - icon_margin),
+                                 (icon_margin, entry_size[1] - icon_margin)),
+                                (0.5, 0.5, 0.5), suspend_timeout=True)
         entries.append(entry)
 
     return Catalogue(entries)

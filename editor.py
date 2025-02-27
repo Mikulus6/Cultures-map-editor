@@ -14,10 +14,11 @@ from typing import Literal
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
 from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
-from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue
+from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue, load_structures_catalogue
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
-from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map
+from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
+                               ask_landscapes_parameters
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
 from interface.landscapes_light import adjust_opaque_pixels
@@ -61,6 +62,7 @@ class Editor:
         self.invisible_landscapes_legend = render_legend(self)
         self.patterns_catalogue = load_patterns_catalogue()
         self.landscapes_catalogue = load_landscapes_catalogue()
+        self.structures_catalogue = load_structures_catalogue()
 
         pygame.display.set_caption(window_name)
         pygame.display.set_icon(pygame.image.load(window_icon_filepath))
@@ -308,22 +310,26 @@ class Editor:
 
     def resize(self, deltas : (int, int, int, int) = None):
         # deltas = (top, bottom, left, right)
+        old_mstr = copy.copy(self.map.mstr)
         if deltas is None:
             deltas = ask_resize_map(self.map.map_width, self.map.map_height)
         try:
             one_frame_popup(self, "Resizing map...")
             camera_old_pos = self.camera.position
-            self.map.resize_visible(deltas)
-            self._update()
-            self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
-                                    camera_old_pos[1] + deltas[0] * triangle_height]
+
             for x in (0, self.map.map_width - 1):
                 for y in range(0, self.map.map_height):
                     self.update_structures((x, y), None)
             for y in (0, self.map.map_height - 1):
                 for x in range(0, self.map.map_width):
                     self.update_structures((x, y), None)
+
+            self.map.resize_visible(deltas)
+            self._update()
+            self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
+                                    camera_old_pos[1] + deltas[0] * triangle_height]
         except TypeError:
+            self.map.mstr = old_mstr
             message.set_message(f"error: couldn't resize map.")
 
     def pattern_single(self):
@@ -333,6 +339,14 @@ class Editor:
     @staticmethod
     def landscape_single():
         states_machine.set_state("landscape_single")
+
+    @staticmethod
+    def landscape_adjust():
+        ask_landscapes_parameters()
+
+    @staticmethod
+    def structures():
+        states_machine.set_state("structures")
 
     def close_tool(self):
         self.ignore_minor_vertices = False

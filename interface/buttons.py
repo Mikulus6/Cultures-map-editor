@@ -87,9 +87,9 @@ buttons_data = (0, "new", "create new map"),\
                (13, "", "modify height"),\
                (14, "landscape_single", "modify landscapes by singular element"),\
                (15, "", "modify landscapes by element groups"),\
-               (16, "", "modify structures"),\
-               (17, "", "mark hexagonal area"),\
-               (18, "", ""),\
+               (16, "landscape_adjust", "adjust landscapes brush"),\
+               (17, "structures", "modify structures"),\
+               (18, "", "mark hexagonal area"),\
                (19, "close_tool", "close current tool")  # TODO: write missing methods for buttons
 
 def load_buttons(parent_editor):
