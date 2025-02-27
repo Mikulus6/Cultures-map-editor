@@ -14,7 +14,7 @@ from typing import Literal
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
 from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
-from interface.catalogue import load_patterns_catalogue
+from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map
@@ -60,6 +60,7 @@ class Editor:
         transition_textures.pygame_convert()
         self.invisible_landscapes_legend = render_legend(self)
         self.patterns_catalogue = load_patterns_catalogue()
+        self.landscapes_catalogue = load_landscapes_catalogue()
 
         pygame.display.set_caption(window_name)
         pygame.display.set_icon(pygame.image.load(window_icon_filepath))
@@ -166,10 +167,10 @@ class Editor:
             clear_point_coordinates_cache()
             projection_report.draw_loading_bar(self.root)
 
+            states_machine.run_current_state(self)
+
             for button in self.buttons_list:
                 button.action()
-
-            states_machine.run_current_state(self)
 
             self.draw_message()
 
@@ -328,6 +329,10 @@ class Editor:
     def pattern_single(self):
         if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
         states_machine.set_state("pattern_single")
+
+    @staticmethod
+    def landscape_single():
+        states_machine.set_state("landscape_single")
 
     def close_tool(self):
         self.ignore_minor_vertices = False

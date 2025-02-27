@@ -1,4 +1,16 @@
+from dataclasses import dataclass
+from random import random
+import time
 from interface.brushes import generate_major_triangles, Brush
+
+
+@dataclass
+class LandscapesDrawParameters:
+    density: float = 0.1
+    tickrate: int = 10
+    last_tick_time = time.time() - 1 / tickrate
+
+landscapes_draw_parameters = LandscapesDrawParameters()
 
 
 class StatesMachine:
@@ -10,7 +22,7 @@ class StatesMachine:
 
         self.state = None
         self.possible_states = (None, "pattern_single", "pattern_group", "height",
-                                "landscapes_single", "landscapes_group", "structures")
+                                "landscape_single", "landscape_group", "structures")
 
     def set_state(self, state: None | str):
         assert state in self.possible_states
@@ -49,5 +61,32 @@ class StatesMachine:
                     editor.update_local_secondary_data(triangle[0], margin=2)
                 break
 
+    @staticmethod
+    def landscape_single(editor):
+        editor.ignore_singular_triangle = True
+        editor.ignore_minor_vertices = False
+        editor.landscapes_catalogue.update_and_draw(editor)
+        if editor.cursor_vertex is not None:
+            for pressed, selected_pattern in zip((editor.mouse_press_left, editor.mouse_press_right),
+                                                 (editor.landscapes_catalogue.selected_index_left,
+                                                  editor.landscapes_catalogue.selected_index_right)):
+                if pressed:
+
+                    name = editor.landscapes_catalogue.items[selected_pattern].identificator["Name"] \
+                           if editor.landscapes_catalogue.items[selected_pattern].identificator is not None else None
+
+                    if editor.scroll_radius != 0 and time.time() - landscapes_draw_parameters.last_tick_time > \
+                                                      1 / landscapes_draw_parameters.tickrate:
+                        for point in Brush.get_points_and_edge_points(editor.map,
+                                                                      editor.cursor_vertex,
+                                                                      editor.scroll_radius,
+                                                                      ignore_minor_vertices=False)[0]:
+                            if (landscapes_draw_parameters.density != 1 and random() >
+                                landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
+                                continue
+                            editor.update_landscape(point, name)
+                        landscapes_draw_parameters.last_tick_time = time.time()
+                    else:
+                        editor.update_landscape(editor.cursor_vertex, name)
 
 states_machine = StatesMachine()

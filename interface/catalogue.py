@@ -3,6 +3,8 @@ from math import floor
 from dataclasses import dataclass
 from interface.const import font_antialias, font_color, frame_color
 from interface.projection import draw_projected_triangle
+from supplements.landscapedefs import landscapedefs
+from supplements.animations import animations
 from supplements.patterns import patterndefs_normal
 from supplements.textures import patterndefs_textures
 from typing import Literal
@@ -10,12 +12,14 @@ from typing import Literal
 entries_per_row = 4
 entry_size = (55, 55)
 entry_margin = 2
+entry_background_color = (0, 0, 0, 128)
 catalogue_rect = (8, 56, 230, 250)
 catalogue_slider_rect = 242, 56, 16, 250
 catalogue_slider_hand_size = 16, 16
 highlight_width = 4
 highlight_text_offset = 5, 5
 margin = 1
+icon_margin = 5
 
 catalogue_background_path = "interface\\images\\catalogue_background.png"
 catalogue_slider_background_path = "interface\\images\\catalogue_slider_background.png"
@@ -128,8 +132,8 @@ class Catalogue:
                 item.draw(editor, editor.root, coordinates, highlight_type=highlight_type)
 
                 if hover and check_entry_hover(editor, coordinates):
-                    if editor.font_text is None:
-                        editor.font_text = f"pattern \"{item.name}\""
+                    if editor.font_text is None and item.name != "":
+                            editor.font_text = f"\"{item.name}\""
                     if editor.mouse_press_left and not editor.mouse_press_left_old:
                         self.selected_index_left = index_value
                     if editor.mouse_press_right and not editor.mouse_press_right_old:
@@ -179,17 +183,41 @@ def load_patterns_catalogue():
     assert patterndefs_textures.pygame_converted
 
     entries = []
-    triangle_margin = 5
 
     for mep_id, texture in patterndefs_textures.items():
         entry = CatalogueEntry(patterndefs_normal[mep_id]["Name"], identificator=mep_id,
                                image=pygame.Surface(entry_size, pygame.SRCALPHA))
-        entry.image.fill((0, 0, 0, 128))
+        entry.image.fill(entry_background_color)
         draw_projected_triangle(entry.image, texture["a"],
-                                ((entry_size[0] // 2, triangle_margin),
-                                 (entry_size[0] - triangle_margin, entry_size[1] - triangle_margin),
-                                 (triangle_margin, entry_size[1] - triangle_margin)),
+                                ((entry_size[0] // 2, icon_margin),
+                                 (entry_size[0] - icon_margin, entry_size[1] - icon_margin),
+                                 (icon_margin, entry_size[1] - icon_margin)),
                                 (0.5, 0.5, 0.5), suspend_timeout=True)
+        entries.append(entry)
+
+    return Catalogue(entries)
+
+
+def load_landscapes_catalogue():
+    assert animations.pygame_converted
+
+    entries = [CatalogueEntry("", None, image=pygame.Surface(entry_size, pygame.SRCALPHA))]
+    entries[0].image.fill(entry_background_color)
+
+    for name, animation in animations.items():
+        entry = CatalogueEntry(name, identificator=landscapedefs[name],
+                               image=pygame.Surface(entry_size, pygame.SRCALPHA))
+        entry.image.fill(entry_background_color)
+        temp_entry_surface.fill((0, 0, 0, 0))
+        image = animation.images[0]
+        ratio = image.width / image.height
+        if   ratio > 1: size = (entry_size[0] - 2 * icon_margin, round((entry_size[1] - 2 * icon_margin) / ratio))
+        elif ratio < 1: size = (round((entry_size[1] - 2 * icon_margin) * ratio), entry_size[1] - 2 * icon_margin)
+        else: size = (entry_size[0] - 2 * icon_margin, entry_size[1] - 2 * icon_margin)
+
+        entry.image.blit(pygame.transform.scale(image, size),
+                         ((entry_size[0] - 2 * icon_margin - size[0]) // 2,
+                          (entry_size[1] - 2 * icon_margin - size[1]) // 2))
         entries.append(entry)
 
     return Catalogue(entries)

@@ -85,7 +85,7 @@ buttons_data = (0, "new", "create new map"),\
                (11, "pattern_single", "modify terrain by singular pattern"),\
                (12, "", "modify terrain by pattern groups"),\
                (13, "", "modify height"),\
-               (14, "", "modify landscapes by singular element"),\
+               (14, "landscape_single", "modify landscapes by singular element"),\
                (15, "", "modify landscapes by element groups"),\
                (16, "", "modify structures"),\
                (17, "", "mark hexagonal area"),\

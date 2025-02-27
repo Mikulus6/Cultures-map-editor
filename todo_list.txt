@@ -1,8 +1,7 @@
 User interface:
-    - scrollable list with tiles (terrain, landscapes, structures)
-    - buttons with edit options (terrain, height, landscapes, structures)
+    - scrollable list with tiles (structures remain)
+    - buttons with edit options (height + structures remain)
     - add map margin (when resizeing and editing)
-    - fill selected area with chosen landscape (custom density)
     - modify height of selected area (increase, decrease, randomize, average)
     - modify terrain triangles (one type, set of multiple types with random frequency)
     - button: mark X-Y-Radius area (tkinter input)
