@@ -1,6 +1,6 @@
 import pygame
 import time
-from interface.const import message_duration, one_frame_popup_rect_size, one_frame_popup_rect_margin, resolution,\
+from interface.const import message_duration, one_frame_popup_rect_size, one_frame_popup_rect_margin, resolution, \
                             font_color, font_antialias
 
 
@@ -33,8 +33,6 @@ def set_font_text(editor):
         editor.font_text = f"minor vertex coordinates: ({editor.cursor_vertex[0]}, {editor.cursor_vertex[1]})"
     elif editor.minimap.mouse_hover:
         editor.font_text = "minimap (click or hold to move)"
-    else:
-        editor.font_text = "..."
 
 def one_frame_popup(editor, text):
     """Show message for one frame when application is about to get a one-frame lag spike (e.g. loading message)."""

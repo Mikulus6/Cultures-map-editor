@@ -1,0 +1,195 @@
+import pygame
+from math import floor
+from dataclasses import dataclass
+from interface.const import font_antialias, font_color, frame_color
+from interface.projection import draw_projected_triangle
+from supplements.patterns import patterndefs_normal
+from supplements.textures import patterndefs_textures
+from typing import Literal
+
+entries_per_row = 4
+entry_size = (55, 55)
+entry_margin = 2
+catalogue_rect = (8, 56, 230, 250)
+catalogue_slider_rect = 242, 56, 16, 250
+catalogue_slider_hand_size = 16, 16
+highlight_width = 4
+highlight_text_offset = 5, 5
+margin = 1
+
+catalogue_background_path = "interface\\images\\catalogue_background.png"
+catalogue_slider_background_path = "interface\\images\\catalogue_slider_background.png"
+catalogue_slider_hand_path = "interface\\images\\catalogue_slider_hand.png"
+catalogue_background = pygame.image.load(catalogue_background_path)
+catalogue_slider_background = pygame.image.load(catalogue_slider_background_path)
+catalogue_slider_hand = pygame.image.load(catalogue_slider_hand_path)
+assert catalogue_background.size == catalogue_rect[2:]
+assert catalogue_slider_background.size == catalogue_slider_rect[2:]
+assert catalogue_slider_hand.size == catalogue_slider_hand_size
+
+temp_entry_surface = pygame.Surface(entry_size, pygame.SRCALPHA)
+
+
+@dataclass
+class CatalogueEntry:
+    name: str
+    identificator: str | int
+    image: pygame.Surface
+
+    def draw(self, editor, surface, coordinates, highlight_type: Literal[None, "left", "right", "both"] = None):
+
+        if highlight_type is not None:
+            temp_entry_surface.fill((0, 0, 0, 0))
+            temp_entry_surface.blit(self.image, (0, 0))
+            pygame.draw.rect(temp_entry_surface, (255, 255, 255), (0, 0, *entry_size), highlight_width)
+
+        image = self.image if highlight_type is None else temp_entry_surface
+
+        match highlight_type:
+            case "left": highlight_text = "L"
+            case "right": highlight_text = "R"
+            case "both": highlight_text = "L+R"
+            case _: highlight_text = None
+
+
+        if highlight_type is not None:
+            image.blit(editor.font.render(highlight_text, font_antialias, font_color), highlight_text_offset)
+
+        if coordinates[1] < catalogue_rect[1]:
+            surface.blit(image, (coordinates[0], catalogue_rect[1]),
+                         (0, (catalogue_rect[1] - coordinates[1]), entry_size[0], entry_size[1]))
+        elif coordinates[1] + entry_size[1] > catalogue_rect[1] + catalogue_rect[3]:
+            surface.blit(image, coordinates,
+                         (0, 0, entry_size[0], (catalogue_rect[1] + catalogue_rect[3] - coordinates[1])))
+        else:
+            surface.blit(image, coordinates)
+
+
+def check_entry_hover(editor, coordinates):
+    return coordinates[0] <= editor.mouse_pos[0] < coordinates[0] + entry_size[0] and\
+           coordinates[1] <= editor.mouse_pos[1] < coordinates[1] + entry_size[1]
+
+
+@dataclass
+class Catalogue:
+    items: list
+    scroll_value: float = 0.0
+    selected_index_right: int = 0
+    selected_index_left: int = 1
+    slider_pressed: bool = False
+
+    @property
+    def max_scroll_value(self):
+        return max(len(self.items) // entries_per_row - entries_per_row + 1, 0)
+
+    def update_and_draw(self, editor):
+
+        if self.check_hover(editor):
+            self.scroll_value -= editor.scroll_delta / 6
+
+        if (self.check_slider_hover(editor) or self.slider_pressed) and editor.mouse_press_left and \
+           (not editor.mouse_press_left_old or self.slider_pressed):
+            self.scroll_value = (editor.mouse_pos[1] - catalogue_slider_rect[1] - catalogue_slider_hand_size[1] // 2) *\
+                                 self.max_scroll_value / (catalogue_slider_rect[3] - catalogue_slider_hand_size[1])
+            self.slider_pressed = True
+            editor.cursor_vertex = None
+            editor.cursor_triangle = None
+        else:
+            self.slider_pressed = False
+
+
+        if self.scroll_value < 0: self.scroll_value = 0
+        if self.scroll_value > self.max_scroll_value: self.scroll_value = self.max_scroll_value
+
+        editor.root.blit(catalogue_background, catalogue_rect[:2])
+        pygame.draw.rect(editor.root, frame_color, (catalogue_rect[0] - margin, catalogue_rect[1] - margin,
+                                                    catalogue_rect[2] + margin * 2,
+                                                    catalogue_rect[3] + margin * 2), width=margin)
+
+        hover = self.check_hover(editor)
+
+        old_selected_left, old_selected_right = self.selected_index_left, self.selected_index_right
+
+        for index_value in self.get_visible_entries_range():
+            try:
+                item = self.items[index_value]
+                assert isinstance(item, CatalogueEntry) and item.image.size == entry_size
+                coordinates = self.get_entry_coordinates(index_value)
+
+                if index_value == old_selected_left == old_selected_right:
+                    highlight_type = "both"
+                elif index_value == old_selected_left:
+                    highlight_type = "left"
+                elif index_value == old_selected_right:
+                    highlight_type = "right"
+                else:
+                    highlight_type = None
+
+                item.draw(editor, editor.root, coordinates, highlight_type=highlight_type)
+
+                if hover and check_entry_hover(editor, coordinates):
+                    if editor.font_text is None:
+                        editor.font_text = f"pattern \"{item.name}\""
+                    if editor.mouse_press_left and not editor.mouse_press_left_old:
+                        self.selected_index_left = index_value
+                    if editor.mouse_press_right and not editor.mouse_press_right_old:
+                        self.selected_index_right = index_value
+            except IndexError:
+                pass
+
+        try:
+            scroll_fraction = (self.scroll_value / self.max_scroll_value)
+        except ZeroDivisionError:
+            scroll_fraction = 0
+
+        editor.root.blit(catalogue_slider_background, catalogue_slider_rect[:2])
+        editor.root.blit(catalogue_slider_hand, (catalogue_slider_rect[0],
+                                                 catalogue_slider_rect[1] + \
+                                                 floor(scroll_fraction * \
+                                                      (catalogue_slider_rect[3] - catalogue_slider_hand_size[1]))))
+
+        pygame.draw.rect(editor.root, frame_color, (catalogue_slider_rect[0] - margin,
+                                                    catalogue_slider_rect[1] - margin,
+                                                    catalogue_slider_rect[2] + margin * 2,
+                                                    catalogue_slider_rect[3] + margin * 2), width=margin)
+
+    def get_entry_coordinates(self, entry_index):
+        return catalogue_rect[0] + (entry_index % entries_per_row) * (entry_margin + entry_size[0]) + entry_margin,\
+               floor(catalogue_rect[1] + (entry_index // entries_per_row - self.scroll_value) * \
+                                         (entry_margin + entry_size[1]) + entry_margin)
+
+    @staticmethod
+    def check_hover(editor):
+        return catalogue_rect[0] <= editor.mouse_pos[0] < catalogue_rect[0] + catalogue_rect[2] and\
+               catalogue_rect[1] <= editor.mouse_pos[1] < catalogue_rect[1] + catalogue_rect[3]
+
+    @staticmethod
+    def check_slider_hover(editor):
+        return catalogue_slider_rect[0] <= editor.mouse_pos[0] < catalogue_slider_rect[0] + \
+                                                                 catalogue_slider_rect[2] and\
+               catalogue_slider_rect[1] <= editor.mouse_pos[1] < catalogue_slider_rect[1] + \
+                                                                 catalogue_slider_rect[3]
+
+    def get_visible_entries_range(self):
+        return range(floor(self.scroll_value) * entries_per_row,
+                     floor(self.scroll_value + catalogue_rect[3]/entry_size[1] + 1) * entries_per_row)
+
+
+def load_patterns_catalogue():
+    assert patterndefs_textures.pygame_converted
+
+    entries = []
+    triangle_margin = 5
+
+    for mep_id, texture in patterndefs_textures.items():
+        entry = CatalogueEntry(patterndefs_normal[mep_id]["Name"], identificator=mep_id,
+                               image=pygame.Surface(entry_size, pygame.SRCALPHA))
+        entry.image.fill((0, 0, 0, 128))
+        draw_projected_triangle(entry.image, texture["a"],
+                                ((entry_size[0] // 2, triangle_margin),
+                                 (entry_size[0] - triangle_margin, entry_size[1] - triangle_margin),
+                                 (triangle_margin, entry_size[1] - triangle_margin)),
+                                (0.5, 0.5, 0.5), suspend_timeout=True)
+        entries.append(entry)
+
+    return Catalogue(entries)

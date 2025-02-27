@@ -82,15 +82,15 @@ buttons_data = (0, "new", "create new map"),\
                (8, "", ""),\
                (9, "", "about editor"),\
                (10, "resize", "resize map"),\
-               (11, "", "modify terrain by singular patterns"),\
+               (11, "pattern_single", "modify terrain by singular pattern"),\
                (12, "", "modify terrain by pattern groups"),\
                (13, "", "modify height"),\
-               (14, "", "modify landscapes by singular elements"),\
-               (15, "", "modify landscapes by landscapes groups"),\
+               (14, "", "modify landscapes by singular element"),\
+               (15, "", "modify landscapes by element groups"),\
                (16, "", "modify structures"),\
                (17, "", "mark hexagonal area"),\
                (18, "", ""),\
-               (19, "", "close current tool")  # TODO: write missing methods for buttons
+               (19, "close_tool", "close current tool")  # TODO: write missing methods for buttons
 
 def load_buttons(parent_editor):
 

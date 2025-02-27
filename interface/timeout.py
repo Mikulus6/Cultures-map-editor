@@ -22,13 +22,14 @@ class TimeoutHandler:
         self.enable_dynamical_max_duration = enable_dynamical_max_duration
 
         self.camera_is_moving = False
+        self.timeout_suspension = False
 
     @property
     def time_end(self):
         return self.time_start + self.max_duration
 
     def check(self):
-        if (time.time() > self.time_end and self.calls > 0) or self.camera_is_moving:
+        if ((time.time() > self.time_end and self.calls > 0) or self.camera_is_moving) and not self.timeout_suspension:
             raise TimeoutError
         self.calls += 1
 

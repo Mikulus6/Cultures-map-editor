@@ -3,7 +3,7 @@ import numpy as np
 from map import Map
 from math import ceil, pi, sin
 from interface.const import map_canvas_rect, triangle_width, triangle_height, background_color, minimap_frequency, \
-                            minimap_frame_margin, minimap_frame_color
+                            minimap_frame_margin, frame_color
 from interface.camera import Camera
 from interface.triangles import get_major_triangle_texture, get_major_triangle_light_values
 import time
@@ -30,10 +30,10 @@ class Minimap:
     def draw(self, surface, map_object: Map, camera: Camera):
         surface.blit(self.surface, self.rect[:2])
         if minimap_frame_margin != 0:
-            pygame.draw.rect(surface, minimap_frame_color, (self.rect[0] - minimap_frame_margin,
-                                                            self.rect[1] - minimap_frame_margin,
-                                                            self.rect[2] + minimap_frame_margin * 2,
-                                                            self.rect[3] + minimap_frame_margin * 2),
+            pygame.draw.rect(surface, frame_color, (self.rect[0] - minimap_frame_margin,
+                                                    self.rect[1] - minimap_frame_margin,
+                                                    self.rect[2] + minimap_frame_margin * 2,
+                                                    self.rect[3] + minimap_frame_margin * 2),
                              width=minimap_frame_margin)
         x = camera.position_on_map[0] * self.rect[2] / map_object.map_width  + self.rect[0]
         y = camera.position_on_map[1] * self.rect[3] / map_object.map_height + self.rect[1]

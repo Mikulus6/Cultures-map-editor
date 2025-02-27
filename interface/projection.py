@@ -10,8 +10,8 @@ epsylon = 1e-16
 
 
 def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: tuple, light_corners: tuple, *,
-                            suspend_loading_textures: bool = False):
-
+                            suspend_loading_textures: bool = False, suspend_timeout: bool = False):
+    timeout_handler.timeout_suspension = suspend_timeout
     bounds_x, bounds_y = rect_bound(corners)
 
     if map_canvas_rect[0] + map_canvas_rect[2] < bounds_x[0] or bounds_x[1] < 0 or\

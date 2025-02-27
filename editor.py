@@ -14,6 +14,7 @@ from typing import Literal
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
 from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
+from interface.catalogue import load_patterns_catalogue
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map
@@ -24,6 +25,7 @@ from interface.light import update_light_local
 from interface.message import message, set_font_text, one_frame_popup
 from interface.minimap import Minimap
 from interface.projection import draw_projected_triangle, projection_report
+from interface.states import states_machine
 from interface.structures import get_structure, update_structures
 from interface.timeout import timeout_handler
 from interface.transitions import transitions_gen, reposition_transition_vertices, permutate_corners
@@ -57,12 +59,14 @@ class Editor:
         patterndefs_textures.pygame_convert()
         transition_textures.pygame_convert()
         self.invisible_landscapes_legend = render_legend(self)
+        self.patterns_catalogue = load_patterns_catalogue()
 
         pygame.display.set_caption(window_name)
         pygame.display.set_icon(pygame.image.load(window_icon_filepath))
 
         self.map = Map()
         self.map.empty((sector_width, sector_width))
+        self.map.to_bytearrays()
         self.minimap = Minimap(minimap_rect, self.map)
 
         self.map_filepath: str = None
@@ -76,7 +80,8 @@ class Editor:
         self.mouse_pos = pygame.mouse.get_pos()
         self.mouse_pos_old = self.mouse_pos
 
-        self.ignore_minor_vertices = True
+        self.ignore_minor_vertices = False
+        self.ignore_singular_triangle = True
 
         self.cursor_vertex = None
         self.cursor_triangle = None
@@ -148,7 +153,8 @@ class Editor:
             self.root.blit(self.terrain_surface, map_canvas_rect[:2])
             self.draw_landscapes()
 
-            self.draw_cursor_vertex()
+            if self.scroll_radius > 0 or self.ignore_singular_triangle:
+                self.draw_cursor_vertex()
             self.draw_cursor_hexagonal_radius()
 
             self.draw_user_interface()
@@ -162,6 +168,10 @@ class Editor:
 
             for button in self.buttons_list:
                 button.action()
+
+            states_machine.run_current_state(self)
+
+            self.draw_message()
 
             pygame.display.flip()
             self.clock.tick(frames_per_second)
@@ -315,6 +325,15 @@ class Editor:
         except TypeError:
             message.set_message(f"error: couldn't resize map.")
 
+    def pattern_single(self):
+        if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
+        states_machine.set_state("pattern_single")
+
+    def close_tool(self):
+        self.ignore_minor_vertices = False
+        self.ignore_singular_triangle = True
+        states_machine.set_state(None)
+
     def _update(self):
         """Update editor data according to external change in map object."""
         self.map.to_bytearrays()
@@ -443,7 +462,7 @@ class Editor:
 
     def draw_cursor_hexagonal_radius(self, draw_if_major_radius_zero: bool = True):
         if self.ignore_minor_vertices and draw_if_major_radius_zero and self.scroll_radius == 0:
-            self.draw_cursor_triangle()
+            if not self.ignore_singular_triangle: self.draw_cursor_triangle()
             return
         elif self.scroll_radius == 0 or self.cursor_vertex is None:
             return
@@ -487,10 +506,13 @@ class Editor:
 
         set_font_text(self)
 
+        self.minimap.draw(self.root, self.map, self.camera)
+
+    def draw_message(self):
+        if self.font_text is None:
+            self.font_text = font_default_text
         self.root.blit(self.font.render(self.font_text, antialias=font_antialias, color=font_color),
                        (10, resolution[1] - 40))
-
-        self.minimap.draw(self.root, self.map, self.camera)
 
     # ====================================  updates  ====================================
 
