@@ -147,10 +147,11 @@ class Catalogue:
             scroll_fraction = 0
 
         editor.root.blit(catalogue_slider_background, catalogue_slider_rect[:2])
-        editor.root.blit(catalogue_slider_hand, (catalogue_slider_rect[0],
-                                                 catalogue_slider_rect[1] + \
-                                                 floor(scroll_fraction * \
-                                                      (catalogue_slider_rect[3] - catalogue_slider_hand_size[1]))))
+        if self.max_scroll_value != 0:
+            editor.root.blit(catalogue_slider_hand, (catalogue_slider_rect[0],
+                                                     catalogue_slider_rect[1] + \
+                                                     floor(scroll_fraction * \
+                                                          (catalogue_slider_rect[3] - catalogue_slider_hand_size[1]))))
 
         pygame.draw.rect(editor.root, frame_color, (catalogue_slider_rect[0] - margin,
                                                     catalogue_slider_rect[1] - margin,

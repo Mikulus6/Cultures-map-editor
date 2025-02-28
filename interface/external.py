@@ -1,9 +1,10 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import ttk
 from sections.walk_sector_points import sector_width
 from interface.message import message
-from interface.states import landscapes_draw_parameters
+from interface.states import landscapes_draw_parameters, height_draw_parameters, height_mode_options
 
 
 def askopenfilename(*args, **kwargs):
@@ -190,17 +191,44 @@ def ask_resize_map(current_map_width, current_map_height):
     return result
 
 
-def ask_landscapes_parameters():
+def ask_brush_parameters():
     def validate_entries():
         try:
             density_val = float(density_entry.get())
-            tickrate_val = float(tickrate_entry.get())
+            tickrate_landscapes_val = float(tickrate_landscapes_entry.get())
+            tickrate_height_val = float(tickrate_height_entry.get())
+            absoulte_val = round(float(value_absolute_entry.get()))
+            delta_val = round(float(value_delta_entry.get()))
+            random_val = round(float(value_random_entry.get()))
+            smoothing_val = round(float(value_smoothing_entry.get()))
+
             density_val = min(max((density_val, 0)), 1)
-            tickrate_val = 1 if tickrate_val <= 0 else tickrate_val
+            tickrate_landscapes_val = 1 if tickrate_landscapes_val <= 0 else tickrate_landscapes_val
+            tickrate_height_val = 1 if tickrate_height_val <= 0 else tickrate_height_val
+            absoulte_val = 0 if absoulte_val < 0 else 255 if absoulte_val > 255 else int(absoulte_val)
+            delta_val = 0 if delta_val < 0 else 255 if delta_val > 255 else int(delta_val)
+            random_val = 0 if random_val < 0 else 255 if random_val > 255 else int(random_val)
+            smoothing_val = 0 if smoothing_val < 0 else 255 if smoothing_val > 255 else int(smoothing_val)
+
             density_entry.delete(0, tk.END)
             density_entry.insert(0, str(density_val))
-            tickrate_entry.delete(0, tk.END)
-            tickrate_entry.insert(0, str(tickrate_val))
+            tickrate_landscapes_entry.delete(0, tk.END)
+            tickrate_landscapes_entry.insert(0, str(tickrate_landscapes_val))
+            tickrate_height_entry.delete(0, tk.END)
+            tickrate_height_entry.insert(0, str(tickrate_height_val))
+            value_absolute_entry.delete(0, tk.END)
+            value_absolute_entry.insert(0, str(absoulte_val))
+            value_delta_entry.delete(0, tk.END)
+            value_delta_entry.insert(0, str(delta_val))
+            value_random_entry.delete(0, tk.END)
+            value_random_entry.insert(0, str(random_val))
+            value_smoothing_entry.delete(0, tk.END)
+            value_smoothing_entry.insert(0, str(smoothing_val))
+
+            if height_mode_entry.get() not in height_mode_options:
+                height_mode_entry.delete(0, tk.END)
+                height_mode_entry.insert(0, str(height_mode_options[0]))
+
             ok_button.config(state=tk.NORMAL)
         except ValueError:
             ok_button.config(state=tk.DISABLED)
@@ -209,20 +237,40 @@ def ask_landscapes_parameters():
 
         try:
             density_val = float(density_entry.get())
-            tickrate_val = float(tickrate_entry.get())
+            tickrate_landscapes_val = float(tickrate_landscapes_entry.get())
+            tickrate_height_val = float(tickrate_height_entry.get())
+            absoulte_val = round(float(value_absolute_entry.get()))
+            delta_val = round(float(value_delta_entry.get()))
+            random_val = round(float(value_random_entry.get()))
+            smoothing_val = round(float(value_smoothing_entry.get()))
         except ValueError:
-            messagebox.showwarning("Warning", f"Given values must be integers.")
+            messagebox.showwarning("Warning", f"Given values must be numbers.")
             return
 
-        if not (0 <= density_val <= 1):
-            messagebox.showwarning("Warning", f"Density must be between zero and one.")
+        height_mode = str(height_mode_entry.get())
+        if height_mode not in height_mode_options:
+            messagebox.showwarning("Warning", f"Invalid height edit mode.")
             return
-        elif tickrate_val <= 0:
-            messagebox.showwarning("Warning", f"Tickrate must be greater than zero.")
+
+        if min(absoulte_val, delta_val, random_val, smoothing_val) < 0 or\
+           max(absoulte_val, delta_val, random_val, smoothing_val) > 255:
+            messagebox.showwarning("Warning", f"Height brushes parameters must be between 0 and 255.")
+            return
+        if not (0 <= density_val <= 1):
+            messagebox.showwarning("Warning", f"Density must be between 0 and 1.")
+            return
+        elif min(tickrate_landscapes_val, tickrate_height_val) <= 0:
+            messagebox.showwarning("Warning", f"Tickrate must be greater than 0.")
             return
 
         landscapes_draw_parameters.density = density_val
-        landscapes_draw_parameters.tickrate = tickrate_val
+        landscapes_draw_parameters.tickrate = tickrate_landscapes_val
+        height_draw_parameters.mode = height_mode
+        height_draw_parameters.value_absolute = absoulte_val
+        height_draw_parameters.value_delta = delta_val
+        height_draw_parameters.value_random = random_val
+        height_draw_parameters.threshold_smoothing = smoothing_val
+        height_draw_parameters.tickrate = tickrate_height_val
 
         root.quit()
         root.destroy()
@@ -234,27 +282,82 @@ def ask_landscapes_parameters():
         root.destroy()
 
     root = tk.Tk()
-    root.title("Landscape")
-    root.geometry("225x125")
+    root.title("Brush")
+    root.geometry("225x400")
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", on_close)
 
     frame = tk.Frame(root)
     frame.pack(expand=True)
+    frame.grid_columnconfigure(1, weight=1)
 
-    tk.Label(frame, text="Density:").grid(row=0, column=0, padx=5, pady=5, sticky='ew')
+    separator_height = tk.Frame(frame)
+    separator_height.grid(row=0, column=0, columnspan=2, pady=10, sticky="ew")
+    ttk.Separator(separator_height, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
+    tk.Label(separator_height, text="Height").pack(side="left", padx=5)
+    ttk.Separator(separator_height, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
+
+    tk.Label(frame, text="Active mode:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
+    height_mode_value = tk.StringVar()
+    height_mode_value.set(f"{height_draw_parameters.mode}")
+    height_mode_entry = ttk.Combobox(frame, textvariable=height_mode_value, values=height_mode_options,
+                                     width=0, height=0)
+    height_mode_entry.grid(row=1, column=1, padx=5, pady=5, sticky='new')
+    height_mode_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Absolute value:").grid(row=2, column=0, padx=5, pady=5, sticky='w')
+    value_absolute_entry = tk.Entry(frame)
+    value_absolute_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
+    value_absolute_entry.insert(0, f"{height_draw_parameters.value_absolute}")
+    value_absolute_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Delta value:").grid(row=3, column=0, padx=5, pady=5, sticky='w')
+    value_delta_entry = tk.Entry(frame)
+    value_delta_entry.grid(row=3, column=1, padx=5, pady=5, sticky='ew')
+    value_delta_entry.insert(0, f"{height_draw_parameters.value_delta}")
+    value_delta_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Random value:").grid(row=4, column=0, padx=5, pady=5, sticky='w')
+    value_random_entry = tk.Entry(frame)
+    value_random_entry.grid(row=4, column=1, padx=5, pady=5, sticky='ew')
+    value_random_entry.insert(0, f"{height_draw_parameters.value_random}")
+    value_random_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Smoothing treshold:").grid(row=5, column=0, padx=5, pady=5, sticky='w')
+    value_smoothing_entry = tk.Entry(frame)
+    value_smoothing_entry.grid(row=5, column=1, padx=5, pady=5, sticky='ew')
+    value_smoothing_entry.insert(0, f"{height_draw_parameters.threshold_smoothing}")
+    value_smoothing_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=6, column=0, padx=5, pady=5, sticky='w')
+    tickrate_height_entry = tk.Entry(frame)
+    tickrate_height_entry.grid(row=6, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_height_entry.insert(0, f"{height_draw_parameters.tickrate}")
+    tickrate_height_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    separator_landscapes = tk.Frame(frame)
+    separator_landscapes.grid(row=7, column=0, columnspan=2, pady=10, sticky="ew")
+    ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
+    tk.Label(separator_landscapes, text="Landscapes").pack(side="left", padx=5)
+    ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
+
+    tk.Label(frame, text="Density:").grid(row=8, column=0, padx=5, pady=5, sticky='w')
     density_entry = tk.Entry(frame)
-    density_entry.grid(row=0, column=1, padx=5, pady=5, sticky='ew')
+    density_entry.grid(row=8, column=1, padx=5, pady=5, sticky='ew')
     density_entry.insert(0, f"{landscapes_draw_parameters.density}")
     density_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=1, column=0, padx=5, pady=5, sticky='ew')
-    tickrate_entry = tk.Entry(frame)
-    tickrate_entry.grid(row=1, column=1, padx=5, pady=5, sticky='ew')
-    tickrate_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
-    tickrate_entry.bind("<FocusOut>", lambda event: validate_entries())
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=9, column=0, padx=5, pady=5, sticky='w')
+    tickrate_landscapes_entry = tk.Entry(frame)
+    tickrate_landscapes_entry.grid(row=9, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_landscapes_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
+    tickrate_landscapes_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    separator_end = tk.Frame(frame)
+    separator_end.grid(row=10, column=0, columnspan=2, pady=10, sticky="ew")
+    ttk.Separator(separator_end, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
     ok_button = tk.Button(frame, text="Update", state=tk.NORMAL, command=on_update)
-    ok_button.grid(row=2, column=0, columnspan=2, pady=10)
+    ok_button.grid(row=11, column=0, columnspan=2, pady=10)
 
     root.mainloop()

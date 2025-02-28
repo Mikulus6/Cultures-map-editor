@@ -16,9 +16,9 @@ from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue, load_structures_catalogue
 from interface.const import *
-from interface.cursor import get_closest_vertex, get_touching_triange
+from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
-                               ask_landscapes_parameters
+                               ask_brush_parameters
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
 from interface.landscapes_light import adjust_opaque_pixels
@@ -253,6 +253,7 @@ class Editor:
                 message.set_message(f"Map has been saved.")
             except TypeError:
                 message.set_message(f"error: couldn't save map file.")
+        self.map.to_bytearrays()
 
     def save_as(self, filepath: str = None):
         if filepath is None:
@@ -269,6 +270,7 @@ class Editor:
             message.set_message(f"Map has been saved.")
         except TypeError:
             message.set_message(f"error: couldn't save map file.")
+        self.map.to_bytearrays()
 
     def extract(self):
         dirpath = askdirectory()
@@ -336,13 +338,17 @@ class Editor:
         if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
         states_machine.set_state("pattern_single")
 
+    def height(self):
+        if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
+        states_machine.set_state("height")
+
     @staticmethod
     def landscape_single():
         states_machine.set_state("landscape_single")
 
     @staticmethod
-    def landscape_adjust():
-        ask_landscapes_parameters()
+    def brush_adjust():
+        ask_brush_parameters()
 
     @staticmethod
     def structures():
@@ -403,45 +409,40 @@ class Editor:
         timeout_handler.get_camera_move_status(self.camera)
         timeout_handler.start()
 
-        transitions_to_draw = []
-        for coordinates in self.camera.visible_range(self.map, count_minor_vertices=False):
-            for triangle_type in ("a", "b"):
-                corners = get_major_triangle_corner_vertices(coordinates, triangle_type)
-                draw_corners = (self.camera.draw_coordinates(corners[0], self.map),
-                                self.camera.draw_coordinates(corners[1], self.map),
-                                self.camera.draw_coordinates(corners[2], self.map))
-
-                texture = get_major_triangle_texture(coordinates, triangle_type, self.map)
-                light_values = get_major_triangle_light_values(coordinates, triangle_type, self.map)
-                draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
-                                        suspend_loading_textures=self.terrian_textures_suspension)
-                triangles_on_screen += 1
-
-                for transition_texture, transition_key in transitions_gen(coordinates, triangle_type, self.map):
-                    transitions_to_draw.append((transition_texture, transition_key, draw_corners, light_values))
-
-        for transition_texture, transition_key, draw_corners, light_values in transitions_to_draw:
-            transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
-            transition_light_values = permutate_corners(light_values, transition_key)
-            draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
-                                    transition_light_values, suspend_loading_textures=self.terrian_textures_suspension)
-            triangles_on_screen += 1
-
-        if not self.camera.is_moving:
-            # Structures are ignored when camera is in motion, to make it smooth.
-
-            # TODO: when terrain is very steep structures and landscapes aren't displayed correctly
-            #  (they are on top of triangles which have higher y coordinate)
-            for coordinates in self.camera.visible_range(self.map):
-                for triangle_type, texture in get_structure(coordinates, self.map).items():
-                    corners = get_triangle_corner_vertices(coordinates, triangle_type)
+        for coordinates in self.camera.visible_range(self.map, count_minor_vertices=True):
+            if is_vertex_major(coordinates):
+                for triangle_type in ("a", "b"):
+                    coordinates_major = (coordinates[0] // 2, coordinates[1]//2)
+                    corners = get_major_triangle_corner_vertices(coordinates_major, triangle_type)
                     draw_corners = (self.camera.draw_coordinates(corners[0], self.map),
                                     self.camera.draw_coordinates(corners[1], self.map),
                                     self.camera.draw_coordinates(corners[2], self.map))
-                    light_values = get_minor_triangle_light_values(coordinates, triangle_type, self.map)
+
+                    texture = get_major_triangle_texture(coordinates_major, triangle_type, self.map)
+                    light_values = get_major_triangle_light_values(coordinates_major, triangle_type, self.map)
                     draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
-                                            suspend_loading_textures = self.terrian_textures_suspension)
+                                            suspend_loading_textures=self.terrian_textures_suspension)
                     triangles_on_screen += 1
+
+                    if not self.camera.is_moving:  # This condition is only for lag reduction.
+                        for transition_texture, transition_key in transitions_gen(coordinates_major,
+                                                                                  triangle_type, self.map):
+                            transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
+                            transition_light_values = permutate_corners(light_values, transition_key)
+                            draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
+                                                    transition_light_values,
+                                                    suspend_loading_textures=self.terrian_textures_suspension)
+                            triangles_on_screen += 1
+
+            for triangle_type, texture in get_structure(coordinates, self.map).items():
+                corners = get_triangle_corner_vertices(coordinates, triangle_type)
+                draw_corners = (self.camera.draw_coordinates(corners[0], self.map),
+                                self.camera.draw_coordinates(corners[1], self.map),
+                                self.camera.draw_coordinates(corners[2], self.map))
+                light_values = get_minor_triangle_light_values(coordinates, triangle_type, self.map)
+                draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
+                                        suspend_loading_textures = self.terrian_textures_suspension)
+                triangles_on_screen += 1
 
         try:
             timeout_handler.check()
@@ -542,9 +543,10 @@ class Editor:
             case "b": self.map.mepb[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
         self.terrain_loaded = False
 
-    def update_height(self, coordinates, height_delta: int = 1):
+    def update_height(self, coordinates, height_value: float | int = 0, as_delta: bool = False):
         index_value = coordinates[1] * (self.map.map_width // 2) + coordinates[0]
-        self.map.mhei[index_value] = min(max(self.map.mhei[index_value] + height_delta, 0), 255)
+        self.map.mhei[index_value] = min(max(self.map.mhei[index_value] + round(height_value), 0), 255) \
+                                     if as_delta else min(max(round(height_value), 0), 255)
         self.terrain_loaded = False
 
     def update_landscape(self, coordinates, landscape_name: str | None):

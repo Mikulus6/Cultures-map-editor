@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from random import random
 import time
+from typing import Literal
 from interface.brushes import generate_major_triangles, Brush
+from interface.const import font_color, font_color_out_of_focus, font_antialias, font_row_vertical_pos_diff
 
 
 @dataclass
@@ -10,7 +12,21 @@ class LandscapesDrawParameters:
     tickrate: float = 10.0
     last_tick_time = time.time() - 1 / tickrate
 
+
+@dataclass
+class HeightDrawParameters:
+    mode: Literal["absolute", "delta higher", "delta deeper", "random", "smoothing"] = "delta higher"
+    value_absolute: int = 5
+    value_delta: int = 5
+    value_random: int = 5
+    threshold_smoothing: int = 1
+    tickrate: float = 20.0
+    last_tick_time = time.time() - 1 / tickrate
+
+
 landscapes_draw_parameters = LandscapesDrawParameters()
+height_draw_parameters = HeightDrawParameters()
+height_mode_options = ("absolute", "delta higher", "delta deeper", "random", "smoothing")
 
 
 class StatesMachine:
@@ -58,7 +74,9 @@ class StatesMachine:
 
                 for triangle in triangles:
                     editor.update_triange(*triangle, mep_id)
-                    editor.update_local_secondary_data(triangle[0], margin=2)
+
+                if editor.cursor_vertex is not None:
+                    editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
                 break
 
     @staticmethod
@@ -88,6 +106,7 @@ class StatesMachine:
                         landscapes_draw_parameters.last_tick_time = time.time()
                     elif editor.scroll_radius == 0:
                         editor.update_landscape(editor.cursor_vertex, name)
+                    break
     @staticmethod
     def structures(editor):
         editor.ignore_singular_triangle = True
@@ -108,5 +127,86 @@ class StatesMachine:
                             editor.update_structures(point, name)
                     else:
                         editor.update_structures(editor.cursor_vertex, name)
+
+    @staticmethod
+    def height(editor):
+        editor.ignore_singular_triangle = True
+        editor.ignore_minor_vertices = True
+
+        text_position = [8, 56]
+        editor.root.blit(editor.font.render(f"Active mode: {height_draw_parameters.mode}",
+                                            font_antialias, font_color ),
+                         text_position),
+        text_position[1] += font_row_vertical_pos_diff
+        editor.root.blit(editor.font.render(f"Absolute value: {height_draw_parameters.value_absolute}",
+                                            font_antialias,
+                                            font_color if height_draw_parameters.mode == "absolute"
+                                            else font_color_out_of_focus), text_position),
+        text_position[1] += font_row_vertical_pos_diff
+        editor.root.blit(editor.font.render(f"Delta value: {height_draw_parameters.value_delta}",
+                                            font_antialias,
+                                            font_color if height_draw_parameters.mode
+                                                          in ("delta higher", "delta deeper", "smoothing")
+                                            else font_color_out_of_focus),
+                         text_position),
+        text_position[1] += font_row_vertical_pos_diff
+        editor.root.blit(editor.font.render(f"Random value: {height_draw_parameters.value_random}",
+                                            font_antialias,
+                                            font_color if height_draw_parameters.mode == "random"
+                                            else font_color_out_of_focus), text_position)
+        text_position[1] += font_row_vertical_pos_diff
+        editor.root.blit(editor.font.render(f"Smoothing treshold: {height_draw_parameters.threshold_smoothing}",
+                                            font_antialias,
+                                            font_color if height_draw_parameters.mode == "smoothing"
+                                            else font_color_out_of_focus), text_position)
+
+        if editor.cursor_vertex is not None:
+
+            for pressed, factor in zip((editor.mouse_press_left, editor.mouse_press_right), (1, -1)):
+
+                if pressed and time.time() - height_draw_parameters.last_tick_time > \
+                                             1 / height_draw_parameters.tickrate:
+                    if editor.scroll_radius > 0:
+                        points = Brush.get_points_and_edge_points(editor.map, editor.cursor_vertex,
+                                                                  editor.scroll_radius, ignore_minor_vertices=True)[0]
+                    else:
+                        points = (editor.cursor_vertex, )
+
+                    if height_draw_parameters.mode == "smoothing":
+                        average_height = sum(editor.map.mhei[point[1] * editor.map.map_width // 4 + point[0] // 2]
+                                             for point in points) / len(points)
+
+                    for point in points:
+
+                        if editor.scroll_radius > 0:
+                            point = (point[0] // 2, point[1] // 2)
+
+                        match height_draw_parameters.mode:
+                            case "absolute":
+                                editor.update_height(point, height_draw_parameters.value_absolute,
+                                                     as_delta=False)
+                            case "delta higher":
+                                editor.update_height(point, height_draw_parameters.value_delta * factor,
+                                                     as_delta=True)
+                            case "delta deeper":
+                                editor.update_height(point, - height_draw_parameters.value_delta * factor,
+                                                     as_delta=True)
+                            case "random":
+                                editor.update_height(point,
+                                                     height_draw_parameters.value_random * factor * random(),
+                                                     as_delta=True)
+                            case "smoothing":
+                                value = editor.map.mhei[point[1] * editor.map.map_width // 2 + point[0]]
+                                if value > average_height + height_draw_parameters.threshold_smoothing:  # noqa
+                                    editor.update_height(point, - height_draw_parameters.value_delta * factor,
+                                                         as_delta=True)
+                                elif value < average_height - height_draw_parameters.threshold_smoothing:  # noqa
+                                    editor.update_height(point, height_draw_parameters.value_delta * factor,
+                                                         as_delta=True)
+
+                    if editor.cursor_vertex is not None:
+                        editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
+                        height_draw_parameters.last_tick_time = time.time()
+                    break
 
 states_machine = StatesMachine()

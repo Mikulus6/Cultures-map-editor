@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-from interface.const import font_antialias, font_color, invisible_background_color, invisible_row_height,\
+from interface.const import font_antialias, font_color, invisible_background_color, font_row_vertical_pos_diff,\
                             invisible_legend_margin, invisible_text_margin
 from supplements.animations import animations
 from scripts.image import get_rgb_hue_tuple
@@ -34,8 +34,9 @@ def render_legend(editor):
         max_text_width = max(text_object.width, max_text_width)
         entries_data.append((landscape_name, text_object))
 
-    legend_surf = pygame.Surface((max_text_width + invisible_text_margin + 2 * (invisible_legend_margin + color_circle_radius),
-                                  len(entries_data) * invisible_row_height),
+    legend_surf = pygame.Surface((max_text_width + invisible_text_margin + \
+                                  2 * (invisible_legend_margin + color_circle_radius),
+                                  len(entries_data) * font_row_vertical_pos_diff),
                                  pygame.SRCALPHA)
     legend_surf.fill(invisible_background_color)
 
@@ -46,5 +47,5 @@ def render_legend(editor):
                            color_circle_radius)
         legend_surf.blit(text_object, (invisible_legend_margin + 2 * color_circle_radius + invisible_text_margin,
                                        current_height_offset - color_circle_radius))
-        current_height_offset += invisible_row_height
+        current_height_offset += font_row_vertical_pos_diff
     return legend_surf
