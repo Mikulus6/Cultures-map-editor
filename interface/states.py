@@ -20,6 +20,7 @@ class HeightDrawParameters:
     value_delta: int = 5
     value_random: int = 5
     threshold_smoothing: int = 1
+    total_smoothing: bool = True
     tickrate: float = 20.0
     last_tick_time = time.time() - 1 / tickrate
 
@@ -147,8 +148,7 @@ class StatesMachine:
                                             font_antialias,
                                             font_color if height_draw_parameters.mode
                                                           in ("delta higher", "delta deeper", "smoothing")
-                                            else font_color_out_of_focus),
-                         text_position),
+                                            else font_color_out_of_focus), text_position),
         text_position[1] += font_row_vertical_pos_diff
         editor.root.blit(editor.font.render(f"Random value: {height_draw_parameters.value_random}",
                                             font_antialias,
@@ -156,6 +156,12 @@ class StatesMachine:
                                             else font_color_out_of_focus), text_position)
         text_position[1] += font_row_vertical_pos_diff
         editor.root.blit(editor.font.render(f"Smoothing treshold: {height_draw_parameters.threshold_smoothing}",
+                                            font_antialias,
+                                            font_color if height_draw_parameters.mode == "smoothing"
+                                            else font_color_out_of_focus), text_position)
+        text_position[1] += font_row_vertical_pos_diff
+        editor.root.blit(editor.font.render(f"Total smoothing: " + ("true" if height_draw_parameters.total_smoothing
+                                                                    else "false"),
                                             font_antialias,
                                             font_color if height_draw_parameters.mode == "smoothing"
                                             else font_color_out_of_focus), text_position)
@@ -197,10 +203,36 @@ class StatesMachine:
                                                      as_delta=True)
                             case "smoothing":
                                 value = editor.map.mhei[point[1] * editor.map.map_width // 2 + point[0]]
-                                if value > average_height + height_draw_parameters.threshold_smoothing:  # noqa
+
+                                if height_draw_parameters.total_smoothing:
+                                    local_average_height = average_height  # noqa
+                                else:
+                                    local_average_height = 0
+                                    valid_neighbours_num = 0
+
+                                    if point[1] % 2 == 0:
+                                        neighbours = [(point[0] + 1, point[1]), (point[0], point[1] + 1),
+                                                      (point[0] - 1, point[1]), (point[0], point[1] - 1),
+                                                      (point[0] - 1, point[1] + 1), (point[0] - 1, point[1] - 1)]
+                                    else:
+                                        neighbours = [(point[0] + 1, point[1]), (point[0], point[1] + 1),
+                                                      (point[0] - 1, point[1]), (point[0], point[1] - 1),
+                                                      (point[0] + 1, point[1] + 1), (point[0] + 1, point[1] - 1)]
+                                    for neighbour in neighbours:
+                                        if 0 <= neighbour[0] < editor.map.map_width // 2 and\
+                                           0 <= neighbour[1] < editor.map.map_height // 2:
+                                            local_average_height += \
+                                                editor.map.mhei[neighbour[1] * editor.map.map_width // 2 +
+                                                                neighbour[0]]
+                                            valid_neighbours_num += 1
+
+                                    local_average_height /= valid_neighbours_num
+                                if abs(value - local_average_height) < height_draw_parameters.value_delta:
+                                    editor.update_height(point, local_average_height, as_delta=False)
+                                elif value > local_average_height + height_draw_parameters.threshold_smoothing:
                                     editor.update_height(point, - height_draw_parameters.value_delta * factor,
                                                          as_delta=True)
-                                elif value < average_height - height_draw_parameters.threshold_smoothing:  # noqa
+                                elif value < local_average_height - height_draw_parameters.threshold_smoothing:
                                     editor.update_height(point, height_draw_parameters.value_delta * factor,
                                                          as_delta=True)
 

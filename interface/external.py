@@ -19,6 +19,10 @@ def askdirectory(*args, **kwargs):
     directory = filedialog.askdirectory(*args, **kwargs)
     return directory if directory != "" else None
 
+def ask_enforce_height():
+    return messagebox.askyesno("Confirm",
+                               "Are you sure you want to enforce horizonless heightmap?\nThis will modify map height.")
+
 def ask_new_map():
     def validate_entries():
         try:
@@ -271,6 +275,7 @@ def ask_brush_parameters():
         height_draw_parameters.value_random = random_val
         height_draw_parameters.threshold_smoothing = smoothing_val
         height_draw_parameters.tickrate = tickrate_height_val
+        height_draw_parameters.total_smoothing = total_smoothing_var.get()
 
         root.quit()
         root.destroy()
@@ -283,7 +288,7 @@ def ask_brush_parameters():
 
     root = tk.Tk()
     root.title("Brush")
-    root.geometry("225x400")
+    root.geometry("225x435")
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", on_close)
 
@@ -329,35 +334,40 @@ def ask_brush_parameters():
     value_smoothing_entry.insert(0, f"{height_draw_parameters.threshold_smoothing}")
     value_smoothing_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=6, column=0, padx=5, pady=5, sticky='w')
+    total_smoothing_var = tk.BooleanVar(value=height_draw_parameters.total_smoothing)
+    total_smoothing_button = tk.Checkbutton(frame, text="Use total average for smoothing",
+                                            variable=total_smoothing_var)
+    total_smoothing_button.grid(row=6, column=0, columnspan=2, pady=5)
+
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=7, column=0, padx=5, pady=5, sticky='w')
     tickrate_height_entry = tk.Entry(frame)
-    tickrate_height_entry.grid(row=6, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_height_entry.grid(row=7, column=1, padx=5, pady=5, sticky='ew')
     tickrate_height_entry.insert(0, f"{height_draw_parameters.tickrate}")
     tickrate_height_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     separator_landscapes = tk.Frame(frame)
-    separator_landscapes.grid(row=7, column=0, columnspan=2, pady=10, sticky="ew")
+    separator_landscapes.grid(row=8, column=0, columnspan=2, pady=10, sticky="ew")
     ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
     tk.Label(separator_landscapes, text="Landscapes").pack(side="left", padx=5)
     ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
-    tk.Label(frame, text="Density:").grid(row=8, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Density:").grid(row=9, column=0, padx=5, pady=5, sticky='w')
     density_entry = tk.Entry(frame)
-    density_entry.grid(row=8, column=1, padx=5, pady=5, sticky='ew')
+    density_entry.grid(row=9, column=1, padx=5, pady=5, sticky='ew')
     density_entry.insert(0, f"{landscapes_draw_parameters.density}")
     density_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=9, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=10, column=0, padx=5, pady=5, sticky='w')
     tickrate_landscapes_entry = tk.Entry(frame)
-    tickrate_landscapes_entry.grid(row=9, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_landscapes_entry.grid(row=10, column=1, padx=5, pady=5, sticky='ew')
     tickrate_landscapes_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
     tickrate_landscapes_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     separator_end = tk.Frame(frame)
-    separator_end.grid(row=10, column=0, columnspan=2, pady=10, sticky="ew")
+    separator_end.grid(row=11, column=0, columnspan=2, pady=10, sticky="ew")
     ttk.Separator(separator_end, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
     ok_button = tk.Button(frame, text="Update", state=tk.NORMAL, command=on_update)
-    ok_button.grid(row=11, column=0, columnspan=2, pady=10)
+    ok_button.grid(row=12, column=0, columnspan=2, pady=10)
 
     root.mainloop()

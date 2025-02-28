@@ -18,7 +18,8 @@ from interface.catalogue import load_patterns_catalogue, load_landscapes_catalog
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
-                               ask_brush_parameters
+                               ask_brush_parameters, ask_enforce_height
+from interface.horizont import enforce_horizonless_heightmap
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
 from interface.landscapes_light import adjust_opaque_pixels
@@ -341,6 +342,15 @@ class Editor:
     def height(self):
         if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
         states_machine.set_state("height")
+
+    def enforce_height(self):
+        if ask_enforce_height():
+            enforce_horizonless_heightmap(self)
+            one_frame_popup(self, "Modifying height...")
+            self.terrain_loaded = False
+            self.map.update_light()
+            self.minimap.update_image(self.map)
+            self.map.to_bytearrays()
 
     @staticmethod
     def landscape_single():
