@@ -1,18 +1,17 @@
 User interface:
-    - add map margin (when resizeing and editing)
-    - modify terrain triangles (set of multiple types with random frequency)
     - button: mark X-Y-Radius area (tkinter input)
-    - load terrain & height template from image (applying pcx to existing empty map)
+    - display current map size in resize menu
+    - add keyboard shortcuts (ctrl+N, ctrl+O, ctrl+S, ctrl+shift+S) -> (new, open, save, save as)
     - show warning if app is about to get closed and there are unsaved changes
+    - choose and fill terrain according to data in ve_edit directory (sets of different triangles)
+    - choose and fill landscapes according to data in ve_edit directory (sets of different landscapes)
+    - modify terrain triangles with automatic transitions - smooth triangular border (based on data from ve_edit)
+    - load terrain & height template from image (applying pcx to existing empty map)
 
-    - function for smoothening border between different types of terrain (e.g. water and beach)
-    - choose and fill terrain according to data in ve_edit directory
-    - choose and fill landscapes according to data in ve_edit directory
-
-    - speed up bmd loading process to make cache.bin unnecessary
+    - speed up bmd loading process to make cache.bin unnecessary if possible
     - add loading visuals if speeding loading cache.bin is not possible
     - speed up map saving algorithm (all derivations together are slow)
-    - speed up map display if possible (show mstr when camera is in motion if possible)
+    - speed up map display if possible
     - make shifting perspective possible
     - move camera by using mouse wheel button
 

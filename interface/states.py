@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from random import random
 import time
 from typing import Literal
+from interface.border import is_triangle_in_border, is_major_vertex_in_border
 from interface.brushes import generate_major_triangles, Brush
 from interface.const import font_color, font_color_out_of_focus, font_antialias, font_row_vertical_pos_diff
 
@@ -74,7 +75,8 @@ class StatesMachine:
                     triangles = tuple()
 
                 for triangle in triangles:
-                    editor.update_triange(*triangle, mep_id)
+                    if not is_triangle_in_border(*triangle, editor.map):
+                        editor.update_triange(*triangle, mep_id)
 
                 if editor.cursor_vertex is not None:
                     editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
@@ -186,6 +188,9 @@ class StatesMachine:
 
                         if editor.scroll_radius > 0:
                             point = (point[0] // 2, point[1] // 2)
+
+                        if is_major_vertex_in_border(point, editor.map):
+                            continue
 
                         match height_draw_parameters.mode:
                             case "absolute":

@@ -11,6 +11,7 @@ from sys import exit as sys_exit
 import time
 from typing import Literal
 
+from interface.border import update_map_border
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
 from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
@@ -328,6 +329,8 @@ class Editor:
                     self.update_structures((x, y), None)
 
             self.map.resize_visible(deltas)
+            update_map_border(self)
+            self.map.update_light()
             self._update()
             self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
                                     camera_old_pos[1] + deltas[0] * triangle_height]
