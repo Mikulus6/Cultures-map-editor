@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
-from sections.walk_sector_points import sector_width
 from interface.message import message
 from interface.states import landscapes_draw_parameters, height_draw_parameters, height_mode_options
+from sections.walk_sector_points import sector_width
 
 
 def askopenfilename(*args, **kwargs):
@@ -22,6 +22,9 @@ def askdirectory(*args, **kwargs):
 def ask_enforce_height():
     return messagebox.askyesno("Confirm",
                                "Are you sure you want to enforce horizonless heightmap?\nThis will modify map height.")
+
+def warning_too_many_area_marks():
+    messagebox.showwarning("Warning", f"Area mark limit reached. Cannot add another mark.")
 
 def ask_new_map():
     def validate_entries():
@@ -96,19 +99,19 @@ def ask_resize_map(current_map_width, current_map_height):
             east_val = int(east_entry.get())
             west_val = int(west_entry.get())
 
-            rounded_width = round(north_val // sector_width) * sector_width
-            rounded_height = round(south_val // sector_width) * sector_width
-            rounded_length = round(east_val // sector_width) * sector_width
-            rounded_depth = round(west_val // sector_width) * sector_width
+            rounded_north = round(north_val // sector_width) * sector_width
+            rounded_south = round(south_val // sector_width) * sector_width
+            rounded_east = round(east_val // sector_width) * sector_width
+            rounded_west = round(west_val // sector_width) * sector_width
 
             north_entry.delete(0, tk.END)
-            north_entry.insert(0, str(rounded_width))
+            north_entry.insert(0, str(rounded_north))
             south_entry.delete(0, tk.END)
-            south_entry.insert(0, str(rounded_height))
+            south_entry.insert(0, str(rounded_south))
             east_entry.delete(0, tk.END)
-            east_entry.insert(0, str(rounded_length))
+            east_entry.insert(0, str(rounded_east))
             west_entry.delete(0, tk.END)
-            west_entry.insert(0, str(rounded_depth))
+            west_entry.insert(0, str(rounded_west))
 
             ok_button.config(state=tk.NORMAL)
         except ValueError:
@@ -134,7 +137,7 @@ def ask_resize_map(current_map_width, current_map_height):
         try:
             if not all(val % sector_width == 0 for val in (north_val, south_val, east_val, west_val)):
                 raise ValueError
-            if min(current_map_width + north_val + south_val, current_map_height + east_val + west_val) < sector_width:
+            if min(current_map_height + north_val + south_val, current_map_width + east_val + west_val) < sector_width:
                 raise IndexError
         except ValueError:
             messagebox.showwarning("Warning", f"All dimensions must be divisible by {sector_width}.")
@@ -371,3 +374,87 @@ def ask_brush_parameters():
     ok_button.grid(row=12, column=0, columnspan=2, pady=10)
 
     root.mainloop()
+
+
+def ask_area_mark() -> None | str | tuple[int, int, int]:
+    def validate_entries():
+        try:
+            int(x_entry.get())
+            int(y_entry.get())
+            radius = int(radius_entry.get())
+
+            if radius < 0: radius = 0
+
+            radius_entry.delete(0, tk.END)
+            radius_entry.insert(0, str(radius))
+
+            ok_button.config(state=tk.NORMAL)
+        except ValueError:
+            ok_button.config(state=tk.DISABLED)
+
+    def on_add():
+        nonlocal result
+
+        try:
+            x = int(x_entry.get())
+            y = int(y_entry.get())
+            radius = int(radius_entry.get())
+        except ValueError:
+            messagebox.showwarning("Warning", f"Given values must be integers.")
+            return
+        if radius < 0:
+            messagebox.showwarning("Warning", f"Radius cannot be negative.")
+            return
+
+        result = (x, y, radius)
+        root.quit()
+        root.destroy()
+
+    def on_remove_all():
+        nonlocal result
+
+        result = "remove"
+        root.quit()
+        root.destroy()
+
+
+    def on_close():
+        root.quit()
+        root.destroy()
+
+    result = None
+    root = tk.Tk()
+    root.title("Hexagon")
+    root.geometry("225x160")
+    root.resizable(False, False)
+    root.protocol("WM_DELETE_WINDOW", on_close)
+
+    frame = tk.Frame(root)
+    frame.pack(expand=True)
+
+    tk.Label(frame, text="X:").grid(row=0, column=0, padx=5, pady=5, sticky='w')
+    x_entry = tk.Entry(frame)
+    x_entry.grid(row=0, column=1, padx=5, pady=5, sticky='ew')
+    x_entry.insert(0, "0")
+    x_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Y:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
+    y_entry = tk.Entry(frame)
+    y_entry.grid(row=1, column=1, padx=5, pady=5, sticky='ew')
+    y_entry.insert(0, "0")
+    y_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    tk.Label(frame, text="Radius:").grid(row=2, column=0, padx=5, pady=5, sticky='w')
+    radius_entry = tk.Entry(frame)
+    radius_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
+    radius_entry.insert(0, "0")
+    radius_entry.bind("<FocusOut>", lambda event: validate_entries())
+
+    ok_button = tk.Button(frame, text="Add", state=tk.NORMAL, command=on_add)
+    ok_button.grid(row=5, column=0, columnspan=1, pady=10)
+
+    remove_button = tk.Button(frame, text="Remove all", state=tk.NORMAL, command=on_remove_all)
+    remove_button.grid(row=5, column=1, columnspan=1, pady=10)
+
+    root.mainloop()
+    return result

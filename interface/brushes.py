@@ -1,5 +1,6 @@
+from functools import lru_cache
 from map import Map
-from interface.const import max_scroll_radius
+from interface.const import max_scroll_radius, lru_cache_edges_maxsize
 from interface.cursor import is_vertex_major
 from interface.triangles import get_major_triangle_corner_vertices
 from sections.structures import coordinates_in_radius
@@ -30,6 +31,7 @@ def warp_to_major(coordinates):
 def is_in_bounds(map_object: Map, coordinates):
     return tuple(coordinates) == warp_coordinates_in_bounds(map_object, coordinates)
 
+@lru_cache(maxsize=lru_cache_edges_maxsize)
 def edge_coordinates_ordered_in_radius(start_position, radius, ignore_minor_vertices=False):
 
     assert not ignore_minor_vertices or is_vertex_major(start_position)

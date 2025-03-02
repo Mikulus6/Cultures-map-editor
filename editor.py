@@ -12,14 +12,14 @@ import time
 from typing import Literal
 
 from interface.border import update_map_border
-from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major
+from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major, edge_coordinates_ordered_in_radius
 from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue, load_structures_catalogue
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
-                               ask_brush_parameters, ask_enforce_height
+                               ask_brush_parameters, ask_enforce_height, ask_area_mark, warning_too_many_area_marks
 from interface.horizont import enforce_horizonless_heightmap
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
@@ -50,6 +50,9 @@ class Editor:
 
         self.root = pygame.display.set_mode(resolution)
 
+        pygame.display.set_caption(window_name)
+        pygame.display.set_icon(pygame.image.load(window_icon_filepath))
+
         self.invisible_landscapes_display = False
         self.terrian_textures_suspension = False
         self.terrain_surface = pygame.Surface(map_canvas_rect[2:])
@@ -66,9 +69,6 @@ class Editor:
         self.landscapes_catalogue = load_landscapes_catalogue()
         self.structures_catalogue = load_structures_catalogue()
 
-        pygame.display.set_caption(window_name)
-        pygame.display.set_icon(pygame.image.load(window_icon_filepath))
-
         self.map = Map()
         self.map.empty((sector_width, sector_width))
         self.map.to_bytearrays()
@@ -78,6 +78,7 @@ class Editor:
 
         self.camera = Camera(position=[0.0, 0.0])
         self.camera.set_to_center(self.map)
+        self.hexagonal_area_marks = set()
 
         self.buttons_list = load_buttons(self)
 
@@ -160,6 +161,7 @@ class Editor:
 
             if self.scroll_radius > 0 or self.ignore_singular_triangle:
                 self.draw_cursor_vertex()
+            self.draw_marked_areas()
             self.draw_cursor_hexagonal_radius()
 
             self.draw_user_interface()
@@ -224,6 +226,7 @@ class Editor:
             self.map.empty(size)
             self._update()
             self.map_filepath = None
+            self.hexagonal_area_marks = set()
         except TypeError:
             self.map = old_map
             message.set_message(f"error: couldn't create map.")
@@ -238,6 +241,7 @@ class Editor:
             self.map.load(filepath)
             self._update()
             self.map_filepath = os.path.abspath(filepath)
+            self.hexagonal_area_marks = set()
             message.set_message(f"Map has been opened.")
         except (FileNotFoundError, TypeError, NotImplementedError):
             self.map = old_map
@@ -294,6 +298,7 @@ class Editor:
             message.set_message(f"Map has been imported.")
             self._update()
             self.map_filepath = None
+            self.hexagonal_area_marks = set()
         except (FileNotFoundError, TypeError):
             message.set_message(f"error: couldn't import map.")
 
@@ -311,6 +316,17 @@ class Editor:
             message.set_message(f"Invisible landscapes are now shown.")
         else:
             message.set_message(f"Invisible landscapes are now hidden.")
+
+    def mark_area(self):
+        entry = ask_area_mark()
+        if entry is None:
+            return
+        elif entry == "remove":
+            self.hexagonal_area_marks = set()
+        elif len(self.hexagonal_area_marks) >= lru_cache_edges_maxsize and entry not in self.hexagonal_area_marks:
+            warning_too_many_area_marks()
+        else:
+            self.hexagonal_area_marks.add(entry)
 
     def resize(self, deltas : (int, int, int, int) = None):
         # deltas = (top, bottom, left, right)
@@ -334,6 +350,8 @@ class Editor:
             self._update()
             self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
                                     camera_old_pos[1] + deltas[0] * triangle_height]
+            self.hexagonal_area_marks = set((x + deltas[2], y + deltas[0], radius)
+                                            for x, y, radius in self.hexagonal_area_marks)
         except TypeError:
             self.map.mstr = old_mstr
             message.set_message(f"error: couldn't resize map.")
@@ -493,26 +511,25 @@ class Editor:
 
             pygame.draw.polygon(self.root, (255, 255, 255), draw_corners, width=1)
 
-    def draw_cursor_hexagonal_radius(self, draw_if_major_radius_zero: bool = True):
-        if self.ignore_minor_vertices and draw_if_major_radius_zero and self.scroll_radius == 0:
-            if not self.ignore_singular_triangle: self.draw_cursor_triangle()
-            return
-        elif self.scroll_radius == 0 or self.cursor_vertex is None:
-            return
+    def draw_hexagonal_radius(self, coordinates, radius, ignore_minor_vertices,
+                              color=(255, 255, 255), *, use_precalculated: bool = True):
 
-        points, edge_points = Brush.get_points_and_edge_points(self.map, self.cursor_vertex, self.scroll_radius,
-                                                               ignore_minor_vertices=self.ignore_minor_vertices)
+        if use_precalculated:
+            edge_points = Brush.get_points_and_edge_points(self.map, coordinates, radius,
+                                                           ignore_minor_vertices=ignore_minor_vertices)[1]
+        else:
+            edge_points = edge_coordinates_ordered_in_radius(coordinates, radius,
+                                                             ignore_minor_vertices=ignore_minor_vertices)
 
         for edge_point_1, edge_point_2 in zip(edge_points, [*edge_points[1:], edge_points[0]]):
 
-            if self.ignore_minor_vertices and \
-               not edge_point_1[1] % 2 == 0 and edge_point_2[1] % 2 == 0:
+            if ignore_minor_vertices and not edge_point_1[1] % 2 == 0 and edge_point_2[1] % 2 == 0:
                 continue
 
             edge_point_1 = warp_coordinates_in_bounds(self.map, edge_point_1)
             edge_point_2 = warp_coordinates_in_bounds(self.map, edge_point_2)
 
-            if self.ignore_minor_vertices:
+            if ignore_minor_vertices:
 
                 # Major triangles on the edge on the map, which have some of their vertices out of bounds, are excluded
                 # from hexagonal radius due to edge being displayed based on in-bound major vertices. This would be a
@@ -525,7 +542,24 @@ class Editor:
             edge_point_1_draw = self.camera.draw_coordinates(edge_point_1, self.map, include_canvas_offset=True)
             edge_point_2_draw = self.camera.draw_coordinates(edge_point_2, self.map, include_canvas_offset=True)
 
-            pygame.draw.line(self.root, (255, 255, 255), edge_point_1_draw, edge_point_2_draw)
+            pygame.draw.line(self.root, color, edge_point_1_draw, edge_point_2_draw)
+
+    def draw_cursor_hexagonal_radius(self, draw_if_major_radius_zero: bool = True):
+        if self.ignore_minor_vertices and draw_if_major_radius_zero and self.scroll_radius == 0:
+            if not self.ignore_singular_triangle: self.draw_cursor_triangle()
+            return
+        elif self.scroll_radius == 0 or self.cursor_vertex is None:
+            return
+
+        self.draw_hexagonal_radius(self.cursor_vertex, self.scroll_radius, self.ignore_minor_vertices, (255, 255, 255))
+
+    def draw_marked_areas(self):
+        for x, y, radius in self.hexagonal_area_marks:
+            if radius > 0:
+                self.draw_hexagonal_radius((x, y), radius, ignore_minor_vertices=False, color=(255, 0, 0, 128),
+                                           use_precalculated=False)
+            draw_coordinates = self.camera.draw_coordinates((x, y), self.map, include_canvas_offset=True)
+            pygame.draw.circle(self.root, (255, 0, 0), draw_coordinates, 7, 3)
 
     def draw_user_interface(self):
 

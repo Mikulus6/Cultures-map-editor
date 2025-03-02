@@ -79,7 +79,7 @@ buttons_data = (0, "new", "create new map"),\
                (5, "extract", "export to external data"),\
                (6, "terrain_textures", "disable / enable terrain textures"),\
                (7, "invisible_landscapes", "show / hide invisible landscapes"),\
-               (8, "", "mark hexagonal area"),\
+               (8, "mark_area", "mark hexagonal area"),\
                (9, "", "about editor"),\
                (10, "resize", "resize map"),\
                (11, "pattern_single", "modify terrain by singular pattern"),\

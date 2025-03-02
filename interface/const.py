@@ -10,6 +10,7 @@ animation_frames_per_second = 8
 background_color = (0, 0, 0)
 lru_cache_landscapes_light_maxsize = 1536
 lru_cache_triangles_maxsize = 8192
+lru_cache_edges_maxsize = 1024
 landscape_light_factor = 0.333
 landscape_dark_factor = 0.5
 terrain_light_factor = 0.75
