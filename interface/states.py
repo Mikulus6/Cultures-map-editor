@@ -5,12 +5,14 @@ from typing import Literal
 from interface.border import is_triangle_in_border, is_major_vertex_in_border
 from interface.brushes import generate_major_triangles, Brush
 from interface.const import font_color, font_color_out_of_focus, font_antialias, font_row_vertical_pos_diff
+from supplements.groups import get_random_landscape
 
 
 @dataclass
 class LandscapesDrawParameters:
     density: float = 0.1
     tickrate: float = 10.0
+    legacy_randomness: bool = False
     last_tick_time = time.time() - 1 / tickrate
 
 
@@ -96,20 +98,58 @@ class StatesMachine:
                     name = editor.landscapes_catalogue.items[selected_pattern].identificator["Name"] \
                            if editor.landscapes_catalogue.items[selected_pattern].identificator is not None else None
 
-                    if editor.scroll_radius != 0 and time.time() - landscapes_draw_parameters.last_tick_time > \
-                                                      1 / landscapes_draw_parameters.tickrate:
-                        for point in Brush.get_points_and_edge_points(editor.map,
-                                                                      editor.cursor_vertex,
-                                                                      editor.scroll_radius,
-                                                                      ignore_minor_vertices=False)[0]:
-                            if (landscapes_draw_parameters.density != 1 and random() >
-                                landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
-                                continue
-                            editor.update_landscape(point, name)
+                    if time.time() - landscapes_draw_parameters.last_tick_time > \
+                                     1 / landscapes_draw_parameters.tickrate:
+                        if editor.scroll_radius != 0:
+                            for point in Brush.get_points_and_edge_points(editor.map,
+                                                                          editor.cursor_vertex,
+                                                                          editor.scroll_radius,
+                                                                          ignore_minor_vertices=False)[0]:
+                                if (landscapes_draw_parameters.density != 1 and random() >
+                                    landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
+                                    continue
+                                editor.update_landscape(point, name)
+                        elif editor.scroll_radius == 0:
+                            editor.update_landscape(editor.cursor_vertex, name)
                         landscapes_draw_parameters.last_tick_time = time.time()
-                    elif editor.scroll_radius == 0:
-                        editor.update_landscape(editor.cursor_vertex, name)
                     break
+
+    @staticmethod
+    def landscape_group(editor):
+        editor.ignore_singular_triangle = True
+        editor.ignore_minor_vertices = False
+        editor.landscapes_group_catalogue.update_and_draw(editor)
+        if editor.cursor_vertex is not None:
+            for pressed, selected_pattern in zip((editor.mouse_press_left, editor.mouse_press_right),
+                                                 (editor.landscapes_group_catalogue.selected_index_left,
+                                                  editor.landscapes_group_catalogue.selected_index_right)):
+                if pressed:
+
+                    group = editor.landscapes_group_catalogue.items[selected_pattern].identificator \
+                            if editor.landscapes_group_catalogue.items[selected_pattern].identificator is not None \
+                            else None
+
+                    if time.time() - landscapes_draw_parameters.last_tick_time > \
+                                     1 / landscapes_draw_parameters.tickrate:
+                        if editor.scroll_radius != 0:
+                            for point in Brush.get_points_and_edge_points(editor.map,
+                                                                          editor.cursor_vertex,
+                                                                          editor.scroll_radius,
+                                                                          ignore_minor_vertices=False)[0]:
+                                if (landscapes_draw_parameters.density != 1 and random() >
+                                    landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
+                                    continue
+
+                                editor.update_landscape(point, get_random_landscape(group,
+                                    legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower()
+                                                      if group is not None else None)
+                        elif editor.scroll_radius == 0:
+                            editor.update_landscape(editor.cursor_vertex, get_random_landscape(group,
+                                legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower()
+                                if group is not None else None)
+                        landscapes_draw_parameters.last_tick_time = time.time()
+                    break
+
     @staticmethod
     def structures(editor):
         editor.ignore_singular_triangle = True
@@ -242,7 +282,7 @@ class StatesMachine:
                                                          as_delta=True)
 
                     if editor.cursor_vertex is not None:
-                        editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
+                        editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 4)
                         height_draw_parameters.last_tick_time = time.time()
                     break
 

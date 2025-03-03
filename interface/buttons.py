@@ -80,14 +80,14 @@ buttons_data = (0, "new", "create new map"),\
                (6, "terrain_textures", "disable / enable terrain textures"),\
                (7, "invisible_landscapes", "show / hide invisible landscapes"),\
                (8, "mark_area", "mark hexagonal area"),\
-               (9, "", "about editor"),\
+               (9, "", "undo action"),\
                (10, "resize", "resize map"),\
                (11, "pattern_single", "modify terrain by singular pattern"),\
-               (12, "", "modify terrain by pattern groups"),\
+               (12, "", "modify terrain by pattern group"),\
                (13, "height", "modify height"),\
                (14, "enforce_height", "enforce horizonless heightmap"),\
                (15, "landscape_single", "modify landscapes by singular element"),\
-               (16, "", "modify landscapes by element groups"),\
+               (16, "landscape_group", "modify landscapes by edit group"),\
                (17, "brush_adjust", "adjust brush parameters"),\
                (18, "structures", "modify structures"),\
                (19, "close_tool", "close current tool")  # TODO: write missing methods for buttons

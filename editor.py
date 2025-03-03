@@ -15,7 +15,8 @@ from interface.border import update_map_border
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major, edge_coordinates_ordered_in_radius
 from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
-from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue, load_structures_catalogue
+from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue, load_structures_catalogue, \
+                                load_landscapes_groups_catalogue
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
@@ -67,6 +68,7 @@ class Editor:
         self.invisible_landscapes_legend = render_legend(self)
         self.patterns_catalogue = load_patterns_catalogue()
         self.landscapes_catalogue = load_landscapes_catalogue()
+        self.landscapes_group_catalogue = load_landscapes_groups_catalogue()
         self.structures_catalogue = load_structures_catalogue()
 
         self.map = Map()
@@ -378,6 +380,10 @@ class Editor:
         states_machine.set_state("landscape_single")
 
     @staticmethod
+    def landscape_group():
+        states_machine.set_state("landscape_group")
+
+    @staticmethod
     def brush_adjust():
         ask_brush_parameters()
 
@@ -599,7 +605,7 @@ class Editor:
     def update_landscape(self, coordinates, landscape_name: str | None):
         if landscape_name is None and (*coordinates,) in self.map.llan.keys():
             del self.map.llan[*coordinates]
-        else:
+        elif landscape_name is not None:
             self.map.llan[*coordinates] = landscape_name
 
     def update_structures(self, coordinates, structure_type: Literal[None, "road", "river", "snow"]):

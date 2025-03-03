@@ -272,6 +272,7 @@ def ask_brush_parameters():
 
         landscapes_draw_parameters.density = density_val
         landscapes_draw_parameters.tickrate = tickrate_landscapes_val
+        landscapes_draw_parameters.legacy_randomness = legacy_randomness_var.get()
         height_draw_parameters.mode = height_mode
         height_draw_parameters.value_absolute = absoulte_val
         height_draw_parameters.value_delta = delta_val
@@ -291,7 +292,7 @@ def ask_brush_parameters():
 
     root = tk.Tk()
     root.title("Brush")
-    root.geometry("225x435")
+    root.geometry("225x480")
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", on_close)
 
@@ -366,12 +367,17 @@ def ask_brush_parameters():
     tickrate_landscapes_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
     tickrate_landscapes_entry.bind("<FocusOut>", lambda event: validate_entries())
 
+    legacy_randomness_var = tk.BooleanVar(value=landscapes_draw_parameters.legacy_randomness)
+    legacy_randomness_button = tk.Checkbutton(frame, text="Use legacy randomness",
+                                            variable=legacy_randomness_var)
+    legacy_randomness_button.grid(row=11, column=0, columnspan=2, pady=5)
+
     separator_end = tk.Frame(frame)
-    separator_end.grid(row=11, column=0, columnspan=2, pady=10, sticky="ew")
+    separator_end.grid(row=12, column=0, columnspan=2, pady=10, sticky="ew")
     ttk.Separator(separator_end, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
     ok_button = tk.Button(frame, text="Update", state=tk.NORMAL, command=on_update)
-    ok_button.grid(row=12, column=0, columnspan=2, pady=10)
+    ok_button.grid(row=13, column=0, columnspan=2, pady=10)
 
     root.mainloop()
 

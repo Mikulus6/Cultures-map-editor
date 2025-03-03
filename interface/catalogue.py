@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from interface.const import font_antialias, font_color, frame_color
 from interface.projection import draw_projected_triangle
 from supplements.animations import animations
+from supplements.groups import landscapes_edit_group
 from supplements.landscapedefs import landscapedefs
 from supplements.patterns import patterndefs_normal, road
 from supplements.textures import patterndefs_textures
@@ -211,6 +212,34 @@ def load_landscapes_catalogue():
         entry.image.fill(entry_background_color)
         temp_entry_surface.fill((0, 0, 0, 0))
         image = animation.images[0]
+        ratio = image.width / image.height
+        if   ratio > 1: size = (entry_size[0] - 2 * icon_margin, round((entry_size[1] - 2 * icon_margin) / ratio))
+        elif ratio < 1: size = (round((entry_size[1] - 2 * icon_margin) * ratio), entry_size[1] - 2 * icon_margin)
+        else: size = (entry_size[0] - 2 * icon_margin, entry_size[1] - 2 * icon_margin)
+
+        entry.image.blit(pygame.transform.scale(image, size),
+                         ((entry_size[0] - 2 * icon_margin - size[0]) // 2,
+                          (entry_size[1] - 2 * icon_margin - size[1]) // 2))
+        entries.append(entry)
+
+    return Catalogue(entries)
+
+
+def load_landscapes_groups_catalogue():
+    assert animations.pygame_converted
+
+    entries = [CatalogueEntry("", None, image=pygame.Surface(entry_size, pygame.SRCALPHA))]
+    entries[0].image.fill(entry_background_color)
+
+    for name, landscape_group in landscapes_edit_group.items():
+
+
+        entry = CatalogueEntry(name, identificator=landscape_group["Landscape"],
+                               image=pygame.Surface(entry_size, pygame.SRCALPHA))
+        entry.image.fill(entry_background_color)
+        temp_entry_surface.fill((0, 0, 0, 0))
+
+        image = animations[landscape_group["Landscape"][0][0].lower()].images[0]
         ratio = image.width / image.height
         if   ratio > 1: size = (entry_size[0] - 2 * icon_margin, round((entry_size[1] - 2 * icon_margin) / ratio))
         elif ratio < 1: size = (round((entry_size[1] - 2 * icon_margin) * ratio), entry_size[1] - 2 * icon_margin)
