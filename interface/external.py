@@ -23,6 +23,11 @@ def ask_enforce_height():
     return messagebox.askyesno("Confirm",
                                "Are you sure you want to enforce horizonless heightmap?\nThis will modify map height.")
 
+def ask_save_changes(on_quit: bool = False):
+    return messagebox.askyesno("Unsaved changes",
+                               "You have unsaved changes.\nAre you sure you want to " + \
+                               ("quit?" if on_quit else "proceed?"), icon='warning')
+
 def warning_too_many_area_marks():
     messagebox.showwarning("Warning", f"Area mark limit reached. Cannot add another mark.")
 
@@ -156,43 +161,46 @@ def ask_resize_map(current_map_width, current_map_height):
     result = None
     root = tk.Tk()
     root.title("Resize")
-    root.geometry("225x200")
+    root.geometry("225x250")
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", on_close)
 
     frame = tk.Frame(root)
     frame.pack(expand=True)
-
-    tk.Label(frame, text="Extend north:").grid(row=0, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text=f"Current size: {current_map_width} x {current_map_height}", fg="gray").grid(row=0, column=0,
+                                                                                                      columnspan=2,
+                                                                                                      padx=5, pady=5,
+                                                                                                      sticky='w')
+    tk.Label(frame, text="Extend north:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
     north_entry = tk.Entry(frame)
-    north_entry.grid(row=0, column=1, padx=5, pady=5, sticky='ew')
+    north_entry.grid(row=1, column=1, padx=5, pady=5, sticky='ew')
     north_entry.insert(0, "0")
     north_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Extend south:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Extend south:").grid(row=2, column=0, padx=5, pady=5, sticky='w')
     south_entry = tk.Entry(frame)
-    south_entry.grid(row=1, column=1, padx=5, pady=5, sticky='ew')
+    south_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
     south_entry.insert(0, "0")
     south_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Extend east:").grid(row=2, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Extend east:").grid(row=3, column=0, padx=5, pady=5, sticky='w')
     east_entry = tk.Entry(frame)
-    east_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
+    east_entry.grid(row=3, column=1, padx=5, pady=5, sticky='ew')
     east_entry.insert(0, "0")
     east_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Extend west:").grid(row=3, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Extend west:").grid(row=4, column=0, padx=5, pady=5, sticky='w')
     west_entry = tk.Entry(frame)
-    west_entry.grid(row=3, column=1, padx=5, pady=5, sticky='ew')
+    west_entry.grid(row=4, column=1, padx=5, pady=5, sticky='ew')
     west_entry.insert(0, "0")
     west_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     check_var = tk.BooleanVar(value=False)
     check_button = tk.Checkbutton(frame, text="Invert extend and indent", variable=check_var)
-    check_button.grid(row=4, column=0, columnspan=2, pady=5)
+    check_button.grid(row=5, column=0, columnspan=2, pady=5)
 
     ok_button = tk.Button(frame, text="OK", state=tk.NORMAL, command=on_ok)
-    ok_button.grid(row=5, column=0, columnspan=2, pady=10)
+    ok_button.grid(row=6, column=0, columnspan=2, pady=10)
 
     root.mainloop()
     return result

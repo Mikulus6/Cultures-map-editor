@@ -1,6 +1,4 @@
 User interface:
-    - display current map size in resize menu
-    - show warning if app is about to get closed and there are unsaved changes
     - make landscapes optionally modifiable only in a way in which their BaseArea-s do not overlap
     - choose and fill terrain according to data in ve_edit directory (sets of different triangles)
     - modify terrain triangles with automatic transitions - smooth triangular border (based on data from ve_edit)
@@ -9,6 +7,7 @@ User interface:
     - load terrain & height template from image (applying pcx to existing empty map)
 
     - speed up bmd loading process to make cache.bin unnecessary if possible
+    - add hash validation to cache.bin
     - add loading visuals if speeding loading cache.bin is not possible
     - speed up map saving algorithm (all derivations together are slow)
     - speed up map display if possible

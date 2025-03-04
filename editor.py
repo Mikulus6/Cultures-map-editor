@@ -20,7 +20,8 @@ from interface.catalogue import load_patterns_catalogue, load_landscapes_catalog
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
-                               ask_brush_parameters, ask_enforce_height, ask_area_mark, warning_too_many_area_marks
+                               ask_brush_parameters, ask_enforce_height, ask_area_mark, warning_too_many_area_marks ,\
+                               ask_save_changes
 from interface.horizont import enforce_horizonless_heightmap
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
@@ -75,6 +76,7 @@ class Editor:
         self.map.empty((sector_width, sector_width))
         self.map.to_bytearrays()
         self.minimap = Minimap(minimap_rect, self.map)
+        self.progress_saved = True
 
         self.map_filepath: str = None
 
@@ -116,7 +118,8 @@ class Editor:
             scroll_detected = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    if self.progress_saved or ask_save_changes(on_quit=True):
+                        running = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and not button_left_detected:
                        self.mouse_press_left = True
@@ -220,6 +223,10 @@ class Editor:
     # ================================  functionalities  ================================
 
     def new(self, size: tuple[int, int] = None):
+
+        if not(self.progress_saved or ask_save_changes()):
+            return
+
         if size is None:
             size = ask_new_map()
         old_map = copy.deepcopy(self.map)
@@ -229,14 +236,16 @@ class Editor:
             self._update()
             self.map_filepath = None
             self.hexagonal_area_marks = set()
+            self.progress_saved = False
         except TypeError:
             self.map = old_map
             message.set_message(f"error: couldn't create map.")
 
     def open(self, filepath: str = None):
         if filepath is None:
-            filepath = askopenfilename(title="Open map", default="*.map", filetypes=(("map files", "*.map"),
-                                                                                     ("all files", "*.*")))
+            if self.progress_saved or ask_save_changes():
+                filepath = askopenfilename(title="Open map", default="*.map", filetypes=(("map files", "*.map"),
+                                                                                         ("all files", "*.*")))
         old_map = copy.deepcopy(self.map)
         try:
             one_frame_popup(self, "Opening map...")
@@ -244,6 +253,7 @@ class Editor:
             self._update()
             self.map_filepath = os.path.abspath(filepath)
             self.hexagonal_area_marks = set()
+            self.progress_saved = True
             message.set_message(f"Map has been opened.")
         except (FileNotFoundError, TypeError, NotImplementedError):
             self.map = old_map
@@ -258,6 +268,7 @@ class Editor:
                 one_frame_popup(self, "Saving map...")
                 self.map.update_all()
                 self.map.save(self.map_filepath)
+                self.progress_saved = True
                 message.set_message(f"Map has been saved.")
             except TypeError:
                 message.set_message(f"error: couldn't save map file.")
@@ -275,6 +286,7 @@ class Editor:
             self.map.update_all()
             self.map.save(filepath)
             self.map_filepath = filepath
+            self.progress_saved = True
             message.set_message(f"Map has been saved.")
         except TypeError:
             message.set_message(f"error: couldn't save map file.")
@@ -292,6 +304,10 @@ class Editor:
             message.set_message(f"error: couldn't export map.")
 
     def pack(self):
+
+        if not(self.progress_saved or ask_save_changes()):
+            return
+
         dirpath = askdirectory()
 
         try:
@@ -336,24 +352,26 @@ class Editor:
         if deltas is None:
             deltas = ask_resize_map(self.map.map_width, self.map.map_height)
         try:
-            one_frame_popup(self, "Resizing map...")
-            camera_old_pos = self.camera.position
+            if tuple(deltas) != (0, 0, 0, 0):
+                one_frame_popup(self, "Resizing map...")
+                camera_old_pos = self.camera.position
 
-            for x in (0, self.map.map_width - 1):
-                for y in range(0, self.map.map_height):
-                    self.update_structures((x, y), None)
-            for y in (0, self.map.map_height - 1):
-                for x in range(0, self.map.map_width):
-                    self.update_structures((x, y), None)
+                for x in (0, self.map.map_width - 1):
+                    for y in range(0, self.map.map_height):
+                        self.update_structures((x, y), None)
+                for y in (0, self.map.map_height - 1):
+                    for x in range(0, self.map.map_width):
+                        self.update_structures((x, y), None)
 
-            self.map.resize_visible(deltas)
-            update_map_border(self)
-            self.map.update_light()
-            self._update()
-            self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
-                                    camera_old_pos[1] + deltas[0] * triangle_height]
-            self.hexagonal_area_marks = set((x + deltas[2], y + deltas[0], radius)
-                                            for x, y, radius in self.hexagonal_area_marks)
+                self.map.resize_visible(deltas)
+                update_map_border(self)
+                self.map.update_light()
+                self._update()
+                self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
+                                        camera_old_pos[1] + deltas[0] * triangle_height]
+                self.hexagonal_area_marks = set((x + deltas[2], y + deltas[0], radius)
+                                                for x, y, radius in self.hexagonal_area_marks)
+                self.progress_saved = False
         except TypeError:
             self.map.mstr = old_mstr
             message.set_message(f"error: couldn't resize map.")
@@ -374,6 +392,7 @@ class Editor:
             self.map.update_light()
             self.minimap.update_image(self.map)
             self.map.to_bytearrays()
+            self.progress_saved = False
 
     @staticmethod
     def landscape_single():
@@ -595,22 +614,27 @@ class Editor:
             case "a": self.map.mepa[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
             case "b": self.map.mepb[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
         self.terrain_loaded = False
+        self.progress_saved = False
 
     def update_height(self, coordinates, height_value: float | int = 0, as_delta: bool = False):
         index_value = coordinates[1] * (self.map.map_width // 2) + coordinates[0]
         self.map.mhei[index_value] = min(max(self.map.mhei[index_value] + round(height_value), 0), 255) \
                                      if as_delta else min(max(round(height_value), 0), 255)
         self.terrain_loaded = False
+        self.progress_saved = False
 
     def update_landscape(self, coordinates, landscape_name: str | None):
         if landscape_name is None and (*coordinates,) in self.map.llan.keys():
             del self.map.llan[*coordinates]
+            self.progress_saved = False
         elif landscape_name is not None:
             self.map.llan[*coordinates] = landscape_name
+            self.progress_saved = False
 
     def update_structures(self, coordinates, structure_type: Literal[None, "road", "river", "snow"]):
         update_structures(self.map, coordinates, structure_type)
         self.terrain_loaded = False
+        self.progress_saved = False
 
     def update_local_secondary_data(self, coordinates, margin: int = 1):
 
