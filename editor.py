@@ -11,12 +11,12 @@ from sys import exit as sys_exit
 import time
 from typing import Literal
 
-from interface.border import update_map_border
+from interface.border import update_map_border, remove_landscapes_from_border, remove_structures_from_border
 from interface.brushes import Brush, warp_coordinates_in_bounds, warp_to_major, edge_coordinates_ordered_in_radius
 from interface.buttons import load_buttons, background
 from interface.camera import Camera, clear_point_coordinates_cache
 from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue, load_structures_catalogue, \
-                                load_landscapes_groups_catalogue
+                                load_landscapes_groups_catalogue, load_patterns_groups_catalogue
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
@@ -68,6 +68,7 @@ class Editor:
         transition_textures.pygame_convert()
         self.invisible_landscapes_legend = render_legend(self)
         self.patterns_catalogue = load_patterns_catalogue()
+        self.patterns_group_catalogue = load_patterns_groups_catalogue()
         self.landscapes_catalogue = load_landscapes_catalogue()
         self.landscapes_group_catalogue = load_landscapes_groups_catalogue()
         self.structures_catalogue = load_structures_catalogue()
@@ -349,19 +350,12 @@ class Editor:
     def resize(self, deltas : (int, int, int, int) = None):
         # deltas = (top, bottom, left, right)
         old_mstr = copy.copy(self.map.mstr)
-        if deltas is None:
-            deltas = ask_resize_map(self.map.map_width, self.map.map_height)
+        data = ask_resize_map(self.map.map_width, self.map.map_height) if deltas is None else (deltas, False, False)
         try:
+            deltas, remove_landscapes, remove_structures = data
             if tuple(deltas) != (0, 0, 0, 0):
                 one_frame_popup(self, "Resizing map...")
                 camera_old_pos = self.camera.position
-
-                for x in (0, self.map.map_width - 1):
-                    for y in range(0, self.map.map_height):
-                        self.update_structures((x, y), None)
-                for y in (0, self.map.map_height - 1):
-                    for x in range(0, self.map.map_width):
-                        self.update_structures((x, y), None)
 
                 self.map.resize_visible(deltas)
                 update_map_border(self)
@@ -371,7 +365,23 @@ class Editor:
                                         camera_old_pos[1] + deltas[0] * triangle_height]
                 self.hexagonal_area_marks = set((x + deltas[2], y + deltas[0], radius)
                                                 for x, y, radius in self.hexagonal_area_marks)
+
                 self.progress_saved = False
+            if remove_landscapes:
+                remove_landscapes_from_border(self.map)
+                self.progress_saved = False
+            if remove_structures:
+                remove_structures_from_border(self)
+                self.progress_saved = False
+
+            if tuple(deltas) != (0, 0, 0, 0) or remove_structures:
+                for x in (0, self.map.map_width - 1):
+                    for y in range(0, self.map.map_height):
+                        self.update_structures((x, y), None)
+                for y in (0, self.map.map_height - 1):
+                    for x in range(0, self.map.map_width):
+                        self.update_structures((x, y), None)
+
         except TypeError:
             self.map.mstr = old_mstr
             message.set_message(f"error: couldn't resize map.")
@@ -379,6 +389,10 @@ class Editor:
     def pattern_single(self):
         if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
         states_machine.set_state("pattern_single")
+
+    def pattern_group(self):
+        if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
+        states_machine.set_state("pattern_group")
 
     def height(self):
         if self.scroll_radius % 2 != 0: self.scroll_radius -= 1

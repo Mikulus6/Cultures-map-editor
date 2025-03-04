@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from interface.const import font_antialias, font_color, frame_color
 from interface.projection import draw_projected_triangle
 from supplements.animations import animations
-from supplements.groups import landscapes_edit_group
+from supplements.groups import landscapes_edit_group, pattern_edit_group
 from supplements.landscapedefs import landscapedefs
-from supplements.patterns import patterndefs_normal, road
+from supplements.patterns import patterndefs_normal, road, patterndefs_normal_by_name
 from supplements.textures import patterndefs_textures
 from typing import Literal
 
@@ -188,6 +188,29 @@ def load_patterns_catalogue():
 
     for mep_id, texture in patterndefs_textures.items():
         entry = CatalogueEntry(patterndefs_normal[mep_id]["Name"], identificator=mep_id,
+                               image=pygame.Surface(entry_size, pygame.SRCALPHA))
+        entry.image.fill(entry_background_color)
+        draw_projected_triangle(entry.image, texture["a"],
+                                ((entry_size[0] // 2, icon_margin),
+                                 (entry_size[0] - icon_margin, entry_size[1] - icon_margin),
+                                 (icon_margin, entry_size[1] - icon_margin)),
+                                (0.5, 0.5, 0.5), suspend_timeout=True)
+        entries.append(entry)
+
+    return Catalogue(entries)
+
+
+def load_patterns_groups_catalogue():
+    assert patterndefs_textures.pygame_converted
+
+    entries = []
+
+    for name, pattern_group in pattern_edit_group.items():
+
+        pattern = patterndefs_normal_by_name[pattern_group["Pattern"][0][0].lower()]
+        mep_id = pattern["Id"] + pattern["SetId"] * 256
+        texture = patterndefs_textures[mep_id]
+        entry = CatalogueEntry(name, identificator=pattern_group["Pattern"],
                                image=pygame.Surface(entry_size, pygame.SRCALPHA))
         entry.image.fill(entry_background_color)
         draw_projected_triangle(entry.image, texture["a"],

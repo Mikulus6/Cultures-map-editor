@@ -5,7 +5,8 @@ from typing import Literal
 from interface.border import is_triangle_in_border, is_major_vertex_in_border
 from interface.brushes import generate_major_triangles, Brush
 from interface.const import font_color, font_color_out_of_focus, font_antialias, font_row_vertical_pos_diff
-from supplements.groups import get_random_landscape
+from supplements.groups import get_random_group_entry
+from supplements.patterns import patterndefs_normal_by_name
 
 
 @dataclass
@@ -85,6 +86,36 @@ class StatesMachine:
                 break
 
     @staticmethod
+    def pattern_group(editor):
+        editor.ignore_singular_triangle = False
+        editor.ignore_minor_vertices = True
+        editor.patterns_group_catalogue.update_and_draw(editor)
+        for pressed, selected_pattern in zip((editor.mouse_press_left, editor.mouse_press_right),
+                                             (editor.patterns_group_catalogue.selected_index_left,
+                                              editor.patterns_group_catalogue.selected_index_right)):
+            if pressed:
+                group = editor.patterns_group_catalogue.items[selected_pattern].identificator
+                if editor.scroll_radius > 0 and editor.cursor_vertex is not None:
+                    triangles = generate_major_triangles(editor.map, editor.cursor_vertex, editor.scroll_radius,
+                                                         Brush.get_points_and_edge_points(editor.map,
+                                                                                          editor.cursor_vertex,
+                                                                                          editor.scroll_radius,
+                                                                                          ignore_minor_vertices=True)[0]
+                                                         )
+                elif editor.scroll_radius == 0 and editor.cursor_triangle is not None:
+                    triangles = (editor.cursor_triangle, )
+                else:
+                    triangles = tuple()
+
+                for triangle in triangles:
+                    if not is_triangle_in_border(*triangle, editor.map):
+                        pattern = patterndefs_normal_by_name[get_random_group_entry(group).lower()]
+                        editor.update_triange(*triangle, pattern["Id"] + pattern["SetId"] * 256)
+
+                if editor.cursor_vertex is not None:
+                    editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
+
+    @staticmethod
     def landscape_single(editor):
         editor.ignore_singular_triangle = True
         editor.ignore_minor_vertices = False
@@ -140,11 +171,11 @@ class StatesMachine:
                                     landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
                                     continue
 
-                                editor.update_landscape(point, get_random_landscape(group,
+                                editor.update_landscape(point, get_random_group_entry(group,
                                     legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower()
                                                       if group is not None else None)
                         elif editor.scroll_radius == 0:
-                            editor.update_landscape(editor.cursor_vertex, get_random_landscape(group,
+                            editor.update_landscape(editor.cursor_vertex, get_random_group_entry(group,
                                 legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower()
                                 if group is not None else None)
                         landscapes_draw_parameters.last_tick_time = time.time()

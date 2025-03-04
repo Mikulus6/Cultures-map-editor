@@ -1,18 +1,17 @@
 User interface:
     - make landscapes optionally modifiable only in a way in which their BaseArea-s do not overlap
-    - choose and fill terrain according to data in ve_edit directory (sets of different triangles)
     - modify terrain triangles with automatic transitions - smooth triangular border (based on data from ve_edit)
     - implement undo button
     - add keyboard shortcuts (ctrl+N, ctrl+O, ctrl+S, ctrl+shift+S, ctr+Z) -> (new, open, save, save as, undo)
     - load terrain & height template from image (applying pcx to existing empty map)
-
-    - speed up bmd loading process to make cache.bin unnecessary if possible
     - add hash validation to cache.bin
     - add loading visuals if speeding loading cache.bin is not possible
+    - make shifting perspective possible
+    - move camera by using third mouse wheel button
+
+    - speed up bmd loading process to make cache.bin unnecessary if possible
     - speed up map saving algorithm (all derivations together are slow)
     - speed up map display if possible
-    - make shifting perspective possible
-    - move camera by using mouse wheel button
 
 Scripts documentation:
     - describe in pdf: animalis, buildings, units (jobs), tribes

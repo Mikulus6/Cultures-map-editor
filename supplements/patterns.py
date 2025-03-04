@@ -28,3 +28,5 @@ road = load_ini_as_dict(road_path,
                         entries_duplicated=tuple(),
                         global_key= lambda x: x["name"],
                         merge_duplicates=False)
+
+patterndefs_normal_by_name = {x["Name"].lower(): x for x in patterndefs_normal.values()}

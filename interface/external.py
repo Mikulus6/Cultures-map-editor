@@ -150,7 +150,8 @@ def ask_resize_map(current_map_width, current_map_height):
             messagebox.showwarning("Warning", f"Resulting map dimensions must be positive.")
         else:
 
-            result = (north_val, south_val, west_val, east_val)
+            result = (north_val, south_val, west_val, east_val), \
+                     bool(remove_landscapes_var.get()), bool(remove_structures_var.get())
             root.quit()
             root.destroy()
 
@@ -161,7 +162,7 @@ def ask_resize_map(current_map_width, current_map_height):
     result = None
     root = tk.Tk()
     root.title("Resize")
-    root.geometry("225x250")
+    root.geometry("225x310")
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", on_close)
 
@@ -197,10 +198,20 @@ def ask_resize_map(current_map_width, current_map_height):
 
     check_var = tk.BooleanVar(value=False)
     check_button = tk.Checkbutton(frame, text="Invert extend and indent", variable=check_var)
-    check_button.grid(row=5, column=0, columnspan=2, pady=5)
+    check_button.grid(row=5, column=0, columnspan=2, pady=5, sticky="w")
+
+    remove_landscapes_var = tk.BooleanVar(value=True)
+    remove_landscapes_button = tk.Checkbutton(frame, text="Remove landscapes from margin",
+                                              variable=remove_landscapes_var)
+    remove_landscapes_button.grid(row=6, column=0, columnspan=2, pady=5, sticky="w")
+
+    remove_structures_var = tk.BooleanVar(value=True)
+    remove_structures_button = tk.Checkbutton(frame, text="Remove structures from margin",
+                                              variable=remove_structures_var)
+    remove_structures_button.grid(row=7, column=0, columnspan=2, pady=5, sticky="w")
 
     ok_button = tk.Button(frame, text="OK", state=tk.NORMAL, command=on_ok)
-    ok_button.grid(row=6, column=0, columnspan=2, pady=10)
+    ok_button.grid(row=8, column=0, columnspan=2, pady=10)
 
     root.mainloop()
     return result

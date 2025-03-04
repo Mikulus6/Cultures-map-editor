@@ -83,7 +83,7 @@ buttons_data = (0, "new", "create new map"),\
                (9, "", "undo action"),\
                (10, "resize", "resize map"),\
                (11, "pattern_single", "modify terrain by singular pattern"),\
-               (12, "", "modify terrain by pattern group"),\
+               (12, "pattern_group", "modify terrain by pattern group"),\
                (13, "height", "modify height"),\
                (14, "enforce_height", "enforce horizonless heightmap"),\
                (15, "landscape_single", "modify landscapes by singular element"),\
