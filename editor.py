@@ -25,6 +25,7 @@ from interface.external import askopenfilename, asksaveasfilename, ask_new_map, 
 from interface.horizont import enforce_horizonless_heightmap
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
+from interface.landscapes_area import AreaTable
 from interface.landscapes_light import adjust_opaque_pixels
 from interface.light import update_light_local
 from interface.message import message, set_font_text, one_frame_popup
@@ -56,6 +57,7 @@ class Editor:
         pygame.display.set_icon(pygame.image.load(window_icon_filepath))
 
         self.invisible_landscapes_display = False
+        self.invisible_blocks_display = False
         self.terrian_textures_suspension = False
         self.terrain_surface = pygame.Surface(map_canvas_rect[2:])
         self.terrain_loaded = False
@@ -78,6 +80,9 @@ class Editor:
         self.map.to_bytearrays()
         self.minimap = Minimap(minimap_rect, self.map)
         self.progress_saved = True
+
+        self.base_area     = AreaTable(self.map.map_width, self.map.map_height, area_type="Base")
+        self.extended_area = AreaTable(self.map.map_width, self.map.map_height, area_type="Extended")
 
         self.map_filepath: str = None
 
@@ -164,6 +169,8 @@ class Editor:
             self.root.fill(background_color)
             self.root.blit(self.terrain_surface, map_canvas_rect[:2])
             self.draw_landscapes()
+            if self.invisible_blocks_display:
+                self.draw_invisible_blocks()
 
             if self.scroll_radius > 0 or self.ignore_singular_triangle:
                 self.draw_cursor_vertex()
@@ -237,6 +244,8 @@ class Editor:
             self._update()
             self.map_filepath = None
             self.hexagonal_area_marks = set()
+            self.base_area.reset_and_resize(self.map.map_width, self.map.map_height)
+            self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
             self.progress_saved = False
         except TypeError:
             self.map = old_map
@@ -255,6 +264,10 @@ class Editor:
             self.map_filepath = os.path.abspath(filepath)
             self.hexagonal_area_marks = set()
             self.progress_saved = True
+            self.base_area.reset_and_resize(self.map.map_width, self.map.map_height)
+            self.base_area.update_landscapes_presence_ndarray(self.map)
+            self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
+            self.extended_area.update_landscapes_presence_ndarray(self.map)
             message.set_message(f"Map has been opened.")
         except (FileNotFoundError, TypeError, NotImplementedError):
             self.map = old_map
@@ -318,6 +331,10 @@ class Editor:
             self._update()
             self.map_filepath = None
             self.hexagonal_area_marks = set()
+            self.base_area.reset_and_resize(self.map.map_width, self.map.map_height)
+            self.base_area.update_landscapes_presence_ndarray(self.map)
+            self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
+            self.extended_area.update_landscapes_presence_ndarray(self.map)
         except (FileNotFoundError, TypeError):
             message.set_message(f"error: couldn't import map.")
 
@@ -335,6 +352,13 @@ class Editor:
             message.set_message(f"Invisible landscapes are now shown.")
         else:
             message.set_message(f"Invisible landscapes are now hidden.")
+
+    def invisible_blocks(self):
+        self.invisible_blocks_display = not self.invisible_blocks_display
+        if self.invisible_blocks_display:
+            message.set_message(f"Blockades are now shown.")
+        else:
+            message.set_message(f"Blockades are now hidden.")
 
     def mark_area(self):
         entry = ask_area_mark()
@@ -381,6 +405,12 @@ class Editor:
                 for y in (0, self.map.map_height - 1):
                     for x in range(0, self.map.map_width):
                         self.update_structures((x, y), None)
+
+            if tuple(deltas) != (0, 0, 0, 0) or remove_landscapes:
+                self.base_area.reset_and_resize(self.map.map_width, self.map.map_height)
+                self.base_area.update_landscapes_presence_ndarray(self.map)
+                self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
+                self.extended_area.update_landscapes_presence_ndarray(self.map)
 
         except TypeError:
             self.map.mstr = old_mstr
@@ -523,6 +553,19 @@ class Editor:
         if triangles_on_screen > lru_cache_triangles_maxsize:
             self.terrain_loaded = True
 
+    def draw_invisible_blocks(self):
+
+        for coordinates in self.camera.visible_range(self.map, count_minor_vertices=True):
+            draw_base = self.base_area.ndarray[coordinates[::-1]]
+            draw_extended = self.extended_area.ndarray[coordinates[::-1]]
+
+            if draw_base or draw_extended:
+                draw_coordinates = self.camera.draw_coordinates(coordinates, self.map, include_canvas_offset=True)
+                if draw_base:     pygame.draw.circle(self.root, (255, 0, 0), draw_coordinates, 8, 2)
+                if draw_extended: pygame.draw.circle(self.root, (0, 0, 255), draw_coordinates, 6, 2)
+
+        self.terrain_loaded = False
+
     def draw_cursor_vertex(self):
         if self.cursor_vertex is not None:
             if self.ignore_minor_vertices:
@@ -638,12 +681,17 @@ class Editor:
         self.progress_saved = False
 
     def update_landscape(self, coordinates, landscape_name: str | None):
+        landscape_name_old = self.map.llan.get(coordinates, None)
         if landscape_name is None and (*coordinates,) in self.map.llan.keys():
             del self.map.llan[*coordinates]
             self.progress_saved = False
+            self.base_area.update_on_landscape_change(landscape_name_old, landscape_name, coordinates, self.map)
+            self.extended_area.update_on_landscape_change(landscape_name_old, landscape_name, coordinates, self.map)
         elif landscape_name is not None:
             self.map.llan[*coordinates] = landscape_name
             self.progress_saved = False
+            self.base_area.update_on_landscape_change(landscape_name_old, landscape_name, coordinates, self.map)
+            self.extended_area.update_on_landscape_change(landscape_name_old, landscape_name, coordinates, self.map)
 
     def update_structures(self, coordinates, structure_type: Literal[None, "road", "river", "snow"]):
         update_structures(self.map, coordinates, structure_type)

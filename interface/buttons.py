@@ -2,10 +2,10 @@ import pygame
 from math import ceil
 from interface.const import resolution, map_canvas_rect
 
-button_initial_offset = (4, 2)
+button_initial_offset = (2, 2)
 button_tile_size = (24, 24)
-buttons_margin = 2
-buttons_per_row = 10
+buttons_margin = 0
+buttons_per_row = 11
 buttons_tileset_path = "interface\\images\\buttons.png"
 
 
@@ -79,22 +79,25 @@ buttons_data = (0, "new", "create new map"),\
                (5, "extract", "export to external data"),\
                (6, "terrain_textures", "disable / enable terrain textures"),\
                (7, "invisible_landscapes", "show / hide invisible landscapes"),\
-               (8, "mark_area", "mark hexagonal area"),\
-               (9, "", "undo action"),\
-               (10, "resize", "resize map"),\
-               (11, "pattern_single", "modify terrain by singular pattern"),\
-               (12, "pattern_group", "modify terrain by pattern group"),\
-               (13, "height", "modify height"),\
-               (14, "enforce_height", "enforce horizonless heightmap"),\
-               (15, "landscape_single", "modify landscapes by singular element"),\
-               (16, "landscape_group", "modify landscapes by edit group"),\
-               (17, "brush_adjust", "adjust brush parameters"),\
-               (18, "structures", "modify structures"),\
-               (19, "close_tool", "close current tool")  # TODO: write missing methods for buttons
+               (8, "invisible_blocks", "show / hide blockades"),\
+               (9, "mark_area", "mark hexagonal area"),\
+               (10, "", "undo action"),\
+               (11, "resize", "resize map"),\
+               (12, "pattern_single", "modify terrain by singular pattern"),\
+               (13, "pattern_group", "modify terrain by pattern group"),\
+               (14, "height", "modify height"),\
+               (15, "enforce_height", "enforce horizonless heightmap"),\
+               (16, "landscape_single", "modify landscapes by singular element"),\
+               (17, "landscape_group", "modify landscapes by edit group"),\
+               (18, "brush_adjust", "adjust brush parameters"),\
+               (19, "structures", "modify structures"),\
+               (20, "close_tool", "close current tool"),\
+               (21, "", "redo action") # TODO: write missing methods for buttons
 
 def load_buttons(parent_editor):
 
-    tileset = image_to_tileset_dict(pygame.image.load(buttons_tileset_path), button_tile_size)
+    tileset = image_to_tileset_dict(pygame.image.load(buttons_tileset_path), button_tile_size,
+                                    tileset_flags=pygame.SRCALPHA)
 
     result_buttons = list()
 

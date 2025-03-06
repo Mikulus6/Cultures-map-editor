@@ -292,6 +292,8 @@ def ask_brush_parameters():
         landscapes_draw_parameters.density = density_val
         landscapes_draw_parameters.tickrate = tickrate_landscapes_val
         landscapes_draw_parameters.legacy_randomness = legacy_randomness_var.get()
+        landscapes_draw_parameters.consider_base_area = base_area_var.get()
+        landscapes_draw_parameters.consider_extended_area = extended_area_var.get()
         height_draw_parameters.mode = height_mode
         height_draw_parameters.value_absolute = absoulte_val
         height_draw_parameters.value_delta = delta_val
@@ -311,7 +313,7 @@ def ask_brush_parameters():
 
     root = tk.Tk()
     root.title("Brush")
-    root.geometry("225x480")
+    root.geometry("225x540")
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", on_close)
 
@@ -360,7 +362,7 @@ def ask_brush_parameters():
     total_smoothing_var = tk.BooleanVar(value=height_draw_parameters.total_smoothing)
     total_smoothing_button = tk.Checkbutton(frame, text="Use total average for smoothing",
                                             variable=total_smoothing_var)
-    total_smoothing_button.grid(row=6, column=0, columnspan=2, pady=5)
+    total_smoothing_button.grid(row=6, column=0, columnspan=2, pady=5, sticky="w")
 
     tk.Label(frame, text="Tickrate [Hz]:").grid(row=7, column=0, padx=5, pady=5, sticky='w')
     tickrate_height_entry = tk.Entry(frame)
@@ -380,23 +382,33 @@ def ask_brush_parameters():
     density_entry.insert(0, f"{landscapes_draw_parameters.density}")
     density_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=10, column=0, padx=5, pady=5, sticky='w')
-    tickrate_landscapes_entry = tk.Entry(frame)
-    tickrate_landscapes_entry.grid(row=10, column=1, padx=5, pady=5, sticky='ew')
-    tickrate_landscapes_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
-    tickrate_landscapes_entry.bind("<FocusOut>", lambda event: validate_entries())
-
     legacy_randomness_var = tk.BooleanVar(value=landscapes_draw_parameters.legacy_randomness)
     legacy_randomness_button = tk.Checkbutton(frame, text="Use legacy randomness",
                                             variable=legacy_randomness_var)
-    legacy_randomness_button.grid(row=11, column=0, columnspan=2, pady=5)
+    legacy_randomness_button.grid(row=10, column=0, columnspan=2, pady=5, sticky="w")
+
+    base_area_var = tk.BooleanVar(value=landscapes_draw_parameters.consider_base_area)
+    base_area_button = tk.Checkbutton(frame, text="Prevent base area overlap",
+                                            variable=base_area_var)
+    base_area_button.grid(row=11, column=0, columnspan=2, pady=5, sticky="w")
+
+    extended_area_var = tk.BooleanVar(value=landscapes_draw_parameters.consider_extended_area)
+    extended_area_button = tk.Checkbutton(frame, text="Prevent extended area overlap",
+                                            variable=extended_area_var)
+    extended_area_button.grid(row=12, column=0, columnspan=2, pady=5, sticky="w")
+
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=13, column=0, padx=5, pady=5, sticky='w')
+    tickrate_landscapes_entry = tk.Entry(frame)
+    tickrate_landscapes_entry.grid(row=13, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_landscapes_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
+    tickrate_landscapes_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     separator_end = tk.Frame(frame)
-    separator_end.grid(row=12, column=0, columnspan=2, pady=10, sticky="ew")
+    separator_end.grid(row=14, column=0, columnspan=2, pady=10, sticky="ew")
     ttk.Separator(separator_end, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
     ok_button = tk.Button(frame, text="Update", state=tk.NORMAL, command=on_update)
-    ok_button.grid(row=13, column=0, columnspan=2, pady=10)
+    ok_button.grid(row=15, column=0, columnspan=2, pady=10)
 
     root.mainloop()
 

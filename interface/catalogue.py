@@ -14,8 +14,8 @@ entries_per_row = 4
 entry_size = (55, 55)
 entry_margin = 2
 entry_background_color = (0, 0, 0, 128)
-catalogue_rect = (8, 56, 230, 250)
-catalogue_slider_rect = 242, 56, 16, 250
+catalogue_rect = (8, 51, 230, 255)
+catalogue_slider_rect = 242, 51, 16, 255
 catalogue_slider_hand_size = 16, 16
 highlight_width = 4
 highlight_text_offset = 5, 5
@@ -90,7 +90,7 @@ class Catalogue:
     def update_and_draw(self, editor):
 
         if self.check_hover(editor):
-            self.scroll_value -= editor.scroll_delta / 6
+            self.scroll_value -= editor.scroll_delta / 3
 
         if (self.check_slider_hover(editor) or self.slider_pressed) and editor.mouse_press_left and \
            (not editor.mouse_press_left_old or self.slider_pressed):

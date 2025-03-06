@@ -196,7 +196,7 @@ class Map:
 
         mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
         mgfs_flags_4 = "0" * (self.map_width * self.map_height)
-        mgfs_flags_5 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")  # noqa: E501
+        mgfs_flags_5 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Extended")
         mgfs_flags_6 = inland_vertices_flag(self.mepa, self.mepb, self.map_width, self.map_height)
         mgfs_flags_7 = landscapes_area_flag(self.llan, self.map_width, self.map_height, area_type="Base")
 

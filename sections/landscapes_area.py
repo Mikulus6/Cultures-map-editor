@@ -25,11 +25,16 @@ def landscapes_area_flag(llan, map_width, map_height,
 
     assert area_type in ("Base", "Extended", "Special")
     landscapes_presence_ndarray = np.zeros(shape=(map_height, map_width), dtype=np.bool_)
-    for coordinates, landscape_name in llan.items():
-        landscape_data = landscapedefs_lowercase[landscape_name.lower()]
+    landscapes_presence_ndarray = update_landscapes_presence_ndarray(landscapes_presence_ndarray, llan,
+                                                                     map_width, map_height, area_type)
+    return bool_ndarray_to_flag(landscapes_presence_ndarray)
 
-        base_area = landscape_data.get(area_type+"Area", [])
-        for triplet in base_area:
+
+def update_landscapes_presence_ndarray(landscapes_presence_ndarray: np.ndarray, llan, map_width, map_height,
+                                       area_type: Literal["Base", "Extended", "Special"]):
+    for coordinates, landscape_name in llan.items():
+
+        for triplet in landscapedefs_lowercase[landscape_name.lower()].get(area_type+"Area", []):
             x, y, offset = triplet
             x += coordinates[0]
             y += coordinates[1]
@@ -41,8 +46,7 @@ def landscapes_area_flag(llan, map_width, map_height,
                     x_real = x_offset
 
                 landscapes_presence_ndarray[(y % map_height, x_real % map_width)] = True
-
-    return bool_ndarray_to_flag(landscapes_presence_ndarray)
+    return landscapes_presence_ndarray
 
 
 def draw_derivation_difference(mgfs, llan, map_width, map_height, area_type: Literal["Base", "Extended"],

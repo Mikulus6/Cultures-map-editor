@@ -12,8 +12,10 @@ from supplements.patterns import patterndefs_normal_by_name
 @dataclass
 class LandscapesDrawParameters:
     density: float = 0.1
-    tickrate: float = 10.0
     legacy_randomness: bool = False
+    consider_base_area: bool = False
+    consider_extended_area: bool = False
+    tickrate: float = 10.0
     last_tick_time = time.time() - 1 / tickrate
 
 
@@ -139,11 +141,27 @@ class StatesMachine:
                                 if (landscapes_draw_parameters.density != 1 and random() >
                                     landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
                                     continue
+                                if (landscapes_draw_parameters.consider_base_area and
+                                    editor.base_area.check_overlap(name, point, editor.map)) or \
+                                   (landscapes_draw_parameters.consider_extended_area and
+                                    editor.extended_area.check_overlap(name, point, editor.map)):
+                                    continue
+
                                 editor.update_landscape(point, name)
                         elif editor.scroll_radius == 0:
+
+                            if (landscapes_draw_parameters.consider_base_area and
+                                editor.base_area.check_overlap(name, editor.cursor_vertex, editor.map)) or \
+                               (landscapes_draw_parameters.consider_extended_area and
+                                editor.extended_area.check_overlap(name, editor.cursor_vertex, editor.map)):
+                                break
+
                             editor.update_landscape(editor.cursor_vertex, name)
                         landscapes_draw_parameters.last_tick_time = time.time()
                     break
+
+        editor.base_area.update_after_landscapes_changes(editor.map)
+        editor.extended_area.update_after_landscapes_changes(editor.map)
 
     @staticmethod
     def landscape_group(editor):
@@ -167,19 +185,39 @@ class StatesMachine:
                                                                           editor.cursor_vertex,
                                                                           editor.scroll_radius,
                                                                           ignore_minor_vertices=False)[0]:
+
+                                name = get_random_group_entry(group,
+                                               legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower() \
+                                               if group is not None else None
+
                                 if (landscapes_draw_parameters.density != 1 and random() >
                                     landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
                                     continue
+                                if (landscapes_draw_parameters.consider_base_area and
+                                    editor.base_area.check_overlap(name, point, editor.map)) or \
+                                   (landscapes_draw_parameters.consider_extended_area and
+                                    editor.extended_area.check_overlap(name, point, editor.map)):
+                                    continue
 
-                                editor.update_landscape(point, get_random_group_entry(group,
-                                    legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower()
-                                                      if group is not None else None)
+                                editor.update_landscape(point, name)
                         elif editor.scroll_radius == 0:
-                            editor.update_landscape(editor.cursor_vertex, get_random_group_entry(group,
-                                legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower()
-                                if group is not None else None)
+
+                            name = get_random_group_entry(group,
+                                           legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower() \
+                                           if group is not None else None
+
+                            if (landscapes_draw_parameters.consider_base_area and
+                                editor.base_area.check_overlap(name, editor.cursor_vertex, editor.map)) or \
+                               (landscapes_draw_parameters.consider_extended_area and
+                                editor.extended_area.check_overlap(name, editor.cursor_vertex, editor.map)):
+                                break
+
+                            editor.update_landscape(editor.cursor_vertex, name)
                         landscapes_draw_parameters.last_tick_time = time.time()
                     break
+
+        editor.base_area.update_after_landscapes_changes(editor.map)
+        editor.extended_area.update_after_landscapes_changes(editor.map)
 
     @staticmethod
     def structures(editor):
