@@ -3,7 +3,8 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 from interface.message import message
-from interface.states import landscapes_draw_parameters, height_draw_parameters, height_mode_options
+from interface.states import landscapes_draw_parameters, height_draw_parameters, height_mode_options, \
+                             transition_draw_parameters
 from sections.walk_sector_points import sector_width
 
 
@@ -220,6 +221,7 @@ def ask_resize_map(current_map_width, current_map_height):
 def ask_brush_parameters():
     def validate_entries():
         try:
+            spinbox_val = max(round(float(spinbox_transition.get())), 0)
             density_val = float(density_entry.get())
             tickrate_landscapes_val = float(tickrate_landscapes_entry.get())
             tickrate_height_val = float(tickrate_height_entry.get())
@@ -236,6 +238,8 @@ def ask_brush_parameters():
             random_val = 0 if random_val < 0 else 255 if random_val > 255 else int(random_val)
             smoothing_val = 0 if smoothing_val < 0 else 255 if smoothing_val > 255 else int(smoothing_val)
 
+            spinbox_transition.delete(0, tk.END)
+            spinbox_transition.insert(0, str(spinbox_val))
             density_entry.delete(0, tk.END)
             density_entry.insert(0, str(density_val))
             tickrate_landscapes_entry.delete(0, tk.END)
@@ -262,6 +266,7 @@ def ask_brush_parameters():
     def on_update():
 
         try:
+            spinbox_val = round(float(spinbox_transition.get()))
             density_val = float(density_entry.get())
             tickrate_landscapes_val = float(tickrate_landscapes_entry.get())
             tickrate_height_val = float(tickrate_height_entry.get())
@@ -271,6 +276,10 @@ def ask_brush_parameters():
             smoothing_val = round(float(value_smoothing_entry.get()))
         except ValueError:
             messagebox.showwarning("Warning", f"Given values must be numbers.")
+            return
+
+        if spinbox_val < 0:
+            messagebox.showwarning("Warning", f"Triangle transition index cannot be negative.")
             return
 
         height_mode = str(height_mode_entry.get())
@@ -289,6 +298,7 @@ def ask_brush_parameters():
             messagebox.showwarning("Warning", f"Tickrate must be greater than 0.")
             return
 
+        transition_draw_parameters.index_value = spinbox_val
         landscapes_draw_parameters.density = density_val
         landscapes_draw_parameters.tickrate = tickrate_landscapes_val
         landscapes_draw_parameters.legacy_randomness = legacy_randomness_var.get()
@@ -313,7 +323,7 @@ def ask_brush_parameters():
 
     root = tk.Tk()
     root.title("Brush")
-    root.geometry("225x540")
+    root.geometry("225x610")
     root.resizable(False, False)
     root.protocol("WM_DELETE_WINDOW", on_close)
 
@@ -321,94 +331,107 @@ def ask_brush_parameters():
     frame.pack(expand=True)
     frame.grid_columnconfigure(1, weight=1)
 
+    separator_transitions = tk.Frame(frame)
+    separator_transitions.grid(row=0, column=0, columnspan=2, pady=10, sticky="ew")
+    ttk.Separator(separator_transitions, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
+    tk.Label(separator_transitions, text="Triangle transitions").pack(side="left", padx=5)
+    ttk.Separator(separator_transitions, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
+
+    tk.Label(frame, text="Transition index:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
+    spinbox_var = tk.IntVar(value=transition_draw_parameters.index_value)
+    spinbox_transition = tk.Spinbox(frame, from_=0, to=float("inf"),
+                                    textvariable=spinbox_var)
+    spinbox_transition.grid(row=1, column=1, padx=5, pady=5, sticky='ew')
+    spinbox_transition.bind("<FocusOut>", lambda event: validate_entries())
+
     separator_height = tk.Frame(frame)
-    separator_height.grid(row=0, column=0, columnspan=2, pady=10, sticky="ew")
+    separator_height.grid(row=2, column=0, columnspan=2, pady=10, sticky="ew")
     ttk.Separator(separator_height, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
     tk.Label(separator_height, text="Height").pack(side="left", padx=5)
     ttk.Separator(separator_height, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
-    tk.Label(frame, text="Active mode:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Active mode:").grid(row=3, column=0, padx=5, pady=5, sticky='w')
     height_mode_value = tk.StringVar()
     height_mode_value.set(f"{height_draw_parameters.mode}")
     height_mode_entry = ttk.Combobox(frame, textvariable=height_mode_value, values=height_mode_options,
                                      width=0, height=0)
-    height_mode_entry.grid(row=1, column=1, padx=5, pady=5, sticky='new')
+    height_mode_entry.grid(row=3, column=1, padx=5, pady=5, sticky='new')
     height_mode_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Absolute value:").grid(row=2, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Absolute value:").grid(row=4, column=0, padx=5, pady=5, sticky='w')
     value_absolute_entry = tk.Entry(frame)
-    value_absolute_entry.grid(row=2, column=1, padx=5, pady=5, sticky='ew')
+    value_absolute_entry.grid(row=4, column=1, padx=5, pady=5, sticky='ew')
     value_absolute_entry.insert(0, f"{height_draw_parameters.value_absolute}")
     value_absolute_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Delta value:").grid(row=3, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Delta value:").grid(row=5, column=0, padx=5, pady=5, sticky='w')
     value_delta_entry = tk.Entry(frame)
-    value_delta_entry.grid(row=3, column=1, padx=5, pady=5, sticky='ew')
+    value_delta_entry.grid(row=5, column=1, padx=5, pady=5, sticky='ew')
     value_delta_entry.insert(0, f"{height_draw_parameters.value_delta}")
     value_delta_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Random value:").grid(row=4, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Random value:").grid(row=6, column=0, padx=5, pady=5, sticky='w')
     value_random_entry = tk.Entry(frame)
-    value_random_entry.grid(row=4, column=1, padx=5, pady=5, sticky='ew')
+    value_random_entry.grid(row=6, column=1, padx=5, pady=5, sticky='ew')
     value_random_entry.insert(0, f"{height_draw_parameters.value_random}")
     value_random_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Smoothing treshold:").grid(row=5, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Smoothing treshold:").grid(row=7, column=0, padx=5, pady=5, sticky='w')
     value_smoothing_entry = tk.Entry(frame)
-    value_smoothing_entry.grid(row=5, column=1, padx=5, pady=5, sticky='ew')
+    value_smoothing_entry.grid(row=7, column=1, padx=5, pady=5, sticky='ew')
     value_smoothing_entry.insert(0, f"{height_draw_parameters.threshold_smoothing}")
     value_smoothing_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     total_smoothing_var = tk.BooleanVar(value=height_draw_parameters.total_smoothing)
     total_smoothing_button = tk.Checkbutton(frame, text="Use total average for smoothing",
                                             variable=total_smoothing_var)
-    total_smoothing_button.grid(row=6, column=0, columnspan=2, pady=5, sticky="w")
+    total_smoothing_button.grid(row=8, column=0, columnspan=2, pady=5, sticky="w")
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=7, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=9, column=0, padx=5, pady=5, sticky='w')
     tickrate_height_entry = tk.Entry(frame)
-    tickrate_height_entry.grid(row=7, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_height_entry.grid(row=9, column=1, padx=5, pady=5, sticky='ew')
     tickrate_height_entry.insert(0, f"{height_draw_parameters.tickrate}")
     tickrate_height_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     separator_landscapes = tk.Frame(frame)
-    separator_landscapes.grid(row=8, column=0, columnspan=2, pady=10, sticky="ew")
+    separator_landscapes.grid(row=10, column=0, columnspan=2, pady=10, sticky="ew")
     ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
     tk.Label(separator_landscapes, text="Landscapes").pack(side="left", padx=5)
     ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
-    tk.Label(frame, text="Density:").grid(row=9, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Density:").grid(row=11, column=0, padx=5, pady=5, sticky='w')
     density_entry = tk.Entry(frame)
-    density_entry.grid(row=9, column=1, padx=5, pady=5, sticky='ew')
+    density_entry.grid(row=11, column=1, padx=5, pady=5, sticky='ew')
     density_entry.insert(0, f"{landscapes_draw_parameters.density}")
     density_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     legacy_randomness_var = tk.BooleanVar(value=landscapes_draw_parameters.legacy_randomness)
     legacy_randomness_button = tk.Checkbutton(frame, text="Use legacy randomness",
                                             variable=legacy_randomness_var)
-    legacy_randomness_button.grid(row=10, column=0, columnspan=2, pady=5, sticky="w")
+    legacy_randomness_button.grid(row=12, column=0, columnspan=2, pady=5, sticky="w")
 
     base_area_var = tk.BooleanVar(value=landscapes_draw_parameters.consider_base_area)
     base_area_button = tk.Checkbutton(frame, text="Prevent base area overlap",
                                             variable=base_area_var)
-    base_area_button.grid(row=11, column=0, columnspan=2, pady=5, sticky="w")
+    base_area_button.grid(row=13, column=0, columnspan=2, pady=5, sticky="w")
 
     extended_area_var = tk.BooleanVar(value=landscapes_draw_parameters.consider_extended_area)
     extended_area_button = tk.Checkbutton(frame, text="Prevent extended area overlap",
                                             variable=extended_area_var)
-    extended_area_button.grid(row=12, column=0, columnspan=2, pady=5, sticky="w")
+    extended_area_button.grid(row=14, column=0, columnspan=2, pady=5, sticky="w")
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=13, column=0, padx=5, pady=5, sticky='w')
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=15, column=0, padx=5, pady=5, sticky='w')
     tickrate_landscapes_entry = tk.Entry(frame)
-    tickrate_landscapes_entry.grid(row=13, column=1, padx=5, pady=5, sticky='ew')
+    tickrate_landscapes_entry.grid(row=15, column=1, padx=5, pady=5, sticky='ew')
     tickrate_landscapes_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
     tickrate_landscapes_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     separator_end = tk.Frame(frame)
-    separator_end.grid(row=14, column=0, columnspan=2, pady=10, sticky="ew")
+    separator_end.grid(row=16, column=0, columnspan=2, pady=10, sticky="ew")
     ttk.Separator(separator_end, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
     ok_button = tk.Button(frame, text="Update", state=tk.NORMAL, command=on_update)
-    ok_button.grid(row=15, column=0, columnspan=2, pady=10)
+    ok_button.grid(row=17, column=0, columnspan=2, pady=10)
 
     root.mainloop()
 

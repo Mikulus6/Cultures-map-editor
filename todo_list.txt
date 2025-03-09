@@ -1,8 +1,7 @@
 User interface:
-    - modify terrain triangles with automatic transitions - smooth triangular border (based on data from ve_edit)
+    - load terrain & height template from image (applying pcx to existing empty map)
     - implement undo button + redo button
     - add keyboard shortcuts (ctrl+N, ctrl+O, ctrl+S, ctrl+shift+S, ctr+Z, ctr+Y) -> (new, open, save, save as, undo, redo)
-    - load terrain & height template from image (applying pcx to existing empty map)
     - add hash validation to cache.bin
     - add loading visuals if speeding loading cache.bin is not possible
     - make shifting perspective possible

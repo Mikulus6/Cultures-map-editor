@@ -224,9 +224,9 @@ class Editor:
 
         if old_scroll_radius != self.scroll_radius:
             if self.ignore_minor_vertices:
-                message.set_message(f"major brush radius: {self.scroll_radius // 2}")
+                message.set_message(f"macro brush radius: {self.scroll_radius // 2}")
             else:
-                message.set_message(f"minor brush radius: {self.scroll_radius}")
+                message.set_message(f"micro brush radius: {self.scroll_radius}")
 
     # ================================  functionalities  ================================
 
@@ -423,6 +423,10 @@ class Editor:
     def pattern_group(self):
         if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
         states_machine.set_state("pattern_group")
+
+    def triangle_transition(self):
+        if self.scroll_radius % 2 != 0: self.scroll_radius -= 1
+        states_machine.set_state("triangle_transition")
 
     def height(self):
         if self.scroll_radius % 2 != 0: self.scroll_radius -= 1

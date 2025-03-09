@@ -64,9 +64,7 @@ class Button:
         if self.check_hover() and self.editor.font_text is None:
             self.editor.font_text = self.hover_text
 
-
     def action(self):
-
         if self.check_click():
             self.click_function(self.editor)
 
@@ -85,14 +83,14 @@ buttons_data = (0, "new", "create new map"),\
                (11, "resize", "resize map"),\
                (12, "pattern_single", "modify terrain by singular pattern"),\
                (13, "pattern_group", "modify terrain by pattern group"),\
-               (14, "height", "modify height"),\
-               (15, "enforce_height", "enforce horizonless heightmap"),\
-               (16, "landscape_single", "modify landscapes by singular element"),\
-               (17, "landscape_group", "modify landscapes by edit group"),\
-               (18, "brush_adjust", "adjust brush parameters"),\
-               (19, "structures", "modify structures"),\
-               (20, "close_tool", "close current tool"),\
-               (21, "", "redo action") # TODO: write missing methods for buttons
+               (14, "triangle_transition", "fix triangle transitions"),\
+               (15, "height", "modify height"),\
+               (16, "enforce_height", "enforce horizonless heightmap"),\
+               (17, "landscape_single", "modify landscapes by singular element"),\
+               (18, "landscape_group", "modify landscapes by edit group"),\
+               (19, "brush_adjust", "adjust brush parameters"),\
+               (20, "structures", "modify structures"),\
+               (21, "close_tool", "close current tool") # TODO: write missing methods for buttons
 
 def load_buttons(parent_editor):
 

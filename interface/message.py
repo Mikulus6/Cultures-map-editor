@@ -28,9 +28,9 @@ def set_font_text(editor):
     if editor.font_text is not None:
         pass
     elif editor.cursor_vertex is not None and editor.ignore_minor_vertices:
-        editor.font_text = f"major vertex coordinates: ({editor.cursor_vertex[0]}, {editor.cursor_vertex[1]})"
+        editor.font_text = f"macro vertex coordinates: ({editor.cursor_vertex[0]}, {editor.cursor_vertex[1]})"
     elif editor.cursor_vertex is not None and not editor.ignore_minor_vertices:
-        editor.font_text = f"minor vertex coordinates: ({editor.cursor_vertex[0]}, {editor.cursor_vertex[1]})"
+        editor.font_text = f"micro vertex coordinates: ({editor.cursor_vertex[0]}, {editor.cursor_vertex[1]})"
     elif editor.minimap.mouse_hover:
         editor.font_text = "minimap (click or hold to move)"
 

@@ -5,6 +5,7 @@ from typing import Literal
 from interface.border import is_triangle_in_border, is_major_vertex_in_border
 from interface.brushes import generate_major_triangles, Brush
 from interface.const import font_color, font_color_out_of_focus, font_antialias, font_row_vertical_pos_diff
+from interface.triangle_transitions import update_triangles
 from supplements.groups import get_random_group_entry
 from supplements.patterns import patterndefs_normal_by_name
 
@@ -31,6 +32,12 @@ class HeightDrawParameters:
     last_tick_time = time.time() - 1 / tickrate
 
 
+@dataclass
+class TransitionDrawParameters:
+    index_value: int = 0
+
+
+transition_draw_parameters = TransitionDrawParameters()
 landscapes_draw_parameters = LandscapesDrawParameters()
 height_draw_parameters = HeightDrawParameters()
 height_mode_options = ("absolute", "delta higher", "delta deeper", "random", "smoothing")
@@ -44,8 +51,8 @@ class StatesMachine:
         self.__class__.initialized = True
 
         self.state = None
-        self.possible_states = (None, "pattern_single", "pattern_group", "height",
-                                "landscape_single", "landscape_group", "structures")
+        self.possible_states = (None, "pattern_single", "pattern_group", "triangle_transition",
+                                "height", "landscape_single", "landscape_group", "structures")
 
     def set_state(self, state: None | str):
         assert state in self.possible_states
@@ -116,6 +123,30 @@ class StatesMachine:
 
                 if editor.cursor_vertex is not None:
                     editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
+
+    @staticmethod
+    def triangle_transition(editor):
+        editor.ignore_singular_triangle = False
+        editor.ignore_minor_vertices = True
+
+        text_position = [8, 56]
+        editor.root.blit(editor.font.render(f"Transition index: {transition_draw_parameters.index_value}",
+                                            font_antialias, font_color), text_position)
+        if editor.mouse_press_left:
+            if editor.scroll_radius > 0 and editor.cursor_vertex is not None:
+                triangles = generate_major_triangles(editor.map, editor.cursor_vertex, editor.scroll_radius,
+                                                     Brush.get_points_and_edge_points(editor.map,
+                                                                                      editor.cursor_vertex,
+                                                                                      editor.scroll_radius,
+                                                                                      ignore_minor_vertices=True)[0]
+                                                     )
+            elif editor.scroll_radius == 0 and editor.cursor_triangle is not None:
+                triangles = (editor.cursor_triangle,)
+            else:
+                triangles = tuple()
+            update_triangles(editor.map, tuple(triangles), transition_index=transition_draw_parameters.index_value)
+            editor.terrain_loaded = False
+            editor.progress_saved = False
 
     @staticmethod
     def landscape_single(editor):
