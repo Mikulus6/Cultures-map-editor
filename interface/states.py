@@ -143,7 +143,7 @@ class StatesMachine:
             elif editor.scroll_radius == 0 and editor.cursor_triangle is not None:
                 triangles = (editor.cursor_triangle,)
             else:
-                triangles = tuple()
+                return
             update_triangles(editor.map, tuple(triangles), transition_index=transition_draw_parameters.index_value)
             editor.terrain_loaded = False
             editor.progress_saved = False
