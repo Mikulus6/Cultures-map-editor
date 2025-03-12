@@ -37,3 +37,4 @@ invisible_legend_margin = 2
 invisible_text_margin = 2
 invisible_background_color = (0, 0, 0, 128)
 invisible_legend_draw_margin = 5
+middle_button_speed_factor = 4

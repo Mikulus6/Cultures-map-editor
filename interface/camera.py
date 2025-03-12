@@ -4,7 +4,7 @@ from map import Map
 from math import ceil, floor, sqrt
 from dataclasses import dataclass
 from interface.const import triangle_width, triangle_height, height_factor, camera_max_move_distance,\
-                            camera_discretization_factor, map_canvas_rect
+                            camera_discretization_factor, map_canvas_rect, middle_button_speed_factor
 from time import time
 
 
@@ -19,12 +19,16 @@ class Camera:
     last_frame_move = time()
     suspend_motion = False
 
-    def move(self, pressed_state, map_object: Map):
+    def move(self, pressed_state, map_object: Map, move_by_middle, relative_mouse_movement):
 
         if self.suspend_motion:
             self.suspend_motion = False
             self.fixed_position = self.fixed_postion_update()
             return
+
+        if move_by_middle:
+            self.position[0] += relative_mouse_movement[0] * middle_button_speed_factor
+            self.position[1] += relative_mouse_movement[1] * middle_button_speed_factor
 
         move = [0, 0]
 
@@ -115,6 +119,11 @@ class Camera:
     @property
     def position_on_map(self):
         return self.position[0] // triangle_width, self.position[1] // triangle_height
+
+    @staticmethod
+    def position_in_canvas_rect(position):
+        return map_canvas_rect[0] <= position[0] < map_canvas_rect[0] + map_canvas_rect[2] and \
+               map_canvas_rect[1] <= position[1] < map_canvas_rect[1] + map_canvas_rect[3]
 
 
 @lru_cache(maxsize=None)

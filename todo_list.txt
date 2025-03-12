@@ -4,8 +4,6 @@ User interface:
     - add keyboard shortcuts (ctrl+N, ctrl+O, ctrl+S, ctrl+shift+S, ctr+Z, ctr+Y) -> (new, open, save, save as, undo, redo)
     - add hash validation to cache.bin
     - add loading visuals if speeding loading cache.bin is not possible
-    - make shifting perspective possible
-    - move camera by using third mouse wheel button
 
     - speed up bmd loading process to make cache.bin unnecessary if possible
     - speed up map saving algorithm (all derivations together are slow)

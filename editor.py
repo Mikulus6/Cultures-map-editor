@@ -55,6 +55,7 @@ class Editor:
 
         pygame.display.set_caption(window_name)
         pygame.display.set_icon(pygame.image.load(window_icon_filepath))
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         self.invisible_landscapes_display = False
         self.invisible_blocks_display = False
@@ -104,10 +105,15 @@ class Editor:
 
         self.mouse_press_left = False
         self.mouse_press_left_old = False
+        self.mouse_press_middle = False
+        self.mouse_press_middle_old = False
         self.mouse_press_right = False
         self.mouse_press_right_old = False
         self.scroll_delta = 0
         self.scroll_radius = 0
+        self.relative_mouse_movement = (0, 0)
+        self.move_by_middle = False
+        self.hover_any_button = False
 
         self.clock = pygame.time.Clock()
 
@@ -117,9 +123,11 @@ class Editor:
         while running:
 
             self.mouse_press_left_old = self.mouse_press_left
+            self.mouse_press_middle_old = self.mouse_press_middle
             self.mouse_press_right_old = self.mouse_press_right
 
             button_left_detected = False
+            button_middle_detected = False
             button_right_detected = False
             scroll_detected = False
             for event in pygame.event.get():
@@ -130,6 +138,9 @@ class Editor:
                     if event.button == 1 and not button_left_detected:
                        self.mouse_press_left = True
                        button_left_detected = True
+                    if event.button == 2 and not button_middle_detected:
+                       self.mouse_press_middle = True
+                       button_middle_detected = True
                     if event.button == 3 and not button_right_detected:
                        self.mouse_press_right = True
                        button_right_detected = True
@@ -138,6 +149,9 @@ class Editor:
                     if event.button == 1 and not button_left_detected:
                        self.mouse_press_left = False
                        button_left_detected = True
+                    if event.button == 2 and not button_middle_detected:
+                       self.mouse_press_middle = False
+                       button_middle_detected = True
                     if event.button == 3 and not button_right_detected:
                        self.mouse_press_right = False
                        button_right_detected = True
@@ -146,9 +160,22 @@ class Editor:
                     scroll_detected = True
                     self.scroll_delta = event.y
 
+            self.relative_mouse_movement = pygame.mouse.get_rel()
+
+            if self.mouse_press_middle and not self.mouse_press_middle_old and\
+                self.camera.position_in_canvas_rect(self.mouse_pos):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
+                self.move_by_middle = True
+            if (not self.mouse_press_middle and self.mouse_press_middle_old) or \
+               not self.camera.position_in_canvas_rect(self.mouse_pos) and not self.hover_any_button:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                self.move_by_middle = False
+
             pressed_state = pygame.mouse.get_pressed(3)
             if not button_left_detected:
                 self.mouse_press_left = pressed_state[0]
+            if not self.mouse_press_middle:
+                self.mouse_press_middle = pressed_state[1]
             if not button_right_detected:
                 self.mouse_press_right = pressed_state[2]
             if not scroll_detected:
@@ -159,9 +186,9 @@ class Editor:
             self.minimap.update_camera(self. map, self.camera,
                                        self.mouse_pos, self.mouse_press_left,
                                        self.mouse_press_left_old)
-            self.camera.move(self.pressed_state, self.map)
+            self.camera.move(self.pressed_state, self.map, self.move_by_middle, self.relative_mouse_movement)
 
-            if self.camera.is_moving or not self.terrain_loaded:
+            if self.camera.is_moving or not self.terrain_loaded or self.move_by_middle:
                 self.terrain_loaded = False
                 self.terrain_surface.fill(background_color)
                 self.draw_terrain()
@@ -188,8 +215,17 @@ class Editor:
 
             states_machine.run_current_state(self)
 
+            any_button_hover = False
             for button in self.buttons_list:
+                any_button_hover = any_button_hover or button.check_hover()
                 button.action()
+
+            if any_button_hover and not self.move_by_middle and not self.hover_any_button:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                self.hover_any_button = True
+            if not any_button_hover and not self.move_by_middle and self.hover_any_button:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                self.hover_any_button = False
 
             self.draw_message()
 
@@ -204,10 +240,13 @@ class Editor:
     def update_input(self):
 
         self.pressed_state = pygame.key.get_pressed()
-        self.mouse_pos_old = self.mouse_pos
-        self.mouse_pos = pygame.mouse.get_pos()
+        if self.move_by_middle:
+            pygame.mouse.set_pos(self.mouse_pos_old)
+        else:
+            self.mouse_pos_old = self.mouse_pos
+            self.mouse_pos = pygame.mouse.get_pos()
 
-        if self.mouse_pos != self.mouse_pos_old or self.camera.is_moving:
+        if self.mouse_pos != self.mouse_pos_old or self.camera.is_moving or self.move_by_middle:
 
             self.cursor_vertex = get_closest_vertex(self.mouse_pos, self.camera, self.map,
                                                     ignore_minor_vertices=self.ignore_minor_vertices)
@@ -528,7 +567,8 @@ class Editor:
                                             suspend_loading_textures=self.terrian_textures_suspension)
                     triangles_on_screen += 1
 
-                    if not self.camera.is_moving:  # This condition is only for lag reduction.
+                    # This condition is only for lag reduction.
+                    if not self.camera.is_moving and not self.move_by_middle:
                         for transition_texture, transition_key in transitions_gen(coordinates_major,
                                                                                   triangle_type, self.map):
                             transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
