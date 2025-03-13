@@ -35,6 +35,7 @@ from interface.projection import draw_projected_triangle, projection_report
 from interface.states import states_machine
 from interface.structures import get_structure, update_structures
 from interface.timeout import timeout_handler
+from interface.template import render_map_template
 from interface.transitions import transitions_gen, reposition_transition_vertices, permutate_corners
 from interface.triangles import get_major_triangle_texture, get_major_triangle_corner_vertices, \
                                 get_major_triangle_light_values, get_triangle_corner_vertices, \
@@ -161,7 +162,11 @@ class Editor:
                     scroll_detected = True
                     self.scroll_delta = event.y
 
-            self.relative_mouse_movement = pygame.mouse.get_rel()
+            if self.mouse_press_middle and not self.mouse_press_middle_old:
+                self.relative_mouse_movement = (0, 0)
+                pygame.mouse.get_rel()
+            else:
+                self.relative_mouse_movement = pygame.mouse.get_rel()
 
             if self.mouse_press_middle and not self.mouse_press_middle_old and\
                 self.camera.position_in_canvas_rect(self.mouse_pos):
@@ -182,12 +187,12 @@ class Editor:
             if not scroll_detected:
                 self.scroll_delta = 0
 
-            self.update_input()
-
             self.minimap.update_camera(self. map, self.camera,
                                        self.mouse_pos, self.mouse_press_left,
                                        self.mouse_press_left_old)
             self.camera.move(self.pressed_state, self.map, self.move_by_middle, self.relative_mouse_movement)
+
+            self.update_input()
 
             if self.camera.is_moving or not self.terrain_loaded or self.move_by_middle:
                 self.terrain_loaded = False
@@ -279,8 +284,10 @@ class Editor:
         if not(self.progress_saved or ask_save_changes()):
             return
 
+        map_template_filepath = None
+
         if size is None:
-            size = ask_new_map()
+            size, map_template_filepath = ask_new_map()
         old_map = copy.deepcopy(self.map)
         try:
             one_frame_popup(self, "Creating new map...")
@@ -288,9 +295,16 @@ class Editor:
             self._update()
             self.map_filepath = None
             self.hexagonal_area_marks = set()
+            if map_template_filepath is not None:
+                self.progress_saved = False
+                render_map_template(self.map, map_template_filepath)
+                update_map_border(self)
+                self.map.update_light()
+                self.map.to_bytearrays()
+                self.minimap = Minimap(minimap_rect, self.map)
+                self.minimap.update_image(self.map)
             self.base_area.reset_and_resize(self.map.map_width, self.map.map_height)
             self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
-            self.progress_saved = False
         except TypeError:
             self.map = old_map
             message.set_message(f"error: couldn't create map.")
@@ -572,16 +586,14 @@ class Editor:
                                             suspend_loading_textures=self.terrian_textures_suspension)
                     triangles_on_screen += 1
 
-                    # This condition is only for lag reduction.
-                    if not self.camera.is_moving and not self.move_by_middle:
-                        for transition_texture, transition_key in transitions_gen(coordinates_major,
-                                                                                  triangle_type, self.map):
-                            transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
-                            transition_light_values = permutate_corners(light_values, transition_key)
-                            draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
-                                                    transition_light_values,
-                                                    suspend_loading_textures=self.terrian_textures_suspension)
-                            triangles_on_screen += 1
+                    for transition_texture, transition_key in transitions_gen(coordinates_major,
+                                                                              triangle_type, self.map):
+                        transition_draw_corners = reposition_transition_vertices(draw_corners, transition_key)
+                        transition_light_values = permutate_corners(light_values, transition_key)
+                        draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
+                                                transition_light_values,
+                                                suspend_loading_textures=self.terrian_textures_suspension)
+                        triangles_on_screen += 1
 
             for triangle_type, texture in get_structure(coordinates, self.map).items():
                 corners = get_triangle_corner_vertices(coordinates, triangle_type)

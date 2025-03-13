@@ -1,5 +1,4 @@
 User interface:
-    - load terrain & height template from image (applying pcx to existing empty map)
     - implement undo button + redo button
     - add keyboard shortcuts (ctrl+N, ctrl+O, ctrl+S, ctrl+shift+S, ctr+Z, ctr+Y) -> (new, open, save, save as, undo, redo)
     - add hash validation to cache.bin

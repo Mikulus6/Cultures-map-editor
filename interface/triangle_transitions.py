@@ -1,10 +1,11 @@
 from functools import lru_cache
 from map import Map
+from random import randint
 from interface.triangles import get_triangle_corner_vertices
 from supplements.patterns import corner_types, patterndefs_normal, triangle_transitions_by_corner_types
 
 
-def update_triangles(map_object: Map, triangles: list | tuple, transition_index: int = 0):
+def update_triangles(map_object: Map, triangles: list | tuple):
 
     # Some of the visual triangle transitions present in game might not be correctly filed by this function due to
     # incomplete data present in files of "Cultures: Discovery of Vinland" and "Cultures: The Revenge of the Rain God".
@@ -17,7 +18,8 @@ def update_triangles(map_object: Map, triangles: list | tuple, transition_index:
             continue
         try:
             transitions_list = triangle_transitions_by_corner_types[tuple(sorted(set(local_corner_types)))]
-            transition = transitions_list[min(transition_index, len(transitions_list) - 1)]
+            transition = transitions_list[randint(0, 2520) % len(transitions_list)]
+                                                 # ^ Reasonalbly big number from this sequence: https://oeis.org/A003418
         except KeyError:
             continue  # Transition does not exist.
 

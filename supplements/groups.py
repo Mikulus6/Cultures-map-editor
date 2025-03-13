@@ -24,8 +24,8 @@ def get_random_group_entry(group_elements, *, legacy_randomness: bool = False):
         raise ZeroDivisionError
 
     random_value = randint(0, rand_max) % values_sum if legacy_randomness else randint(1, values_sum)
-    # Legacy randomness algorithm contains a mistake. However, because it is implemented in this way in the editor for
-    # the game "Cultures - Northland", it is likely that the same mistake was present in the original editor for
+    # Legacy randomness algorithm contains a mistake. However, because it is implemented this way in the editor for the
+    # game "Cultures - Northland", it is likely that the same mistake was present in the original editor for
     # "Cultures: Discovery of Vinland", which gives parameters in landscape groups historically accurate
     # interpretation, even though we can clearly see that the intended and actual implementations were not the same.
 

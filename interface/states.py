@@ -32,12 +32,6 @@ class HeightDrawParameters:
     last_tick_time = time.time() - 1 / tickrate
 
 
-@dataclass
-class TransitionDrawParameters:
-    index_value: int = 0
-
-
-transition_draw_parameters = TransitionDrawParameters()
 landscapes_draw_parameters = LandscapesDrawParameters()
 height_draw_parameters = HeightDrawParameters()
 height_mode_options = ("absolute", "delta higher", "delta deeper", "random", "smoothing")
@@ -130,7 +124,7 @@ class StatesMachine:
         editor.ignore_minor_vertices = True
 
         text_position = [8, 56]
-        editor.root.blit(editor.font.render(f"Transition index: {transition_draw_parameters.index_value}",
+        editor.root.blit(editor.font.render(f"Transitions brush is active.",
                                             font_antialias, font_color), text_position)
         if editor.mouse_press_left:
             if editor.scroll_radius > 0 and editor.cursor_vertex is not None:
@@ -144,7 +138,7 @@ class StatesMachine:
                 triangles = (editor.cursor_triangle,)
             else:
                 return
-            update_triangles(editor.map, tuple(triangles), transition_index=transition_draw_parameters.index_value)
+            update_triangles(editor.map, tuple(triangles))
             editor.terrain_loaded = False
             editor.progress_saved = False
 
