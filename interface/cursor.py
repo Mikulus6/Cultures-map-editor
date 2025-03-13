@@ -1,9 +1,12 @@
+import pygame
 from interface.camera import Camera
 from interface.const import triangle_width, triangle_height, map_canvas_rect
 from interface.triangles import get_major_triangle_corner_vertices
 from itertools import product
 from map import Map
 
+cursor_sizeall_image = pygame.image.load("interface\\images\\cursor_sizeall.png")
+cursor_sizeall_blit_offset = (cursor_sizeall_image.width // 2, cursor_sizeall_image.height // 2)
 
 def area_of_triangle(corners):
     return abs(corners[0][0] * (corners[1][1] - corners[2][1]) +

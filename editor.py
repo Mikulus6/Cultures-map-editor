@@ -18,7 +18,8 @@ from interface.camera import Camera, clear_point_coordinates_cache
 from interface.catalogue import load_patterns_catalogue, load_landscapes_catalogue, load_structures_catalogue, \
                                 load_landscapes_groups_catalogue, load_patterns_groups_catalogue
 from interface.const import *
-from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major
+from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major, cursor_sizeall_image, \
+                             cursor_sizeall_blit_offset
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
                                ask_brush_parameters, ask_enforce_height, ask_area_mark, warning_too_many_area_marks ,\
                                ask_save_changes
@@ -164,11 +165,11 @@ class Editor:
 
             if self.mouse_press_middle and not self.mouse_press_middle_old and\
                 self.camera.position_in_canvas_rect(self.mouse_pos):
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
+                pygame.mouse.set_visible(False)
                 self.move_by_middle = True
             if (not self.mouse_press_middle and self.mouse_press_middle_old) or \
                not self.camera.position_in_canvas_rect(self.mouse_pos) and not self.hover_any_button:
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                pygame.mouse.set_visible(True)
                 self.move_by_middle = False
 
             pressed_state = pygame.mouse.get_pressed(3)
@@ -228,6 +229,10 @@ class Editor:
                 self.hover_any_button = False
 
             self.draw_message()
+
+            if self.move_by_middle:
+                self.root.blit(cursor_sizeall_image, (self.mouse_pos[0] - cursor_sizeall_blit_offset[0],
+                                                      self.mouse_pos[1] - cursor_sizeall_blit_offset[1]))
 
             pygame.display.flip()
             self.clock.tick(frames_per_second)
@@ -549,7 +554,7 @@ class Editor:
         triangles_on_screen = 0
 
         projection_report.reset()
-        timeout_handler.get_camera_move_status(self.camera)
+        timeout_handler.get_move_status(self.camera, self.move_by_middle)
         timeout_handler.start()
 
         for coordinates in self.camera.visible_range(self.map, count_minor_vertices=True):

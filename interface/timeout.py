@@ -61,9 +61,9 @@ class TimeoutHandler:
 
         self.reference_timer = current_time
 
-    def get_camera_move_status(self, camera: Camera):
+    def get_move_status(self, camera: Camera, move_by_middle: bool):
         # Necessary to make immediate timeout when camera is moving for smoothness
-        self.camera_is_moving = camera.is_moving
+        self.camera_is_moving = camera.is_moving or move_by_middle
 
 
 timeout_handler = TimeoutHandler(max_duration=timeout_duration, enable_dynamical_max_duration=False)
