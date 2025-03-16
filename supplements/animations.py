@@ -1,6 +1,8 @@
 import os
 from math import ceil, log2
-from tkinter import messagebox
+import tkinter as tk
+from tkinter import Tk, ttk, messagebox
+import time
 from scripts.animation import Animation
 from scripts.buffer import BufferGiver, BufferTaker
 from scripts.report import Report
@@ -8,6 +10,55 @@ from supplements.bitmaps import Bitmap
 from supplements.landscapedefs import landscapedefs, name_max_length
 from supplements.remaptables import remaptables
 
+
+class LoadingVisuals:
+    def __init__(self):
+        self.root = None
+        self.progress = None
+        self.loading_text = None
+        self.estimate_text = None
+        self.closed = False
+        self.start_time = 0
+
+    def start(self):
+        def on_close():
+            self.root.quit()
+            self.root.destroy()
+            self.closed = True
+
+        self.root = Tk()
+        self.root.title("Loading bitmaps")
+        self.root.geometry("300x70")
+        self.root.resizable(False, False)
+        self.root.protocol("WM_DELETE_WINDOW", on_close)
+        self.loading_text = tk.StringVar()
+        self.estimate_text = tk.StringVar()
+        self.closed = False
+
+        self.loading_text.set("...")
+        self.estimate_text.set("...")
+        tk.Label(self.root, textvariable=self.loading_text).grid(row=0, column=0, sticky="w")
+        tk.Label(self.root, textvariable=self.estimate_text).grid(row=2, column=0, sticky="w")
+        self.progress = ttk.Progressbar(self.root, orient="horizontal", length=300, mode="determinate")
+        self.progress.grid(row=1, column=0)
+        self.start_time = time.time()
+
+    def step(self, value, landscape_name):
+        self.loading_text.set(f"Loaded landscape \"{landscape_name}\".")
+
+        estimate = round((time.time() - self.start_time) * ((1 -  value) / value))
+        estimate_text_value = "%02d:%02d:%02d" % (estimate // 3600, (estimate % 3600) // 60, estimate % 60)
+
+        self.estimate_text.set(f"Estimated time remaining {estimate_text_value}")
+        if not self.closed:
+            self.progress['value'] = value * 100
+            self.root.update()
+
+    def stop(self):
+        self.root.quit()
+        self.root.destroy()
+
+loading_visuals = LoadingVisuals()
 
 default_shading_factor = 128
 
@@ -72,23 +123,30 @@ class Animations(dict):
         except FileNotFoundError:
             if messagebox.askyesno("File not found",
                                    "Cache file not found. Do you want to extract bitmaps?\n\n"+\
-                                   "This may take a few minutes. There will be no visual progress indicator until "+\
-                                   "everything is loaded up. If this is your first time using the editor, note that "+\
-                                   "this loading process will not happen again as long as cache file remains in your "+\
-                                   "files. Alternatively you can try to find pre-generated cache online.",
+                                   "This may take a few minutes. If this is your first time using the editor, note "+\
+                                   "that this loading process will not happen again as long as cache file remains in "+\
+                                   "your files. Alternatively you can try to find pre-generated cache file online.",
                                    icon="warning"):
-                print("Warning: cache file not found. Animations will be extracted from game files.")
+
+                loading_visuals.start()
                 self.load_all_animations(report=report)
                 self.save_cache()
+                loading_visuals.stop()
             else:
                 exit()
 
     def load_all_animations(self, *, report=False) -> dict:
         report = Report(muted=not report)
         self.clear()
+        loaded_num = 0
         for name in landscapedefs.keys():
             self[name] = load_animation(name)
             report.report(f"Loaded landscape \"{name}\".")
+            loaded_num += 1
+            loading_visuals.step(loaded_num/len(landscapedefs), name)
+
+            if loading_visuals.closed:
+                exit()
 
     def export_all_animations(self, directory: str, *, report=False) -> dict:
 
