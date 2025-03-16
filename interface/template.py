@@ -2,8 +2,8 @@ import random
 from itertools import product
 from PIL import Image
 import numpy as np
-from map import Map
 from interface.triangle_transitions import update_triangles
+from scripts.colormap import template_editgroups_palette
 from supplements.patterns import patterndefs_normal, patterndefs_normal_by_name
 from supplements.textures import patterndefs_textures
 from supplements.groups import pattern_edit_group, get_random_group_entry
@@ -96,28 +96,32 @@ def find_closest_by_color(rgb_value, color_per_entry: dict):
             found_group_name = group_name
     return found_group_name
 
+template_editgroups_palette_inverse = {value: key for key, value in template_editgroups_palette.items()}
 
-def render_map_template(map_object: Map, template_filepath: str):
-    image = Image.open(template_filepath).convert("RGB").resize((map_object.map_width, map_object.map_height // 2),
+
+def render_map_template(editor, template_filepath: str):
+    image = Image.open(template_filepath).convert("RGB").resize((editor.map.map_width, editor.map.map_height // 2),
                                                                 Image.NEAREST)  # noqa
     array = np.array(image)
-    for y in range(map_object.map_height // 2):
-        for x in range(map_object.map_width // 2):
+    for y in range(editor.map.map_height // 2):
+        for x in range(editor.map.map_width // 2):
             for triangle_type in ("a", "b"):
                 color = tuple(map(int, array[y, 2 * x + (1 if triangle_type == "b" else 0)]))
 
-                if color in color_per_editgroup.values():
+                if color in template_editgroups_palette.values():
+                    pattern = patterndefs_normal_by_name[get_random_group_entry(pattern_edit_group[template_editgroups_palette_inverse[color]]["Pattern"]).lower()]
+                elif color in color_per_editgroup.values():
                     pattern = patterndefs_normal_by_name[get_random_group_entry(pattern_edit_group[editgroup_by_color[color]]["Pattern"]).lower()]
                 else:
                     pattern = random.choice(patterndefs_textures_by_group[find_closest_by_color(color,
                                                                                                 color_per_group)])
 
                 mep_id = pattern["Id"] + pattern["SetId"] * 256
-                index_bytes = y * map_object.map_width + x * 2
+                index_bytes = y * editor.map.map_width + x * 2
                 match triangle_type:
-                    case "a": map_object.mepa[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2,
+                    case "a": editor.map.mepa[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2,
                                                                                            byteorder="little")
-                    case "b": map_object.mepb[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2,
+                    case "b": editor.map.mepb[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2,
                                                                                            byteorder="little")
-    update_triangles(map_object,
-                     product(product(range(map_object.map_width//2), range(map_object.map_height//2)), ("a", "b")))
+    update_triangles(editor,
+                     product(product(range(editor.map.map_width//2), range(editor.map.map_height//2)), ("a", "b")))

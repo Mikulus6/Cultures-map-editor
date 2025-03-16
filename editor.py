@@ -40,6 +40,7 @@ from interface.transitions import transitions_gen, reposition_transition_vertice
 from interface.triangles import get_major_triangle_texture, get_major_triangle_corner_vertices, \
                                 get_major_triangle_light_values, get_triangle_corner_vertices, \
                                 get_minor_triangle_light_values
+from interface.undo_redo import undo_redo_memory
 
 
 class Editor:
@@ -96,6 +97,7 @@ class Editor:
         self.buttons_list = load_buttons(self)
 
         self.pressed_state = pygame.key.get_pressed()
+        self.pressed_shortcut_last = False
         self.mouse_pos = pygame.mouse.get_pos()
         self.mouse_pos_old = self.mouse_pos
 
@@ -134,7 +136,7 @@ class Editor:
             scroll_detected = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    if self.progress_saved or ask_save_changes(on_quit=True):
+                    if self.progress_saved or ask_save_changes(self, on_quit=True):
                         running = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and not button_left_detected:
@@ -177,15 +179,17 @@ class Editor:
                 pygame.mouse.set_visible(True)
                 self.move_by_middle = False
 
-            pressed_state = pygame.mouse.get_pressed(3)
+            mouse_state = pygame.mouse.get_pressed(3)
             if not button_left_detected:
-                self.mouse_press_left = pressed_state[0]
+                self.mouse_press_left = mouse_state[0]
             if not self.mouse_press_middle:
-                self.mouse_press_middle = pressed_state[1]
+                self.mouse_press_middle = mouse_state[1]
             if not button_right_detected:
-                self.mouse_press_right = pressed_state[2]
+                self.mouse_press_right = mouse_state[2]
             if not scroll_detected:
                 self.scroll_delta = 0
+
+            message.reset_grey_out()
 
             self.minimap.update_camera(self. map, self.camera,
                                        self.mouse_pos, self.mouse_press_left,
@@ -226,6 +230,45 @@ class Editor:
                 any_button_hover = any_button_hover or button.check_hover()
                 button.action()
 
+            # keyboard shortcuts - start
+
+            if self.pressed_state[pygame.K_LCTRL]:
+
+                if self.pressed_state[pygame.K_n]:
+                    if not self.pressed_shortcut_last:
+                        self.new()
+                    self.pressed_shortcut_last = True
+
+                elif self.pressed_state[pygame.K_o]:
+                    if not self.pressed_shortcut_last:
+                        self.open()
+                    self.pressed_shortcut_last = True
+
+                elif self.pressed_state[pygame.K_LSHIFT] and self.pressed_state[pygame.K_s]:
+                    if not self.pressed_shortcut_last:
+                        self.save()
+                    self.pressed_shortcut_last = True
+
+                elif self.pressed_state[pygame.K_s]:
+                    if not self.pressed_shortcut_last:
+                        self.save_as()
+                    self.pressed_shortcut_last = True
+
+                elif self.pressed_state[pygame.K_z]:
+                    if not self.pressed_shortcut_last:
+                        self.undo()
+                    self.pressed_shortcut_last = True
+
+                elif self.pressed_state[pygame.K_y]:
+                    if not self.pressed_shortcut_last:
+                        self.redo()
+                    self.pressed_shortcut_last = True
+
+                else:
+                    self.pressed_shortcut_last = False
+
+            # keyboard shortcuts - end
+
             if any_button_hover and not self.move_by_middle and not self.hover_any_button:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                 self.hover_any_button = True
@@ -238,6 +281,10 @@ class Editor:
             if self.move_by_middle:
                 self.root.blit(cursor_sizeall_image, (self.mouse_pos[0] - cursor_sizeall_blit_offset[0],
                                                       self.mouse_pos[1] - cursor_sizeall_blit_offset[1]))
+
+            if not (self.mouse_press_left or self.mouse_press_right) and\
+                   (self.mouse_press_left_old or self.mouse_press_right_old):
+                undo_redo_memory.update()
 
             pygame.display.flip()
             self.clock.tick(frames_per_second)
@@ -281,13 +328,13 @@ class Editor:
 
     def new(self, size: tuple[int, int] = None):
 
-        if not(self.progress_saved or ask_save_changes()):
+        if not(self.progress_saved or ask_save_changes(self)):
             return
 
         map_template_filepath = None
 
         if size is None:
-            size, map_template_filepath = ask_new_map()
+            size, map_template_filepath = ask_new_map(self)
         old_map = copy.deepcopy(self.map)
         try:
             one_frame_popup(self, "Creating new map...")
@@ -297,7 +344,7 @@ class Editor:
             self.hexagonal_area_marks = set()
             if map_template_filepath is not None:
                 self.progress_saved = False
-                render_map_template(self.map, map_template_filepath)
+                render_map_template(self, map_template_filepath)
                 update_map_border(self)
                 self.map.update_light()
                 self.map.to_bytearrays()
@@ -305,15 +352,16 @@ class Editor:
                 self.minimap.update_image(self.map)
             self.base_area.reset_and_resize(self.map.map_width, self.map.map_height)
             self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
+            undo_redo_memory.reset()
         except TypeError:
             self.map = old_map
             message.set_message(f"error: couldn't create map.")
 
     def open(self, filepath: str = None):
         if filepath is None:
-            if self.progress_saved or ask_save_changes():
-                filepath = askopenfilename(title="Open map", default="*.map", filetypes=(("map files", "*.map"),
-                                                                                         ("all files", "*.*")))
+            if self.progress_saved or ask_save_changes(self):
+                filepath = askopenfilename(self, title="Open map", default="*.map", filetypes=(("map files", "*.map"),
+                                                                                               ("all files", "*.*")))
         old_map = copy.deepcopy(self.map)
         try:
             one_frame_popup(self, "Opening map...")
@@ -326,6 +374,7 @@ class Editor:
             self.base_area.update_landscapes_presence_ndarray(self.map)
             self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
             self.extended_area.update_landscapes_presence_ndarray(self.map)
+            undo_redo_memory.reset()
             message.set_message(f"Map has been opened.")
         except (FileNotFoundError, TypeError, NotImplementedError):
             self.map = old_map
@@ -348,8 +397,8 @@ class Editor:
 
     def save_as(self, filepath: str = None):
         if filepath is None:
-            filepath = asksaveasfilename(title="Save map", default=self.map_filepath, filetypes=(("map files", "*.map"),
-                                                                                                 ("all files", "*.*")))
+            filepath = asksaveasfilename(self, title="Save map", default=self.map_filepath,
+                                         filetypes=(("map files", "*.map"), ("all files", "*.*")))
         try:
             if filepath is None:
                 raise TypeError
@@ -365,7 +414,7 @@ class Editor:
         self.map.to_bytearrays()
 
     def extract(self):
-        dirpath = askdirectory()
+        dirpath = askdirectory(self)
 
         try:
             one_frame_popup(self, "Exporting map...")
@@ -377,10 +426,10 @@ class Editor:
 
     def pack(self):
 
-        if not(self.progress_saved or ask_save_changes()):
+        if not(self.progress_saved or ask_save_changes(self)):
             return
 
-        dirpath = askdirectory()
+        dirpath = askdirectory(self)
 
         try:
             one_frame_popup(self, "Importing map...")
@@ -393,6 +442,7 @@ class Editor:
             self.base_area.update_landscapes_presence_ndarray(self.map)
             self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
             self.extended_area.update_landscapes_presence_ndarray(self.map)
+            undo_redo_memory.reset()
         except (FileNotFoundError, TypeError):
             message.set_message(f"error: couldn't import map.")
 
@@ -419,20 +469,23 @@ class Editor:
             message.set_message(f"Blockades are now hidden.")
 
     def mark_area(self):
-        entry = ask_area_mark()
+        entry = ask_area_mark(self)
         if entry is None:
             return
         elif entry == "remove":
             self.hexagonal_area_marks = set()
         elif len(self.hexagonal_area_marks) >= lru_cache_edges_maxsize and entry not in self.hexagonal_area_marks:
-            warning_too_many_area_marks()
+            warning_too_many_area_marks(self)
         else:
             self.hexagonal_area_marks.add(entry)
 
     def resize(self, deltas : (int, int, int, int) = None):
+        self.close_tool()
         # deltas = (top, bottom, left, right)
         old_mstr = copy.copy(self.map.mstr)
-        data = ask_resize_map(self.map.map_width, self.map.map_height) if deltas is None else (deltas, False, False)
+        old_llan = copy.copy(self.map.llan)
+        data = ask_resize_map(self, self.map.map_width, self.map.map_height)\
+                              if deltas is None else (deltas, False, False)
         try:
             deltas, remove_landscapes, remove_structures = data
             if tuple(deltas) != (0, 0, 0, 0):
@@ -470,8 +523,11 @@ class Editor:
                 self.extended_area.reset_and_resize(self.map.map_width, self.map.map_height)
                 self.extended_area.update_landscapes_presence_ndarray(self.map)
 
+            undo_redo_memory.reset()
+
         except TypeError:
             self.map.mstr = old_mstr
+            self.map.llan = old_llan
             message.set_message(f"error: couldn't resize map.")
 
     def pattern_single(self):
@@ -491,7 +547,7 @@ class Editor:
         states_machine.set_state("height")
 
     def enforce_height(self):
-        if ask_enforce_height():
+        if ask_enforce_height(self):
             enforce_horizonless_heightmap(self)
             one_frame_popup(self, "Modifying height...")
             self.terrain_loaded = False
@@ -508,9 +564,8 @@ class Editor:
     def landscape_group():
         states_machine.set_state("landscape_group")
 
-    @staticmethod
-    def brush_adjust():
-        ask_brush_parameters()
+    def brush_adjust(self):
+        ask_brush_parameters(self)
 
     @staticmethod
     def structures():
@@ -520,6 +575,12 @@ class Editor:
         self.ignore_minor_vertices = False
         self.ignore_singular_triangle = True
         states_machine.set_state(None)
+
+    def undo(self):
+        undo_redo_memory.undo(self)
+
+    def redo(self):
+        undo_redo_memory.redo(self)
 
     def _update(self):
         """Update editor data according to external change in map object."""
@@ -726,23 +787,42 @@ class Editor:
 
     # ====================================  updates  ====================================
 
-    def update_triange(self, coordinates, triangle_type: Literal["a", "b"], mep_id: int):
+    def update_triange(self, coordinates, triangle_type: Literal["a", "b"], mep_id: int, ignore_undo: bool = False):
+
         index_bytes = coordinates[1] * self.map.map_width + coordinates[0] * 2
+
+        if not ignore_undo:
+            match triangle_type:
+                case "a":
+                    undo_redo_memory.add_entry("mepa", coordinates,
+                                               int.from_bytes(self.map.mepa[index_bytes: index_bytes + 2],
+                                                              byteorder="little"), mep_id)
+                case "b":
+                    undo_redo_memory.add_entry("mepb", coordinates,
+                                               int.from_bytes(self.map.mepb[index_bytes: index_bytes + 2],
+                                                              byteorder="little"), mep_id)
+
         match triangle_type:
             case "a": self.map.mepa[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
             case "b": self.map.mepb[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
         self.terrain_loaded = False
         self.progress_saved = False
 
-    def update_height(self, coordinates, height_value: float | int = 0, as_delta: bool = False):
+    def update_height(self, coordinates, height_value: float | int = 0, as_delta: bool = False,
+                      ignore_undo: bool = False):
         index_value = coordinates[1] * (self.map.map_width // 2) + coordinates[0]
-        self.map.mhei[index_value] = min(max(self.map.mhei[index_value] + round(height_value), 0), 255) \
-                                     if as_delta else min(max(round(height_value), 0), 255)
+        value = min(max(self.map.mhei[index_value] + round(height_value), 0), 255) \
+                if as_delta else min(max(round(height_value), 0), 255)
+        if not ignore_undo:
+            undo_redo_memory.add_entry("mhei", coordinates, self.map.mhei[index_value], value)
+        self.map.mhei[index_value] = value
         self.terrain_loaded = False
         self.progress_saved = False
 
-    def update_landscape(self, coordinates, landscape_name: str | None):
+    def update_landscape(self, coordinates, landscape_name: str | None, ignore_undo: bool = False):
         landscape_name_old = self.map.llan.get(coordinates, None)
+        if not ignore_undo:
+            undo_redo_memory.add_entry("llan", coordinates, landscape_name_old, landscape_name)
         if landscape_name is None and (*coordinates,) in self.map.llan.keys():
             del self.map.llan[*coordinates]
             self.progress_saved = False
@@ -754,8 +834,10 @@ class Editor:
             self.base_area.update_on_landscape_change(landscape_name_old, landscape_name, coordinates, self.map)
             self.extended_area.update_on_landscape_change(landscape_name_old, landscape_name, coordinates, self.map)
 
-    def update_structures(self, coordinates, structure_type: Literal[None, "road", "river", "snow"]):
-        update_structures(self.map, coordinates, structure_type)
+    def update_structures(self, coordinates, structure_type: Literal[None, "road", "river", "snow"],
+                          ignore_undo: bool = False):
+
+        update_structures(self.map, coordinates, structure_type, ignore_undo=ignore_undo)
         self.terrain_loaded = False
         self.progress_saved = False
 
@@ -765,4 +847,24 @@ class Editor:
                                      y_range_start=coordinates[1] - margin, y_range_stop=coordinates[1] + margin)
         self.minimap.update_image(self.map, x_range_start=coordinates[0] - margin, x_range_stop=coordinates[0] + margin,
                                             y_range_start=coordinates[1] - margin, y_range_stop=coordinates[1] + margin)
+        self.terrain_loaded = False
+
+    def update_local_secondary_data_multiple_points(self, list_of_coordinates, margin: int = 1):
+
+        min_x, max_x, min_y, max_y = float("inf"), float("-inf"), float("inf"), float("-inf")
+        empty = True
+        for coordinates in list_of_coordinates:
+            empty = False
+            min_x = min(min_x, coordinates[0])
+            max_x = max(max_x, coordinates[0])
+            min_y = min(min_y, coordinates[1])
+            max_y = max(max_y, coordinates[1])
+
+        if empty:
+            return
+
+        update_light_local(self.map, x_range_start=min_x - margin, x_range_stop=max_x + margin,
+                                     y_range_start=min_y - margin, y_range_stop=max_y + margin)
+        self.minimap.update_image(self.map, x_range_start=min_x - margin, x_range_stop=max_x + margin,
+                                            y_range_start=min_y - margin, y_range_stop=max_y + margin)
         self.terrain_loaded = False

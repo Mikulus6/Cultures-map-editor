@@ -3,36 +3,43 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
-from interface.message import message
+from interface.message import message, one_frame_grey_out
 from interface.states import landscapes_draw_parameters, height_draw_parameters, height_mode_options
 from sections.walk_sector_points import sector_width
 
 
-def askopenfilename(*args, **kwargs):
+def askopenfilename(editor, *args, **kwargs):
+    one_frame_grey_out(editor)
     filepath = filedialog.askopenfilename(*args, **kwargs)
     return filepath if filepath != "" else None
 
-def asksaveasfilename(*args, **kwargs):
+def asksaveasfilename(editor, *args, **kwargs):
+    one_frame_grey_out(editor)
     filepath = filedialog.asksaveasfilename(*args, **kwargs)
     return filepath if filepath != "" else None
 
-def askdirectory(*args, **kwargs):
+def askdirectory(editor, *args, **kwargs):
+    one_frame_grey_out(editor)
     directory = filedialog.askdirectory(*args, **kwargs)
     return directory if directory != "" else None
 
-def ask_enforce_height():
+def ask_enforce_height(editor):
+    one_frame_grey_out(editor)
     return messagebox.askyesno("Confirm",
-                               "Are you sure you want to enforce horizonless heightmap?\nThis will modify map height.")
+                            "Are you sure you want to enforce horizonless heightmap?\nThis will modify terrain height.")
 
-def ask_save_changes(on_quit: bool = False):
+def ask_save_changes(editor, on_quit: bool = False):
+    one_frame_grey_out(editor)
     return messagebox.askyesno("Unsaved changes",
                                "You have unsaved changes.\nAre you sure you want to " + \
                                ("quit?" if on_quit else "proceed?"), icon='warning')
 
-def warning_too_many_area_marks():
+def warning_too_many_area_marks(editor):
+    one_frame_grey_out(editor)
     messagebox.showwarning("Warning", f"Area mark limit reached. Cannot add another mark.")
 
-def ask_new_map():
+def ask_new_map(editor):
+    one_frame_grey_out(editor)
     def validate_entries():
         try:
             width_val = int(width_entry.get())
@@ -67,7 +74,7 @@ def ask_new_map():
 
     def on_load():
         nonlocal load_template_string, map_template_filepath
-        map_template_filepath = askopenfilename(title="Open map template", default="*.png;*.pcx;*.bmp",
+        map_template_filepath = askopenfilename(editor, title="Open map template", default="*.png;*.pcx;*.bmp",
                                                 filetypes=(("images", "*.png;*.pcx;*.bmp"), ("all files", "*.*")))
         if map_template_filepath is not None:
             load_template_string.set(os.path.basename(map_template_filepath))
@@ -113,7 +120,8 @@ def ask_new_map():
     return result
 
 
-def ask_resize_map(current_map_width, current_map_height):
+def ask_resize_map(editor, current_map_width, current_map_height):
+    one_frame_grey_out(editor)
     def validate_entries():
         try:
             north_val = int(north_entry.get())
@@ -167,10 +175,13 @@ def ask_resize_map(current_map_width, current_map_height):
             messagebox.showwarning("Warning", f"Resulting map dimensions must be positive.")
         else:
 
-            result = (north_val, south_val, west_val, east_val), \
-                     bool(remove_landscapes_var.get()), bool(remove_structures_var.get())
-            root.quit()
-            root.destroy()
+            if messagebox.askyesno("Warning", "Changing map size will erase undo data from memory. "+\
+                                   "Are you sure you want to proceed?"):
+
+                result = (north_val, south_val, west_val, east_val), \
+                         bool(remove_landscapes_var.get()), bool(remove_structures_var.get())
+                root.quit()
+                root.destroy()
 
     def on_close():
         root.quit()
@@ -234,7 +245,8 @@ def ask_resize_map(current_map_width, current_map_height):
     return result
 
 
-def ask_brush_parameters():
+def ask_brush_parameters(editor):
+    one_frame_grey_out(editor)
     def validate_entries():
         try:
             density_val = float(density_entry.get())
@@ -430,7 +442,8 @@ def ask_brush_parameters():
     root.mainloop()
 
 
-def ask_area_mark() -> None | str | tuple[int, int, int]:
+def ask_area_mark(editor) -> None | str | tuple[int, int, int]:
+    one_frame_grey_out(editor)
     def validate_entries():
         try:
             int(x_entry.get())

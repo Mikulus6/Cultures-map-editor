@@ -1,4 +1,5 @@
 from map import Map
+from interface.undo_redo import undo_redo_memory
 from supplements.textures import patterndefs_textures
 from supplements.patterns import road
 from typing import Literal
@@ -61,7 +62,8 @@ def get_structure_type_of_vertex(map_object: Map, coordinates) -> Literal[None, 
         case 1: return "river"
         case 2: return "snow"
 
-def update_structures(map_object: Map, coordinates, structure_type: Literal[None, "road", "river", "snow"]):
+def update_structures(map_object: Map, coordinates, structure_type: Literal[None, "road", "river", "snow"],
+                      ignore_undo: bool = False):
     x, y = coordinates
 
     if y % 2 == 0:
@@ -80,6 +82,10 @@ def update_structures(map_object: Map, coordinates, structure_type: Literal[None
             vertex_type = get_structure_type_of_vertex(map_object, surroundings_coordinates)
             if vertex_type not in (None, structure_type):
                 return  # Updating structure in this case would break continuity conditions.
+
+    if not ignore_undo:
+        undo_redo_memory.add_entry("mstr", coordinates, get_structure_type_of_vertex(map_object, coordinates),
+                                   structure_type)
 
     match structure_type:
         case None:    structure_num = 0  # This value is not important.

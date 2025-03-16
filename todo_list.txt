@@ -1,12 +1,6 @@
 User interface:
-    - implement undo button + redo button
-    - add keyboard shortcuts (ctrl+N, ctrl+O, ctrl+S, ctrl+shift+S, ctr+Z, ctr+Y) -> (new, open, save, save as, undo, redo)
-    - add hash validation to cache.bin
-    - add loading visuals if speeding loading cache.bin is not possible
-
-    - speed up bmd loading process to make cache.bin unnecessary if possible
-    - speed up map saving algorithm (all derivations together are slow)
-    - speed up map display if possible
+    - speed up map saving algorithm (do not calculate BFS bidirectionally)
+    - change textures for icon and UI background
 
 Scripts documentation:
     - describe in pdf: animalis, buildings, units (jobs), tribes

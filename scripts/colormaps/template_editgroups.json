@@ -1,0 +1,19 @@
+{
+  "Meadow Dark":           [0, 155, 0],
+  "Meadow Bright":         [0, 217, 0],
+  "Meadow Forest":         [0, 64, 0],
+  "Meadow Yellow":         [0, 166, 0],
+  "Clay":                  [107, 88, 30],
+  "Stone":                 [63, 61, 57],
+  "Strand":                [211, 211, 0],
+  "Water":                 [0, 128, 255],
+  "Beach":                 [0, 255, 255],
+  "Desert":                [208, 208, 128],
+  "Desert/Meadow":         [128, 255, 0],
+  "Swamp":                 [0, 128, 80],
+  "Meadow/Meadow - Steep": [115, 112, 87],
+  "Stone/Meadow":          [59, 60, 6],
+  "Meadow/Clay":           [109, 94, 51],
+  "desert brown":          [164, 130, 47],
+  "desert brown stone":    [133, 100, 20]
+}

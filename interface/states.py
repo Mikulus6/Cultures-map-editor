@@ -138,7 +138,7 @@ class StatesMachine:
                 triangles = (editor.cursor_triangle,)
             else:
                 return
-            update_triangles(editor.map, tuple(triangles))
+            update_triangles(editor, tuple(triangles))
             editor.terrain_loaded = False
             editor.progress_saved = False
 

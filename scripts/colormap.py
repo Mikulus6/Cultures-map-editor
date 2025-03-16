@@ -1,10 +1,12 @@
 import json
 
-mstr_colormap_filepath = "scripts/colormaps/mstr.json"
-mep_colormap_filepath = "scripts/colormaps/mep.json"  # This color map is based on in-game minimap display, however
-                                                      # due to duplication of some RGB values there, some of the colors
-                                                      # are slightly modified in order to have unique value for each
-                                                      # type of mep terrain triangle.
+mstr_colormap_filepath = "scripts\\colormaps\\mstr.json"
+mep_colormap_filepath = "scripts\\colormaps\\mep.json"  # This color map is based on in-game minimap display, however
+                                                        # due to duplication of some RGB values there, some of the
+                                                        # colors are slightly modified in order to have unique value for
+                                                        # each type of mep terrain triangle.
+
+template_editgroups_palette_filepath = "scripts\\colormaps\\template_editgroups.json" # This palette is arbitrary.
 
 inverse_dictionary = lambda dict_: {value: key for key, value in dict_.items()}
 
@@ -44,3 +46,7 @@ def remove_colormap_from_shorts(list_: list, colormap: ColorMap) -> bytes:
 
 mstr_colormap = load_colormap(mstr_colormap_filepath)
 mep_colormap = load_colormap(mep_colormap_filepath)
+
+with open(template_editgroups_palette_filepath) as palette_file:
+    template_editgroups_palette = json.loads(palette_file.read())
+template_editgroups_palette = {key: tuple(value) for key, value in template_editgroups_palette.items()}

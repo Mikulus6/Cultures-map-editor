@@ -12,6 +12,7 @@ class Message:
 
         self.last_time = time.time() - 2 * message_duration
         self.text = ""
+        self.grey_out = False
 
     def set_message(self, text):
         self.text = text
@@ -21,6 +22,9 @@ class Message:
         if time.time() - self.last_time > message_duration:
             return None
         return self.text
+
+    def reset_grey_out(self):
+        self.grey_out = False
 
 
 def set_font_text(editor):
@@ -33,6 +37,17 @@ def set_font_text(editor):
         editor.font_text = f"micro vertex coordinates: ({editor.cursor_vertex[0]}, {editor.cursor_vertex[1]})"
     elif editor.minimap.mouse_hover:
         editor.font_text = "minimap (click or hold to move)"
+
+
+def one_frame_grey_out(editor):
+    if message.grey_out:
+        return
+    shape_surf = pygame.Surface(pygame.Rect((0, 0, *resolution)).size, pygame.SRCALPHA)
+    pygame.draw.rect(shape_surf, (128, 128, 128, 128), shape_surf.get_rect())
+    editor.root.blit(shape_surf, (0, 0, *resolution))
+    pygame.display.flip()
+    message.grey_out = True
+
 
 def one_frame_popup(editor, text):
     """Show message for one frame when application is about to get a one-frame lag spike (e.g. loading message)."""
@@ -50,9 +65,6 @@ def one_frame_popup(editor, text):
     position = (resolution[0] - rendered_text.width) // 2,\
                (resolution[1] - rendered_text.height) // 2,\
 
-    shape_surf = pygame.Surface(pygame.Rect((0, 0, *resolution)).size, pygame.SRCALPHA)
-    pygame.draw.rect(shape_surf, (128, 128, 128, 128), shape_surf.get_rect())
-    editor.root.blit(shape_surf, (0, 0, *resolution))
     editor.root.blit(rendered_text, position)
     pygame.display.flip()
 

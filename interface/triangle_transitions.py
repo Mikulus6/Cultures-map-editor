@@ -5,7 +5,7 @@ from interface.triangles import get_triangle_corner_vertices
 from supplements.patterns import corner_types, patterndefs_normal, triangle_transitions_by_corner_types
 
 
-def update_triangles(map_object: Map, triangles: list | tuple):
+def update_triangles(editor, triangles: list | tuple):
 
     # Some of the visual triangle transitions present in game might not be correctly filed by this function due to
     # incomplete data present in files of "Cultures: Discovery of Vinland" and "Cultures: The Revenge of the Rain God".
@@ -13,7 +13,7 @@ def update_triangles(map_object: Map, triangles: list | tuple):
 
     for triangle in triangles:
         vertices = get_triangle_corner_vertices(*triangle)
-        local_corner_types = tuple(map(lambda vertex: get_corner_type(map_object, vertex), vertices))
+        local_corner_types = tuple(map(lambda vertex: get_corner_type(editor.map, vertex), vertices))
         if len(set(local_corner_types)) != 2 or None in local_corner_types:
             continue
         try:
@@ -34,12 +34,8 @@ def update_triangles(map_object: Map, triangles: list | tuple):
             case _: raise ValueError
 
         mep_id = transitions_mep_id[2 * value] * 256 + transitions_mep_id[2 * value + 1]
-        index_bytes = triangle[0][1] * map_object.map_width + triangle[0][0] * 2
 
-        match triangle[1]:
-            case "a": map_object.mepa[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
-            case "b": map_object.mepb[index_bytes: index_bytes + 2] = int.to_bytes(mep_id, length=2, byteorder="little")
-            case _: raise ValueError
+        editor.update_triange(*triangle, mep_id)
 
     get_corner_type.cache_clear()  # Usage of cache here is not only for optimization purposes, but also provides a look
                                    # into original corners before any of triangles was modified in current frame.

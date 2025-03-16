@@ -69,17 +69,17 @@ class Button:
             self.click_function(self.editor)
 
 
-buttons_data = (0, "new", "create new map"),\
-               (1, "open", "open map file"),\
-               (2, "save", "save map file"),\
-               (3, "save_as", "save map file as"),\
+buttons_data = (0, "new", "create new map (Ctrl + N)"),\
+               (1, "open", "open map file (Ctrl + O)"),\
+               (2, "save", "save map file (Ctrl + S)"),\
+               (3, "save_as", "save map file as (Ctrl + Shift + S)"),\
                (4, "pack", "import from external data"),\
                (5, "extract", "export to external data"),\
                (6, "terrain_textures", "disable / enable terrain textures"),\
                (7, "invisible_landscapes", "show / hide invisible landscapes"),\
                (8, "invisible_blocks", "show / hide blockades"),\
                (9, "mark_area", "mark hexagonal area"),\
-               (10, "", "undo action"),\
+               (10, "undo", "undo action (Ctrl + Z)"),\
                (11, "resize", "resize map"),\
                (12, "pattern_single", "modify terrain by singular pattern"),\
                (13, "pattern_group", "modify terrain by pattern group"),\
@@ -90,7 +90,7 @@ buttons_data = (0, "new", "create new map"),\
                (18, "landscape_group", "modify landscapes by edit group"),\
                (19, "brush_adjust", "adjust brush parameters"),\
                (20, "structures", "modify structures"),\
-               (21, "close_tool", "close current tool") # TODO: write missing methods for buttons
+               (21, "redo", "redo action (Ctrl + Y)")
 
 def load_buttons(parent_editor):
 

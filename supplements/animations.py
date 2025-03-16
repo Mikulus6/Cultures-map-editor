@@ -1,5 +1,6 @@
 import os
 from math import ceil, log2
+from tkinter import messagebox
 from scripts.animation import Animation
 from scripts.buffer import BufferGiver, BufferTaker
 from scripts.report import Report
@@ -39,8 +40,10 @@ def load_animation(landscape_name) -> Animation:
     bitmap_masked = Bitmap()
     bitmap_packed.load(path_packed)
     bitmap_masked.load(path_masked)
-    animation_packed = bitmap_packed.to_animation(remaptable, 255, first_bob, elements, high_color_shading_mode, masked_file=False)
-    animation_masked = bitmap_masked.to_animation(remaptable, shading_factor, first_bob, elements, high_color_shading_mode, masked_file=True)
+    animation_packed = bitmap_packed.to_animation(remaptable, 255, first_bob, elements,
+                                                  high_color_shading_mode, masked_file=False)
+    animation_masked = bitmap_masked.to_animation(remaptable, shading_factor, first_bob, elements,
+                                                  high_color_shading_mode, masked_file=True)
 
     animation_masked.paste(animation_packed)
     return animation_masked
@@ -67,9 +70,18 @@ class Animations(dict):
         try:
             self.load_cache()
         except FileNotFoundError:
-            print("Warning: cache file not found. Animations will be extracted from game files.")
-            self.load_all_animations(report=report)
-            self.save_cache()
+            if messagebox.askyesno("File not found",
+                                   "Cache file not found. Do you want to extract bitmaps?\n\n"+\
+                                   "This may take a few minutes. There will be no visual progress indicator until "+\
+                                   "everything is loaded up. If this is your first time using the editor, note that "+\
+                                   "this loading process will not happen again as long as cache file remains in your "+\
+                                   "files. Alternatively you can try to find pre-generated cache online.",
+                                   icon="warning"):
+                print("Warning: cache file not found. Animations will be extracted from game files.")
+                self.load_all_animations(report=report)
+                self.save_cache()
+            else:
+                exit()
 
     def load_all_animations(self, *, report=False) -> dict:
         report = Report(muted=not report)
@@ -127,4 +139,4 @@ class Animations(dict):
         self.__class__.pygame_converted = True
 
 
-animations = Animations()
+animations = Animations(report=True)
