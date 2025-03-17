@@ -1,5 +1,6 @@
 import os
 from math import ceil, log2
+from sys import exit as sys_exit
 import tkinter as tk
 from tkinter import Tk, ttk, messagebox
 import time
@@ -133,7 +134,7 @@ class Animations(dict):
                 self.save_cache()
                 loading_visuals.stop()
             else:
-                exit()
+                sys_exit()
 
     def load_all_animations(self, *, report=False) -> dict:
         report = Report(muted=not report)
@@ -146,7 +147,7 @@ class Animations(dict):
             loading_visuals.step(loaded_num/len(landscapedefs), name)
 
             if loading_visuals.closed:
-                exit()
+                sys_exit()
 
     def export_all_animations(self, directory: str, *, report=False) -> dict:
 

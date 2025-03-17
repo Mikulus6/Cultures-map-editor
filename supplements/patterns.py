@@ -44,6 +44,13 @@ triangle_transitions = load_ini_as_dict(triangles_path,
 
 patterndefs_normal_by_name = {x["Name"].lower(): x for x in patterndefs_normal.values()}
 
+patterndefs_normal_by_groups = dict()
+for mep_id, value in patterndefs_normal.items():
+    group, maingroup = value["Group"].lower(), value["MainGroup"].lower()
+    for group_name in (value["Group"].lower(), value["MainGroup"].lower()):
+        patterndefs_normal_by_groups.setdefault(group, set()).update({mep_id})
+        patterndefs_normal_by_groups.setdefault(maingroup, set()).update({mep_id})
+
 triangle_transitions_by_corner_types = dict()
 for triangle_transition in triangle_transitions.values():
     key = tuple(sorted(triangle_transition["corner_types"]))

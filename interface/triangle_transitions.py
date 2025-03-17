@@ -1,9 +1,9 @@
 from functools import lru_cache
 from map import Map
-from random import randint
+import random
 from interface.triangles import get_triangle_corner_vertices
-from supplements.patterns import corner_types, patterndefs_normal, triangle_transitions_by_corner_types
-
+from supplements.patterns import corner_types, patterndefs_normal, patterndefs_normal_by_groups,\
+                                 triangle_transitions_by_corner_types
 
 def update_triangles(editor, triangles: list | tuple):
 
@@ -14,28 +14,46 @@ def update_triangles(editor, triangles: list | tuple):
     for triangle in triangles:
         vertices = get_triangle_corner_vertices(*triangle)
         local_corner_types = tuple(map(lambda vertex: get_corner_type(editor.map, vertex), vertices))
-        if len(set(local_corner_types)) != 2 or None in local_corner_types:
-            continue
-        try:
-            transitions_list = triangle_transitions_by_corner_types[tuple(sorted(set(local_corner_types)))]
-            transition = transitions_list[randint(0, 2520) % len(transitions_list)]
-                                                 # ^ Reasonalbly big number from this sequence: https://oeis.org/A003418
-        except KeyError:
-            continue  # Transition does not exist.
+        if len(set(local_corner_types)) == 2 and None not in local_corner_types:
+            try:
+                transitions_list = triangle_transitions_by_corner_types[tuple(sorted(set(local_corner_types)))]
+                transition = transitions_list[random.randint(0, 2520) % len(transitions_list)]
+                                                                # ^ Reasonalbly big number from this sequence:
+                                                                #   https://oeis.org/A003418
+            except KeyError:
+                continue  # Transition does not exist.
 
-        value = (local_corner_types[0] == transition["corner_types"][0]) + \
-                (local_corner_types[1] == transition["corner_types"][0]) * 2 + \
-                (local_corner_types[2] == transition["corner_types"][0]) * 4 + \
-                -1
+            value = (local_corner_types[0] == transition["corner_types"][0]) + \
+                    (local_corner_types[1] == transition["corner_types"][0]) * 2 + \
+                    (local_corner_types[2] == transition["corner_types"][0]) * 4 + \
+                    -1
 
-        match triangle[1]:
-            case "a": transitions_mep_id = transition["transitions_a"]
-            case "b": transitions_mep_id = transition["transitions_b"]
-            case _: raise ValueError
+            match triangle[1]:
+                case "a": transitions_mep_id = transition["transitions_a"]
+                case "b": transitions_mep_id = transition["transitions_b"]
+                case _: raise ValueError
 
-        mep_id = transitions_mep_id[2 * value] * 256 + transitions_mep_id[2 * value + 1]
+            mep_id = transitions_mep_id[2 * value] * 256 + transitions_mep_id[2 * value + 1]
 
-        editor.update_triange(*triangle, mep_id)
+            editor.update_triange(*triangle, mep_id)
+
+        elif len(set(local_corner_types)) == 1 and None not in local_corner_types:
+
+            index_bytes = triangle[0][1] * editor.map.map_width + triangle[0][0] * 2
+
+            match triangle[1]:
+                case "a": old_mep_id = int.from_bytes(editor.map.mepa[index_bytes: index_bytes + 2], byteorder="little")
+                case "b": old_mep_id = int.from_bytes(editor.map.mepb[index_bytes: index_bytes + 2], byteorder="little")
+                case _: raise ValueError
+
+            possible_mep_ids = set()
+            for corner_group in corner_types[local_corner_types[0]]["groups"]:
+                possible_mep_ids.update(patterndefs_normal_by_groups.get(corner_group.lower(), set()))
+
+            if (old_mep_id in possible_mep_ids) or (corner_types[local_corner_types[0]]["number"] > 2):
+                continue
+
+            editor.update_triange(*triangle, random.choice(tuple(possible_mep_ids)))
 
     get_corner_type.cache_clear()  # Usage of cache here is not only for optimization purposes, but also provides a look
                                    # into original corners before any of triangles was modified in current frame.
