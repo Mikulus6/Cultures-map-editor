@@ -1,12 +1,12 @@
 import json
 
-mstr_colormap_filepath = "scripts\\colormaps\\mstr.json"
-mep_colormap_filepath = "scripts\\colormaps\\mep.json"  # This color map is based on in-game minimap display, however
-                                                        # due to duplication of some RGB values there, some of the
-                                                        # colors are slightly modified in order to have unique value for
-                                                        # each type of mep terrain triangle.
+mstr_colormap_filepath = "assets\\colormaps\\mstr.json"
+mep_colormap_filepath = "assets\\colormaps\\mep.json"  # This color map is based on in-game minimap display, however due
+                                                       # to duplication of some RGB values there, some of the
+                                                       # colors are slightly modified in order to have unique value for
+                                                       # each type of mep terrain triangle.
 
-template_editgroups_palette_filepath = "scripts\\colormaps\\template_editgroups.json" # This palette is arbitrary.
+template_editgroups_palette_filepath = "assets\\colormaps\\template_editgroups.json"  # This palette is arbitrary.
 
 inverse_dictionary = lambda dict_: {value: key for key, value in dict_.items()}
 

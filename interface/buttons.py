@@ -6,7 +6,7 @@ button_initial_offset = (2, 2)
 button_tile_size = (24, 24)
 buttons_margin = 0
 buttons_per_row = 11
-buttons_tileset_path = "interface\\images\\buttons.png"
+buttons_tileset_path = "assets\\images\\buttons.png"
 
 
 def image_to_tileset_dict(image: pygame.Surface, tile_size: (int, int), tileset_flags = 0):
@@ -112,6 +112,6 @@ def load_buttons(parent_editor):
     return tuple(result_buttons)
 
 
-background_path = "interface\\images\\background.png"
+background_path = "assets\\images\\background.png"
 background = pygame.image.load(background_path)
 assert background.size == (resolution[0] - map_canvas_rect[2], resolution[1])

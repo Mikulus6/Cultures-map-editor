@@ -22,9 +22,9 @@ highlight_text_offset = 5, 5
 margin = 1
 icon_margin = 5
 
-catalogue_background_path = "interface\\images\\catalogue_background.png"
-catalogue_slider_background_path = "interface\\images\\catalogue_slider_background.png"
-catalogue_slider_hand_path = "interface\\images\\catalogue_slider_hand.png"
+catalogue_background_path = "assets\\images\\catalogue_background.png"
+catalogue_slider_background_path = "assets\\images\\catalogue_slider_background.png"
+catalogue_slider_hand_path = "assets\\images\\catalogue_slider_hand.png"
 catalogue_background = pygame.image.load(catalogue_background_path)
 catalogue_slider_background = pygame.image.load(catalogue_slider_background_path)
 catalogue_slider_hand = pygame.image.load(catalogue_slider_hand_path)

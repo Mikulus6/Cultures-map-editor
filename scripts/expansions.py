@@ -3,9 +3,9 @@ from typing import Literal
 import numpy as np
 
 
-hexagon_shadow_filepath = "scripts/shadows/hexagon.png"
-triangle_a_shadow_filepath = "scripts/shadows/triangle_up.png"
-triangle_b_shadow_filepath = "scripts/shadows/triangle_down.png"
+hexagon_shadow_filepath = "assets/shadows/hexagon.png"
+triangle_a_shadow_filepath = "assets/shadows/triangle_up.png"
+triangle_b_shadow_filepath = "assets/shadows/triangle_down.png"
 
 # === hexagonal expansion ===
 

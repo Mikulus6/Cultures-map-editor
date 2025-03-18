@@ -1,5 +1,4 @@
 User interface:
-    - speed up map saving algorithm (do not calculate BFS bidirectionally)
     - change textures for icon and UI background
 
 Scripts documentation:
