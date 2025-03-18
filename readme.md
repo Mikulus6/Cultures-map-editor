@@ -5,9 +5,9 @@
 Following application is meant to be a tool for map-making process in video
 games  [*Cultures: Discovery of Vinland*](https://www.gog.com/en/game/cultures_12)
 and [*Cultures: The Revenge of the Rain God*](https://www.mobygames.com/game/6100/cultures-die-rache-des-regengottes/).
-It makes it possible to freely view and edit `*.map` files from 
+It makes it possible to freely view and modify `*.map` files from 
 mentioned games. Available functionalities are implemented in a way which
-mimic editors present in other games from *Cultures* series.
+mimics editors present in other games from *Cultures* series.
 
 ## Installation
 
@@ -20,22 +20,26 @@ directory of newly downloaded application.
 Note that when opening the program for the first time it will try to generate
 `cache.bin` file which can take significant time to load. If you  want to skip
 this process you might be able to find this file online, however due to
-copyright restrictions we do not provide access to such file here.
+copyright restrictions we do not provide access to such file here.  
+Keep in mind that `cache.bin` files generated for *Cultures: Discovery of
+Vinland* and *Cultures: The Revenge of the Rain God* will contain different
+content and are not interchangeable.
 
-Project was tested on Python 3.13 with all used third party libraries being up
-to date at the moment of publication.
+Project was tested on Windows 11 and Python 3.13 with all used third party
+libraries being up to date at the moment of publication.
 
 ## Credits
 
-This project is a fan-made tool made by [*CulturesNation*](https://culturesnation.pl/) community. It is not
-affiliated with the official legacy of *Cultures* series. For official
-developers' website, visit [*Funatics*](https://www.funatics.de/).
+This project is a fan-made tool created by [*CulturesNation*](https://culturesnation.pl/)
+community. It is not affiliated with the official legacy of *Cultures* series.
+For official developers' website, visit [*Funatics*](https://www.funatics.de/).
 
 #### Contributors
 
 [Mikulus](https://github.com/Mikulus6): Managed project and wrote most of Python code.  
 [Basssiiie](https://github.com/Basssiiie): Decompiled important parts of game's engine via Ghidra.  
 [Tyrannica](https://github.com/ARKAMENTOR): Helped with walk sectors' data visualisation.  
+[Proszak](https://www.facebook.com/PigmentDesignStudio): Drew some of the graphics for user interface.
 
 #### Referenced literature
 
