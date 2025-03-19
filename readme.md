@@ -9,6 +9,8 @@ It makes it possible to freely view and modify `*.map` files from
 mentioned games. Available functionalities are implemented in a way which
 mimics editors present in other games from *Cultures* series.
 
+![example](assets/readme/example.png)
+
 ## Installation
 
 After downloading necessary files from [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
@@ -25,7 +27,11 @@ Keep in mind that `cache.bin` files generated for *Cultures: Discovery of
 Vinland* and *Cultures: The Revenge of the Rain God* will contain different
 content and are not interchangeable.
 
-Project was tested on Windows 11 and Python 3.13 with all used third party
+Remember that the display of terrain and landscapes in the editor might not be
+exactly the same as in the game. Always check important aesthetics by opening
+`*.map` files via original game.
+
+Project was tested on Python 3.13 with all used third party
 libraries being up to date at the moment of publication.
 
 ## Credits
@@ -34,14 +40,14 @@ This project is a fan-made tool created by [*CulturesNation*](https://culturesna
 community. It is not affiliated with the official legacy of *Cultures* series.
 For official developers' website, visit [*Funatics*](https://www.funatics.de/).
 
-#### Contributors
+### Contributors
 
 [Mikulus](https://github.com/Mikulus6): Managed project and wrote most of Python code.  
 [Basssiiie](https://github.com/Basssiiie): Decompiled important parts of game's engine via Ghidra.  
 [Tyrannica](https://github.com/ARKAMENTOR): Helped with walk sectors' data visualisation.  
 [Proszak](https://www.facebook.com/PigmentDesignStudio): Drew some of the graphics for user interface.
 
-#### Referenced literature
+### Referenced literature
 
 bacter: "[*Unknown Encryption In Cultures Game*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)" (2010)  
 [Siguza](https://github.com/Siguza): "[*Cultures 2 file formats*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)" (2013)  
