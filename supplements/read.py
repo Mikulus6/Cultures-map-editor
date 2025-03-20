@@ -4,15 +4,13 @@ from scripts.buffer import data_encoding
 from supplements.library import Library
 from supplements.initialization import decode
 
-game_basepath = "."  # Put relative path to game's main directory here.
 
 libraries_directory = "data_l"
-libraries_directory = os.path.join(game_basepath, libraries_directory)
 loaded_libraries = dict()
 
 def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
          skip_file = False, skip_library = False, skip_cif_check = False,
-         cultures_1 = True, recursive = False) -> bytes | str:
+         cultures_1 = True) -> bytes | str:
     """
     This function is supposed to work as combination of built-in open() and file.read() functions, but with the addition
     of backup libraries and cif <-> ini files equivalence similarly to how games from Cultures series load files.
@@ -24,8 +22,6 @@ def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
     """
     global loaded_libraries
 
-    if not recursive:
-        filepath = os.path.join(game_basepath, filepath)
     filepath = filepath.lower()
 
     assert not skip_cif_check or filepath.endswith(".cif")
@@ -39,14 +35,13 @@ def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
                 for is_decoded, sub_filepath in zip((True, False), filepaths):
                     try:
                         content = read(sub_filepath, mode= "r" if is_decoded else "rb",
-                                       skip_file=not skip_lib, skip_library=skip_lib, recursive=True)
+                                       skip_file=not skip_lib, skip_library=skip_lib)
                         return content if isinstance(content, str) else decode(content, tab_sal_file_format=False)
                     except FileNotFoundError:
                         pass
 
         if (filepath.endswith(".tab") or filepath.endswith(".sal")) and mode == "r":
-            return decode(read(filepath, "rb", skip_file=False, skip_library=False, recursive=True),
-                          tab_sal_file_format=True)
+            return decode(read(filepath, "rb", skip_file=False, skip_library=False), tab_sal_file_format=True)
 
     if not skip_file:
         try:
@@ -64,8 +59,8 @@ def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
             pass
 
     if not skip_cif_check and filepath.endswith(".ini"):
-        try:                      return decode(read(filepath[:-4]+".cif", mode="rb", skip_cif_check=True,
-                                                     recursive=True), tab_sal_file_format=False)
+        try:                      return decode(read(filepath[:-4]+".cif", mode="rb", skip_cif_check=True),
+                                                tab_sal_file_format=False)
         except FileNotFoundError: pass
 
     if not skip_library:
