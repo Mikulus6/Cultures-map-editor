@@ -50,7 +50,7 @@ For official developers' website, visit [*Funatics*](https://www.funatics.de/).
 ### Referenced literature
 
 bacter: "[*Unknown Encryption In Cultures Game*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)" (2010)  
-[Siguza](https://github.com/Siguza): "[*Cultures 2 file formats*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)" (2013)  
+[Siguza](https://github.com/Siguza): "[*Cultures 2 file formats*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=10705)" (2013)  
 [FinFET](https://github.com/FinFetChannel): "[*SimplePython3DEngine*](https://github.com/FinFetChannel/SimplePython3DEngine)" (2022)  
 [Remik](https://github.com/kamil0495): "[*CEngine*](https://github.com/kamil0495/CEngine)" (2023)
 
