@@ -53,3 +53,11 @@ bacter: "[*Unknown Encryption In Cultures Game*](https://web.archive.org/web/202
 [Siguza](https://github.com/Siguza): "[*Cultures 2 file formats*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)" (2013)  
 [FinFET](https://github.com/FinFetChannel): "[*SimplePython3DEngine*](https://github.com/FinFetChannel/SimplePython3DEngine)" (2022)  
 [Remik](https://github.com/kamil0495): "[*CEngine*](https://github.com/kamil0495/CEngine)" (2023)
+
+### License
+
+This program and its source code are distributed under [*GNU General Public License 3.0*](https://www.gnu.org/licenses/gpl-3.0.txt),
+which can be found in the [license.txt](license.txt) file. *Cultures* itself
+is the property of [*Funatics Software*](https://www.funatics.de/) with all
+rights reserved as stated in the game credits, and is not covered by the
+aforementioned license.
