@@ -1,6 +1,7 @@
 import pygame
 from math import ceil
 from interface.const import resolution, map_canvas_rect
+from scripts.abs_path import abs_path
 
 button_initial_offset = (2, 2)
 button_tile_size = (24, 24)
@@ -94,7 +95,7 @@ buttons_data = (0, "new", "create new map (Ctrl + N)"),\
 
 def load_buttons(parent_editor):
 
-    tileset = image_to_tileset_dict(pygame.image.load(buttons_tileset_path), button_tile_size,
+    tileset = image_to_tileset_dict(pygame.image.load(abs_path(buttons_tileset_path)), button_tile_size,
                                     tileset_flags=pygame.SRCALPHA)
 
     result_buttons = list()
@@ -113,5 +114,5 @@ def load_buttons(parent_editor):
 
 
 background_path = "assets\\images\\background.png"
-background = pygame.image.load(background_path)
+background = pygame.image.load(abs_path(background_path))
 assert background.size == (resolution[0] - map_canvas_rect[2], resolution[1])

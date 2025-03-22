@@ -1,6 +1,7 @@
 from PIL import Image
 from typing import Literal
 import numpy as np
+from scripts.abs_path import abs_path
 
 
 hexagon_shadow_filepath = "assets/shadows/hexagon.png"
@@ -10,7 +11,7 @@ triangle_b_shadow_filepath = "assets/shadows/triangle_down.png"
 # === hexagonal expansion ===
 
 
-hex_image = Image.open(hexagon_shadow_filepath).convert(mode="RGB")
+hex_image = Image.open(abs_path(hexagon_shadow_filepath)).convert(mode="RGB")
 hex_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in hex_image.getdata()]).reshape(hex_image.size[1],
                                                                                                hex_image.size[0])
 del hex_image
@@ -45,8 +46,8 @@ def expand_image_object_to_hexagons(image_object: Image.Image) -> Image.Image:
 
 # === triangular expansion ===
 
-triangle_a_image = Image.open(triangle_a_shadow_filepath).convert(mode="RGB")
-triangle_b_image = Image.open(triangle_b_shadow_filepath).convert(mode="RGB")
+triangle_a_image = Image.open(abs_path(triangle_a_shadow_filepath)).convert(mode="RGB")
+triangle_b_image = Image.open(abs_path(triangle_b_shadow_filepath)).convert(mode="RGB")
 triangle_a_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in
                               triangle_a_image.getdata()]).reshape(triangle_a_image.size[1], triangle_a_image.size[0])
 triangle_b_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in

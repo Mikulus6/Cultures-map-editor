@@ -4,6 +4,7 @@ import os
 import pygame
 from map import Map
 from math import floor
+from scripts.abs_path import abs_path
 from sections.walk_sector_points import sector_width
 from supplements.animations import animations
 from supplements.textures import patterndefs_textures, transition_textures
@@ -57,7 +58,7 @@ class Editor:
         self.root = pygame.display.set_mode(resolution)
 
         pygame.display.set_caption(window_name)
-        pygame.display.set_icon(pygame.image.load(window_icon_filepath))
+        pygame.display.set_icon(pygame.image.load(abs_path(window_icon_filepath)))
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         self.invisible_landscapes_display = False

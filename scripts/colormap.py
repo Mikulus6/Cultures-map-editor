@@ -1,4 +1,5 @@
 import json
+from scripts.abs_path import abs_path
 
 mstr_colormap_filepath = "assets\\colormaps\\mstr.json"
 mep_colormap_filepath = "assets\\colormaps\\mep.json"  # This color map is based on in-game minimap display, however due
@@ -25,7 +26,7 @@ class ColorMap(dict):
 
 def load_colormap(filepath):
     dict_new = dict()
-    with open(filepath) as file:
+    with open(abs_path(filepath)) as file:
         dict_loaded = json.loads(file.read())
     for key, value in dict_loaded.items():
         dict_new[int(key)] = tuple(value)
@@ -47,6 +48,6 @@ def remove_colormap_from_shorts(list_: list, colormap: ColorMap) -> bytes:
 mstr_colormap = load_colormap(mstr_colormap_filepath)
 mep_colormap = load_colormap(mep_colormap_filepath)
 
-with open(template_editgroups_palette_filepath) as palette_file:
+with open(abs_path(template_editgroups_palette_filepath)) as palette_file:
     template_editgroups_palette = json.loads(palette_file.read())
 template_editgroups_palette = {key: tuple(value) for key, value in template_editgroups_palette.items()}

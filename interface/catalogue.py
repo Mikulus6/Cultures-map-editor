@@ -3,6 +3,7 @@ from math import floor
 from dataclasses import dataclass
 from interface.const import font_antialias, font_color, frame_color
 from interface.projection import draw_projected_triangle
+from scripts.abs_path import abs_path
 from supplements.animations import animations
 from supplements.groups import landscapes_edit_group, pattern_edit_group
 from supplements.landscapedefs import landscapedefs
@@ -25,9 +26,9 @@ icon_margin = 5
 catalogue_background_path = "assets\\images\\catalogue_background.png"
 catalogue_slider_background_path = "assets\\images\\catalogue_slider_background.png"
 catalogue_slider_hand_path = "assets\\images\\catalogue_slider_hand.png"
-catalogue_background = pygame.image.load(catalogue_background_path)
-catalogue_slider_background = pygame.image.load(catalogue_slider_background_path)
-catalogue_slider_hand = pygame.image.load(catalogue_slider_hand_path)
+catalogue_background = pygame.image.load(abs_path(catalogue_background_path))
+catalogue_slider_background = pygame.image.load(abs_path(catalogue_slider_background_path))
+catalogue_slider_hand = pygame.image.load(abs_path(catalogue_slider_hand_path))
 assert catalogue_background.size == catalogue_rect[2:]
 assert catalogue_slider_background.size == catalogue_slider_rect[2:]
 assert catalogue_slider_hand.size == catalogue_slider_hand_size
