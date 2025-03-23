@@ -19,6 +19,12 @@ executable file and `Cultures.exe` file are in the same location.
 Alternatively you can copy `data_l` folder from game files and paste it to
 directory of newly downloaded application.
 
+Optionally, if you want to speed up the program startup you can extract
+`data_l\data_v.lib` library to game's main directory. This way, during the
+initialization process the application will be able to refer directly to
+extracted files rather than searching for them in the relatively large
+library.
+
 Note that when opening the program for the first time it will try to generate
 `cache.bin` file which can take significant time to load. If you  want to skip
 this process you might be able to find this file online, however due to

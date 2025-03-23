@@ -32,6 +32,7 @@ class LoadingVisuals:
         self.root.geometry("300x70")
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW", on_close)
+        self.root.attributes("-topmost", True)
         self.loading_text = tk.StringVar()
         self.estimate_text = tk.StringVar()
         self.closed = False
@@ -122,18 +123,26 @@ class Animations(dict):
         try:
             self.load_cache()
         except FileNotFoundError:
+
+            top = tk.Tk()
+            top.withdraw()
+            top.attributes("-topmost", True)
+
             if messagebox.askyesno("File not found",
                                    "Cache file not found. Do you want to extract bitmaps?\n\n"+\
                                    "This may take a few minutes. If this is your first time using the editor, note "+\
                                    "that this loading process will not happen again as long as cache file remains in "+\
                                    "your files. Alternatively you can try to find pre-generated cache file online.",
-                                   icon="warning"):
-
+                                   icon="warning", parent=top):
+                top.quit()
+                top.destroy()
                 loading_visuals.start()
                 self.load_all_animations(report=report)
                 self.save_cache()
                 loading_visuals.stop()
             else:
+                top.quit()
+                top.destroy()
                 sys_exit()
 
     def load_all_animations(self, *, report=False) -> dict:
