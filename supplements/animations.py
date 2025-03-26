@@ -62,8 +62,6 @@ class LoadingVisuals:
 
 loading_visuals = LoadingVisuals()
 
-default_shading_factor = 128
-
 animations_directory = "data_v\\ve_graphics\\bobmanager"
 
 
@@ -83,7 +81,6 @@ def load_animation(landscape_name) -> Animation:
 
     first_bob = landscape["FirstBob"]
     elements = landscape["Elements"]
-    shading_factor = landscape.get("ShadingFactor", default_shading_factor)
     high_color_shading_mode = landscape.get("HighColorShadingMode", 0)
 
     path_packed = os.path.join(animations_directory, boblibs[0]+".bmd")
@@ -95,7 +92,7 @@ def load_animation(landscape_name) -> Animation:
     bitmap_masked.load(path_masked)
     animation_packed = bitmap_packed.to_animation(remaptable, 255, first_bob, elements,
                                                   high_color_shading_mode, masked_file=False)
-    animation_masked = bitmap_masked.to_animation(remaptable, shading_factor, first_bob, elements,
+    animation_masked = bitmap_masked.to_animation(remaptable, 200, first_bob, elements,
                                                   high_color_shading_mode, masked_file=True)
 
     animation_masked.paste(animation_packed)
