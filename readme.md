@@ -3,11 +3,13 @@
 ## Introduction
 
 Following application is meant to be a tool for map-making process in video
-games  [*Cultures: Discovery of Vinland*](https://www.gog.com/en/game/cultures_12)
-and [*Cultures: The Revenge of the Rain God*](https://www.mobygames.com/game/6100/cultures-die-rache-des-regengottes/).
+games  [*Cultures: Discovery of Vinland*](https://en.wikipedia.org/wiki/Cultures_(video_game)),
+[*Cultures: The Revenge of the Rain God*](https://www.mobygames.com/game/6100/cultures-die-rache-des-regengottes/)
+and [*Cultures Gold*](https://www.mobygames.com/game/37471/cultures-gold/).
 It makes it possible to freely view and modify `*.map` files from 
 mentioned games. Available functionalities are implemented in a way which
-mimics editors present in other games from *Cultures* series.
+mimics editors present in other games from [*Cultures*](https://de.wikipedia.org/wiki/Cultures_(Computerspielreihe))
+series.
 
 ![example](assets/readme/example.png)
 
@@ -22,16 +24,15 @@ directory of newly downloaded application.
 Optionally, if you want to speed up the program startup you can extract
 `data_l\data_v.lib` library to game's main directory. This way, during the
 initialization process the application will be able to refer directly to
-extracted files rather than searching for them in the relatively large
-library.
+extracted files rather than search for them in the relatively large library.
 
 Note that when opening the program for the first time it will try to generate
 `cache.bin` file which can take significant time to load. If you  want to skip
 this process you might be able to find this file online, however due to
 copyright restrictions we do not provide access to such file here.  
 Keep in mind that `cache.bin` files generated for *Cultures: Discovery of
-Vinland* and *Cultures: The Revenge of the Rain God* will contain different
-content and are not interchangeable.
+Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures Gold* will
+contain different content and are not interchangeable.
 
 Remember that the display of terrain and landscapes in the editor might not be
 exactly the same as in the game. Always check important aesthetics by opening
