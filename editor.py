@@ -247,12 +247,12 @@ class Editor:
 
                 elif self.pressed_state[pygame.K_LSHIFT] and self.pressed_state[pygame.K_s]:
                     if not self.pressed_shortcut_last:
-                        self.save()
+                        self.save_as()
                     self.pressed_shortcut_last = True
 
                 elif self.pressed_state[pygame.K_s]:
                     if not self.pressed_shortcut_last:
-                        self.save_as()
+                        self.save()
                     self.pressed_shortcut_last = True
 
                 elif self.pressed_state[pygame.K_z]:

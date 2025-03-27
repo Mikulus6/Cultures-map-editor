@@ -54,7 +54,7 @@ For official developers' website, visit [*Funatics*](https://www.funatics.de/).
 [Tyrannica](https://github.com/ARKAMENTOR): Helped with walk sectors' data visualisation.  
 [Proszak](https://www.facebook.com/PigmentDesignStudio): Drew some of the graphics for user interface.
 
-### Referenced literature
+### Literature
 
 bacter: "[*Unknown Encryption In Cultures Game*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)" (2010)  
 [Siguza](https://github.com/Siguza): "[*Cultures 2 file formats*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=10705)" (2013)  
