@@ -51,11 +51,13 @@ For official developers' website, visit [*Funatics*](https://www.funatics.de/).
 
 [Mikulus](https://github.com/Mikulus6): Managed project and wrote most of Python code.  
 [Basssiiie](https://github.com/Basssiiie): Decompiled important parts of game's engine via Ghidra.  
+Peti: Tested and documented part of textual scripts entries.  
 [Tyrannica](https://github.com/ARKAMENTOR): Helped with walk sectors' data visualisation.  
 [Proszak](https://www.facebook.com/PigmentDesignStudio): Drew some of the graphics for user interface.
 
 ### Literature
 
+[Watto](https://github.com/wattostudios): "[*Game Extractor*](https://www.watto.org/game_extractor.html)" (2004)  
 bacter: "[*Unknown Encryption In Cultures Game*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)" (2010)  
 [Siguza](https://github.com/Siguza): "[*Cultures 2 file formats*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=10705)" (2013)  
 [FinFET](https://github.com/FinFetChannel): "[*SimplePython3DEngine*](https://github.com/FinFetChannel/SimplePython3DEngine)" (2022)  
@@ -66,5 +68,5 @@ bacter: "[*Unknown Encryption In Cultures Game*](https://web.archive.org/web/202
 This program and its source code are distributed under [*GNU General Public License 3.0*](https://www.gnu.org/licenses/gpl-3.0.txt),
 which can be found in the [license.txt](license.txt) file. *Cultures* itself
 is the property of [*Funatics Software*](https://www.funatics.de/) with all
-rights reserved as stated in the game credits, and is not covered by the
+rights reserved as stated in the game manual, and is not covered by the
 aforementioned license.

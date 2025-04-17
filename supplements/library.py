@@ -31,7 +31,8 @@ class Library(dict):
             for filename in files:
                 filepath = os.path.join(root, filename)
                 with open(filepath, "rb") as file:
-                    self[filepath[len(directory) + 1:].replace(os.sep, separator)] = file.read()
+                    self[filepath[len(os.path.join(directory, os.pardir)) + 1:].replace(os.sep,
+                                                                                        separator)] = file.read()
 
     def extract(self, directory: str):
         for filepath, content in self.items():
