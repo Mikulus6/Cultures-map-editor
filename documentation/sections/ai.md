@@ -1,4 +1,4 @@
-[← index](index.md)
+[← index](../index.md)
 
 ## `[AI]`
 | Key                                        | Key meaning                                                                          | Arguments                                                                                                                                      |

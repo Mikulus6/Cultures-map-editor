@@ -17,9 +17,9 @@ series.
 
 After downloading necessary files from [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
 make sure to put them in game's main directory, so that the downloaded
-executable file and `Cultures.exe` file are in the same location.
-Alternatively you can copy `data_l` folder from game files and paste it to
-directory of newly downloaded application.
+executable file `Editor.exe` and game's executable file `Cultures.exe` file
+are in the same location. Alternatively you can copy `data_l` folder from game
+files and paste it to directory of newly downloaded application.
 
 Optionally, if you want to speed up the program startup you can extract
 `data_l\data_v.lib` library to game's main directory. This way, during the
@@ -40,6 +40,21 @@ exactly the same as in the game. Always check important aesthetics by opening
 
 Project was tested on Python 3.13 with all used third party
 libraries being up to date at the moment of publication.
+
+### Supplements
+
+This program supports viewing and modifying only `*.map` files. These are
+files that contain information mainly about terrain, heightmap, landscapes, and
+structures. For more dynamic elements like creatures and buildings, more complex
+matters like missions and bots' behaviour, or more subtle additions like minimap
+and texts, which are all contained in `*.cif`, `*.pcx` and `*.txt` files, it is
+recommended to read our [*documentation*](documentation/index.md) and use
+supplementary converters provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases).
+
+Take into account that these additional files are not directly supported by
+our editor, and it might be necessary for the user to install additional third
+party applications in order to properly read and modify them, namely [*Notepad++*](https://notepad-plus-plus.org/)
+and [*GIMP*](https://www.gimp.org/).
 
 ## Credits
 

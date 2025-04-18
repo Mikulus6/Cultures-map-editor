@@ -1,4 +1,4 @@
-[← index](index.md)
+[← index](../index.md)
 
 ## `[StartUp]`
 | Key                         | Value type | Value meaning |

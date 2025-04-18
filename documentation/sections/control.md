@@ -1,4 +1,4 @@
-[← index](index.md)
+[← index](../index.md)
 
 ## `[Control]`
 | Key                | Value type                 | Value meaning                                                                                         |
