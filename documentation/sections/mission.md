@@ -10,7 +10,7 @@
 | `Type`        | number           | mission initial activity state and completion quantifier   |
 | `AddGoal`     | number \| *      | goal type \| * miscellaneous goal parameters               |
 | `AddResult`   | number \| *      | result type \| * miscellaneous result parameters           |
-| `SetGoalText` | number \| number | goal index \| string ID                                    |
+| `SetGoalText` | number \| number | sub-goal index \| string ID                                |
 
 ### `StartText` `Text`
 

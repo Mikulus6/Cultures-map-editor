@@ -9,7 +9,7 @@
 multiple subdirectories and files within itself. Those files can be found
 inside `data_l` directory present in game files.
 
-Using converters provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+Using `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
 one can freely extract or create `*.lib` files. Historically, [*Game Extractor*](https://www.watto.org/game_extractor.html)
 was used to read those files and might be a considerable choice on old
 operating systems due to its further backward compatibility than tools

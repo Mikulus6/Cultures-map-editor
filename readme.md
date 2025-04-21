@@ -6,7 +6,7 @@ Following application is meant to be a tool for map-making process in video
 games  [*Cultures: Discovery of Vinland*](https://en.wikipedia.org/wiki/Cultures_(video_game)),
 [*Cultures: The Revenge of the Rain God*](https://www.mobygames.com/game/6100/cultures-die-rache-des-regengottes/)
 and [*Cultures Gold*](https://www.mobygames.com/game/37471/cultures-gold/).
-It makes it possible to freely view and modify `*.map` files from 
+It makes it possible to freely view and modify map-related files from 
 mentioned games. Available functionalities are implemented in a way which
 mimics editors present in other games from [*Cultures*](https://de.wikipedia.org/wiki/Cultures_(Computerspielreihe))
 series.
@@ -14,6 +14,8 @@ series.
 ![example](assets/readme/example.png)
 
 ## Installation
+
+### Editor
 
 After downloading necessary files from [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
 make sure to put them in game's main directory, so that the downloaded
@@ -41,20 +43,20 @@ exactly the same as in the game. Always check important aesthetics by opening
 Project was tested on Python 3.13 with all used third party
 libraries being up to date at the moment of publication.
 
-### Supplements
+### Converters
 
-This program supports viewing and modifying only `*.map` files. These are
-files that contain information mainly about terrain, heightmap, landscapes, and
-structures. For more dynamic elements like creatures and buildings, more complex
-matters like missions and bots' behaviour, or more subtle additions like minimap
-and texts, which are all contained in `*.cif`, `*.pcx` and `*.txt` files, it is
-recommended to read our [*documentation*](documentation/index.md) and use
-supplementary converters provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases).
+Main `Editor.exe` application supports viewing and modifying only `*.map`
+files. These are files that contain information mainly about terrain,
+heightmap, landscapes, and structures. For more dynamic elements like
+creatures and buildings, more complex matters like missions and bots'
+behaviour, or more subtle additions like minimap and texts, which are all
+contained in `*.cif`, `*.pcx` and `*.txt` files, it is recommended to use
+supplementary `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+and read [__*documentation*__](documentation/index.md).
 
 Take into account that these additional files are not directly supported by
-our editor, and it might be necessary for the user to install additional third
-party applications in order to properly read and modify them, namely [*Notepad++*](https://notepad-plus-plus.org/)
-and [*GIMP*](https://www.gimp.org/).
+our editor, and it might be necessary for the user to install additional
+third-party applications in order to properly read and modify text and images.
 
 ## Credits
 
