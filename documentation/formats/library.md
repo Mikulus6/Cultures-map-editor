@@ -73,11 +73,11 @@ recommended extraction and removal of libraries.
 
 ### File format
 
-For the algorithm used by provided tools, one can look into python file
+For the algorithm used by the provided tools, one can look into python file
 [*supplements/library.py*](../../supplements/library.py) present in this
 repository. Library file format was firstly documented for Game Extractor's
 specifications of [*Archive_LIB*](https://www.watto.org/specs.html?specs=Archive_LIB)
-plugin. Keep in mind this archive format is correct only for *Cultures:
+plugin. Keep in mind, this archive format is correct only for *Cultures:
 Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures
 Gold*. It is not correct for libraries present in *Cultures 2: The Gates of
 Asgard* or for those present in any newer game released as part of *Cultures*
