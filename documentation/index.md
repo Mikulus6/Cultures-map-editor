@@ -20,6 +20,16 @@ Default text and image editors present on commonly known operating systems
 might not have enough functionalities, as it might be necessary to manually
 change text encoding and to modify a bitmap with indexed colormap.
 
+Each fully functional map consists of five files: `*.cif`, `*txt.cif`,
+`*.map`, `*.pcx` and `*.txt`. For basic ideas standing behind these files one
+is expected to look up on their own how they are structured inside `data_m`
+directory in game's main directory for maps already present in game. If such
+directory is absent, it is necessary to extract it from `data_l\data_m.lib`
+accordingly to documentation specific for `*.lib` file format. Note that
+`*.cif` file format is bidirectionally interchangeable with plain text `*.ini`
+format, what is further described in documentations specific for `*.cif` and
+`*.ini` file formats. 
+
 ## Compendium
 
 ### External programs
@@ -29,11 +39,11 @@ change text encoding and to modify a bitmap with indexed colormap.
 
 ### File formats
 
-- [`*.cif` Cultures initialization file](formats/cultures_initialization.md)
-- [`*.ini` Initialization file]()
-- [`*.lib` Library](formats/library.md)
-- [`*.pcx` Picture exchange]()
-- [`*.txt` Text file]()
+ - [`*.cif` Cultures initialization file](formats/cultures_initialization.md)
+ - [`*.ini` Initialization file](formats/initialization.md)
+ - [`*.lib` Library](formats/library.md)
+ - [`*.pcx` Picture exchange](formats/picture_exchange.md)
+ - [`*.txt` Text file](formats/text.md)
 
 ### Sections
 

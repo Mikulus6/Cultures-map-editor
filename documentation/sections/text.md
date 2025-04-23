@@ -2,10 +2,10 @@
 
 ## `[text]`
 
-| Key  | Value type     | Value meaning                                |
-|:-----|:---------------|:---------------------------------------------|
-| `sn` | number \| text | string ID \| language-dependent string value |
-| `s`  | text           | language-dependent string value              |
+| Key  | Value type        | Value meaning                                |
+|:-----|:------------------|:---------------------------------------------|
+| `sn` | integer \| string | string ID \| language-dependent string value |
+| `s`  | string            | language-dependent string value              |
 
 This `[text]` section should be stored in separated file and linked to main
 file via `TextFile` entry in `[Control]` section.

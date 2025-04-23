@@ -1,21 +1,21 @@
 [← index](../index.md)
 
 ## `[Control]`
-| Key                | Value type                 | Value meaning                                                                                         |
-|:-------------------|:---------------------------|:------------------------------------------------------------------------------------------------------|
-| `TextFile`         | text                       | path to `*.ini` file with strings (relative from `Cultures.exe`)                                      |
-| `Name`             | number                     | ID to map title string                                                                                |
-| `Creator`          | text                       | string with names of map creators                                                                     |
-| `ShortDescription` | text                       | ID to map description string                                                                          |
-| `MapIdentifier`    | number \| number           | number unique for given map \| map version number                                                     |
-| `MapFile`          | text                       | path to `*.map` file with map content                                                                 |
-| `PatternIni`       | text                       | path to `.ini` file with `[PatternDef]` sections (relative from `data_v`)                             |
-| `TexturePath`      | text                       | path to directory with textures contained in `free` and `sys` subdirectories (relative from `data_v`) |
-| `MapSubMode`       | number                     | map gameplay type (based on final goal)                                                               |
-| `NumberOfPlayer`   | number \| number           | always `1` \| sum of human and AI players present on map                                              |
-| `MapMode`          | number \| number \| number | menu tab for map \| campaign / tutorial ID \| campaign / tutorial mission ID                          |
-| `MapPicture`       | text                       | path to `*.pcx` file with map preview (relative from `Cultures.exe`)                                  |
-| `CDAudioTrack`     | number                     | number of music soundtrack                                                                            |
+| Key                | Value type                    | Value meaning                                                                                         |
+|:-------------------|:------------------------------|:------------------------------------------------------------------------------------------------------|
+| `TextFile`         | string                        | path to `*.ini` file with strings (relative from `Cultures.exe`)                                      |
+| `Name`             | integer                       | ID to map title string                                                                                |
+| `Creator`          | string                        | string with names of map creators                                                                     |
+| `ShortDescription` | string                        | ID to map description string                                                                          |
+| `MapIdentifier`    | integer \| integer            | number unique for given map \| map version number                                                     |
+| `MapFile`          | string                        | path to `*.map` file with map content                                                                 |
+| `PatternIni`       | string                        | path to `.ini` file with `[PatternDef]` sections (relative from `data_v`)                             |
+| `TexturePath`      | string                        | path to directory with textures contained in `free` and `sys` subdirectories (relative from `data_v`) |
+| `MapSubMode`       | integer                       | map gameplay type (based on final goal)                                                               |
+| `NumberOfPlayer`   | integer \| integer            | always `1` \| sum of human and AI players present on map                                              |
+| `MapMode`          | integer \| integer \| integer | menu tab for map \| campaign / tutorial ID \| campaign / tutorial mission ID                          |
+| `MapPicture`       | string                        | path to `*.pcx` file with map preview (relative from `Cultures.exe`)                                  |
+| `CDAudioTrack`     | integer                       | number of music soundtrack                                                                            |
 
 ### `MapSubMode`
 

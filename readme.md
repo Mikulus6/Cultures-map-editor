@@ -52,7 +52,7 @@ creatures and buildings, more complex matters like missions and bots'
 behaviour, or more subtle additions like minimap and texts, which are all
 contained in `*.cif`, `*.pcx` and `*.txt` files, it is recommended to use
 supplementary `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
-and read [__*documentation*__](documentation/index.md).
+and read [*documentation*](documentation/index.md).
 
 Take into account that these additional files are not directly supported by
 our editor, and it might be necessary for the user to install additional

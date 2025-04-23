@@ -1,16 +1,16 @@
 [← index](../index.md)
 
 ## `[Mission]`
-| Key           | Value type       | Value meaning                                              |
-|:--------------|:-----------------|:-----------------------------------------------------------|
-| `StartText`   | number           | cutscene played when mission becomes active                |
-| `StartTime`   | number           | duration from start before mission is checked (in seconds) |
-| `Text`        | number           | cutscene played when mission becomes complete              |
-| `Name`        | text             | mission name used as a textual ID in other missions        |
-| `Type`        | number           | mission initial activity state and completion quantifier   |
-| `AddGoal`     | number \| *      | goal type \| * miscellaneous goal parameters               |
-| `AddResult`   | number \| *      | result type \| * miscellaneous result parameters           |
-| `SetGoalText` | number \| number | sub-goal index \| string ID                                |
+| Key           | Value type         | Value meaning                                              |
+|:--------------|:-------------------|:-----------------------------------------------------------|
+| `StartText`   | integer            | cutscene played when mission becomes active                |
+| `StartTime`   | integer            | duration from start before mission is checked (in seconds) |
+| `Text`        | integer            | cutscene played when mission becomes complete              |
+| `Name`        | string             | mission name used as a textual ID in other missions        |
+| `Type`        | integer            | mission initial activity state and completion quantifier   |
+| `AddGoal`     | integer \| *       | goal type \| * miscellaneous goal parameters               |
+| `AddResult`   | integer \| *       | result type \| * miscellaneous result parameters           |
+| `SetGoalText` | integer \| integer | sub-goal index \| string ID                                |
 
 ### `StartText` `Text`
 
