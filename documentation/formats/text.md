@@ -11,7 +11,7 @@ content of `.txt` file.
 
 ### Syntax
 
-// to do
+// to do: <brackets> and newline "\n" symbol
 
 ### Encoding
 

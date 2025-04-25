@@ -5,7 +5,7 @@
 ### Introduction
 
 [Initialization files](https://en.wikipedia.org/wiki/INI_file) are a common
-type of file, which is not exclusive to *Cultures* video games, however
+type of file, which is not exclusive to *Cultures* video games. However,
 syntax-related details are exclusive and vary from regular `*.ini` files
 outside the game's directories. This file type stores plain text and is
 bidirectionally interchangeable with `*.cif` file type. Using `Converters.exe`
