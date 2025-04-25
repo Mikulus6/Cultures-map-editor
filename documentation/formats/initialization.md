@@ -31,7 +31,7 @@ known as *entries*. Each entry can be thought of as an item of dictionary with
 given key and ordered list of values. However, similarly to sections, there can
 be multiple entries with the same key, and they will be differentiated based on
 the order of entries declarations in the section. The key of an entry should
-consist only of lowercase and upercase letters of Latin alphabet. It is written
+consist only of lowercase and uppercase letters of Latin alphabet. It is written
 at the beginning of every line inside all sections. Then, separated by spaces,
 a single value or multiple values are declared. The order of keys and values
 are significant for various purposes.

@@ -33,10 +33,10 @@ it comes to loading those files by the game.
 
 Take for example the file `game.cif` present in game's main directory. Upon
 game initialization there will be performed the following searches of this
-file: 
+file:
 1. Find `game.cif`. If present, load it with the decoded cipher and end the
    search. Otherwise, go to the next point.
-2. Find `game.ini`. Load it. Apply the cipher to the loaded file and save it 
+2. Find `game.ini`. Load it. Apply the cipher to the loaded file and save it
    as `game.cif`.
 
 Note that capitalization of paths and names is not important.
@@ -53,6 +53,6 @@ first broken by bacter and documented on
 [XeNTaX forum](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711).
 Keep in mind, the exact specifications of this algorithm are the same only for
 *Cultures: Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and
-*Cultures Gold*. There is another slighlty different version of this file
+*Cultures Gold*. There is another slightly different version of this file
 format used in *Cultures 2: The Gates of Asgard* and in most of newer game
 released as part of the *Cultures* series.

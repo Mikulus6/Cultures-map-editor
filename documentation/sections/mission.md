@@ -14,9 +14,9 @@
 
 ### `StartText` `Text`
 
-|     cutscene ID      | Value meaning                                                                                             |
-|:--------------------:|:----------------------------------------------------------------------------------------------------------|
-| `XXXXXX`<sup>1</sup> | Cutscene stored in filepath `data_m\c1_txt\c1_fhll\txt_XXXXXX.txt`<sup>1</sup> relative to `Cultures.exe` |
+|     cutscene ID      | Value meaning                                                                                              |
+|:--------------------:|:-----------------------------------------------------------------------------------------------------------|
+| `XXXXXX`<sup>1</sup> | Cutscene stored in file path `data_m\c1_txt\c1_fhll\txt_XXXXXX.txt`<sup>1</sup> relative to `Cultures.exe` |
 ↑ <sup>1</sup>Where `XXXXXX` are any six decimal digits.
 
 ### `Type`
@@ -37,7 +37,7 @@
 |:---------:|:-------------------------------------------------------|-------------------------------------------------------|
 |    `0`    | Trade with player.                                     | acting player \| target player \| item \| item count  |
 |    `1`    | Check is player killed.                                | player                                                |
-|    `2`    | Collect goods.                                         | plyaer \| item \| item count                          |
+|    `2`    | Collect goods.                                         | player \| item \| item count                          |
 |    `3`    | Collect goods in building.                             | x \| y \| item \| item count                          |
 |    `4`    | Build specific building in area.                       | player \| x \| y \| radius \| building type           |
 |    `5`    | Build any building in area.                            | player \| x \| y \| radius                            |
