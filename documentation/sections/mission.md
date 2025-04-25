@@ -63,21 +63,21 @@
 
 ### `AddResult`
 
-| Result type | Type meaning                                                               | Arguments                                       |
-|:-----------:|:---------------------------------------------------------------------------|-------------------------------------------------|
-|     `0`     | Fail mission.                                                              | -                                               |
-|     `1`     | Win mission.                                                               | campaign mission id to unlock \| campaign id    |
-|     `2`     | Win mission and play cutscene. (*Discovery of Vinland*)                    | -                                               |
-|     `3`     | Set diplomacy to friendly.                                                 | acting player \| target player                  |
-|     `4`     | Set diplomacy to neutral.                                                  | acting player \| target player                  |
-|     `5`     | Set diplomacy to enemy.                                                    | acting player \| target player                  |
-|     `6`     | Unlock building.                                                           | player \| building type                         |
-|     `7`     | Unlock job.                                                                | player \| job type                              |
-|     `8`     | Disable mission.                                                           | mission name                                    |
-|     `9`     | Enable mission and set its type.                                           | mission name \| mission type                    |
-|    `10`     | Explore area.                                                              | x \| y \| radius                                |
-|    `11`     | Change active AI condition.                                                | [?]                                             |
-|    `12`     | Spawn units.<sup>2</sup>                                                   | x \| y \| player \| job type \| number of units |
-|    `13`     | Win mission and play cutscene.<sup>2</sup> (*The Revenge of the Rain God*) | -                                               |
+| Result type | Type meaning                                                               | Arguments                                                        |
+|:-----------:|:---------------------------------------------------------------------------|------------------------------------------------------------------|
+|     `0`     | Fail mission.                                                              | -                                                                |
+|     `1`     | Win mission.                                                               | campaign mission id to unlock \| campaign id                     |
+|     `2`     | Win mission and play cutscene. (*Discovery of Vinland*)                    | -                                                                |
+|     `3`     | Set diplomacy to friendly.                                                 | acting player \| target player                                   |
+|     `4`     | Set diplomacy to neutral.                                                  | acting player \| target player                                   |
+|     `5`     | Set diplomacy to enemy.                                                    | acting player \| target player                                   |
+|     `6`     | Unlock building.                                                           | player \| building type                                          |
+|     `7`     | Unlock job.                                                                | player \| job type                                               |
+|     `8`     | Disable mission.                                                           | mission name                                                     |
+|     `9`     | Enable mission and set its type.                                           | mission name \| mission type                                     |
+|    `10`     | Explore area.                                                              | x \| y \| radius                                                 |
+|    `11`     | Change active AI condition.                                                | must be `1` \| player \| condition id \| enable(1) or disable(0) |
+|    `12`     | Spawn units.<sup>2</sup>                                                   | x \| y \| player \| job type \| number of units                  |
+|    `13`     | Win mission and play cutscene.<sup>2</sup> (*The Revenge of the Rain God*) | -                                                                |
 
 ↑ <sup>2</sup> Exclusive for *Cultures: The Revenge of the Rain God*
