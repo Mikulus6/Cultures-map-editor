@@ -71,8 +71,8 @@
 |     `3`     | Set diplomacy to friendly.                                                 | acting player \| target player                                   |
 |     `4`     | Set diplomacy to neutral.                                                  | acting player \| target player                                   |
 |     `5`     | Set diplomacy to enemy.                                                    | acting player \| target player                                   |
-|     `6`     | Unlock building.                                                           | player \| building type                                          |
-|     `7`     | Unlock job.                                                                | player \| job type                                               |
+|     `6`     | Unlock building in tech tree.                                              | player \| building type<sup>3</sup>                              |
+|     `7`     | Unlock job in school.                                                      | player \| job type<sup>4</sup>                                   |
 |     `8`     | Disable mission.                                                           | mission name                                                     |
 |     `9`     | Enable mission and set its type.                                           | mission name \| mission type                                     |
 |    `10`     | Explore area.                                                              | x \| y \| radius                                                 |
@@ -81,3 +81,7 @@
 |    `13`     | Win mission and play cutscene.<sup>2</sup> (*The Revenge of the Rain God*) | -                                                                |
 
 ↑ <sup>2</sup> Exclusive for *Cultures: The Revenge of the Rain God*
+
+↑ <sup>3</sup> Only building ids are supported, in order of appearance in the `houses.cif` file.
+
+↑ <sup>4</sup> Limited to job types 0-48.
