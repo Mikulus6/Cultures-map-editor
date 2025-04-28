@@ -1,16 +1,16 @@
 [← index](../index.md)
 
 ## `[Mission]`
-| Key           | Value type         | Value meaning                                              |
-|:--------------|:-------------------|:-----------------------------------------------------------|
-| `StartText`   | integer            | cutscene played when mission becomes active                |
-| `StartTime`   | integer            | duration from start before mission is checked (in seconds) |
-| `Text`        | integer            | cutscene played when mission becomes complete              |
-| `Name`        | string             | mission name used as a textual ID in other missions        |
-| `Type`        | integer            | mission initial activity state and completion quantifier   |
-| `AddGoal`     | integer \| *       | goal type \| * miscellaneous goal parameters               |
-| `AddResult`   | integer \| *       | result type \| * miscellaneous result parameters           |
-| `SetGoalText` | integer \| integer | sub-goal index \| string ID                                |
+| Key           | Arguments                                        | Value meaning                                                  |
+|:--------------|:-------------------------------------------------|:---------------------------------------------------------------|
+| `StartText`   | cutscene id                                      | cutscene played when mission becomes active                    |
+| `StartTime`   | seconds                                          | duration from start before mission is checked (in seconds)     |
+| `Text`        | cutscene id                                      | cutscene played when mission becomes complete                  |
+| `Name`        | string                                           | mission name used as a textual ID in other missions            |
+| `Type`        | mission type                                     | mission initial activity state and completion quantifier       |
+| `AddGoal`     | goal type \| * miscellaneous goal parameters     | see [AddGoal](#addgoal) chapter                                |
+| `AddResult`   | result type \| * miscellaneous result parameters | see [AddResult](#addresult) chapter                            |
+| `SetGoalText` | `AddGoal` index \| string id                     | goal text will be completed if this specific goal is completed |
 
 ### `StartText` `Text`
 
