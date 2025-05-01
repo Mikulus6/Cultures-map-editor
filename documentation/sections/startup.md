@@ -1,33 +1,33 @@
 [← index](../index.md)
 
 ## `[StartUp]`
-| Key                         | Value type | Value meaning |
-|:----------------------------|:-----------|:--------------|
-| `StartPos`                  |            |               |
-| `Tribe`                     |            |               |
-| `NameTribe`                 |            |               |
-| `NameChief`                 |            |               |
-| `PureAIPlayer`              |            |               |
-| `NameDescription`           |            |               |
-| `PlayerColor`               |            |               |
-| `SetCreature`               |            |               |
-| `SetCreatureName`           |            |               |
-| `SetHouse`                  |            |               |
-| `AddHouseStock`             |            |               |
-| `SetCreatureHome`           |            |               |
-| `SetCreatureWork`           |            |               |
-| `SetCreaturePartner`        |            |               |
-| `SetTradeOffer`             |            |               |
-| `SetMilestone`              |            |               |
-| `ConnectMilestones`         |            |               |
-| `AllowHouse`                |            |               |
-| `AllowJob`                  |            |               |
-| `ForbidHouse`               |            |               |
-| `ForbidJob`                 |            |               |
-| `ExploreMap`                |            |               |
-| `SetDiplomacy`              |            |               |
-| `Particles_AddFishes`       |            |               |
-| `Particles_AddBirds`        |            |               |
-| `MultiplayerTradingGoal`    |            |               |
-| `MultiplayerPopulationGoal` |            |               |
-| `MultiplayerBriefings`      |            |               |
+| Key                         | Value type                                                                | Arguments                                                                                           | Arguments meaning                                                               |
+|:----------------------------|:--------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------|
+| `StartPos`                  | integer \| integer \| integer                                             | player \| x \| y                                                                                    | Set starting camera positon for given player.                                   |
+| `Tribe`                     | integer \| integer                                                        | player \| tribe                                                                                     | Set tribe type for given player.                                                |
+| `NameTribe`                 | integer \| integer                                                        | player \| string ID                                                                                 | Set tribe name visible in diplomacy window for given player.                    |
+| `NameChief`                 | integer \| integer                                                        | player \| string ID                                                                                 | Set chief name visible in diplomacy window for given player.                    |
+| `PureAIPlayer`              | integer                                                                   | player                                                                                              | Disable multiplayer selectability.                                              |
+| `NameDescription`           | integer \| integer                                                        | player \| string ID                                                                                 | Set tribe description invisible in game for given player.                       |
+| `PlayerColor`               | integer \| integer                                                        | player \| color                                                                                     | Set color for given player.                                                     |
+| `SetCreature`               | integer \| integer \| integer \| integer \| integer                       | player \| job type \| x \| y \| [?]                                                                 | Set ceature for given player with given job on given position.                  |
+| `SetCreatureName`           | integer \| integer \| integer                                             | x \| y \| string ID                                                                                 | Set name of creature on given starting positoin.                                |
+| `SetHouse`                  | integer \| string \| integer \| integer \| integer                        | player \| building type \| x \| y \| state                                                          | Set building for given player on given position with given state of completion. |                                                               |
+| `AddHouseStock`             | integer \| integer \| string \| integer                                   | x \| y \| item \| item count                                                                        | Add goods to building on given position.                                        |
+| `SetCreatureHome`           | integer \| integer \| integer \| integer                                  | x (creature) \| y (creature) \| x (home) \| y (home)                                                | Assign creature to home by given positions.                                     |
+| `SetCreatureWork`           | integer \| integer \| integer \| integer                                  | x (creature) \| y (creature) \| x (work) \| y (work)                                                | Assign creature to workplace by given positions.                                |
+| `SetCreaturePartner`        | integer \| integer \| integer \| integer                                  | x<sub>1</sub> \| y<sub>1</sub> \| x<sub>2</sub> \| y<sub>2</sub>                                    | Marry two creatures on given position.                                          |
+| `SetTradeOffer`             | integer \| integer \| integer \| integer \| integer \| integer \| integer | x \| y \| trade index \| item offered \| item offered count \| item demanded \| item demanded count | Create trade offer in building on given position with specified goods.          |
+| `SetMilestone`              | integer \| integer \| integer                                             | player \| x \| y                                                                                    | Set signpost for given player on given coordinates.                             |
+| `ConnectMilestones`         | integer \| integer \| integer \| integer                                  | x<sub>1</sub> \| y<sub>1</sub> \| x<sub>2</sub> \| y<sub>2</sub>                                    | Connect signposts on given positions.                                           |
+| `AllowHouse`                | integer \| string                                                         | player \| building type                                                                             | Unlock given building for given player.                                         |
+| `AllowJob`                  |                                                                           |                                                                                                     |                                                                                 |
+| `ForbidHouse`               | integer \| string                                                         | player \| building type                                                                             | Block given building for given player.                                          |
+| `ForbidJob`                 | integer \| integer                                                        | player \| job type                                                                                  | Block given job for given player.                                               |
+| `ExploreMap`                | integer \| integer \| integer \| integer                                  | player \| x \| y \| radius                                                                          | Explore area for given player.                                                  |
+| `SetDiplomacy`              | integer \| integer \| integer                                             | acting player \| target player \| diplomacy status                                                  | Set diplomacy status of acting player toward target player.                     |
+| `Particles_AddFishes`       | float \| float \| int \| float \| float                                   | [?] \| [?] \| number of fishes \| [?] \| [?]                                                        |                                                                                 |
+| `Particles_AddBirds`        | float \| float \| int \| float \| float                                   | [?] \| [?] \| [?] \| [?] \| [?]                                                                     |                                                                                 |
+| `MultiplayerTradingGoal`    | integer \| integer                                                        | item \| item count                                                                                  | Set production goal for multiplayer game.                                       |
+| `MultiplayerPopulationGoal` | integer                                                                   | population                                                                                          | Set population goal for multiplayer game.                                       |
+| `MultiplayerBriefings`      | integer \| integer                                                        | text file digits (start) \| text file digits (end)                                                  | Set briefings for beginning and ending of multiplayer map.                      |
