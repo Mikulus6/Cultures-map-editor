@@ -17,6 +17,7 @@
 |     cutscene ID      | Value meaning                                                                                              |
 |:--------------------:|:-----------------------------------------------------------------------------------------------------------|
 | `XXXXXX`<sup>1</sup> | Cutscene stored in file path `data_m\c1_txt\c1_fhll\txt_XXXXXX.txt`<sup>1</sup> relative to `Cultures.exe` |
+
 ↑ <sup>1</sup>Where `XXXXXX` are any six decimal digits.
 
 ### `Type`
