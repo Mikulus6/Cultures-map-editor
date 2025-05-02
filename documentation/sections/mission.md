@@ -1,16 +1,16 @@
 [← index](../index.md)
 
 ## `[Mission]`
-| Key           | Arguments                                        | Value meaning                                                  |
-|:--------------|:-------------------------------------------------|:---------------------------------------------------------------|
-| `StartText`   | cutscene id                                      | cutscene played when mission becomes active                    |
-| `StartTime`   | seconds                                          | duration from start before mission is checked (in seconds)     |
-| `Text`        | cutscene id                                      | cutscene played when mission becomes complete                  |
-| `Name`        | string                                           | mission name used as a textual ID in other missions            |
-| `Type`        | mission type                                     | mission initial activity state and completion quantifier       |
-| `AddGoal`     | goal type \| * miscellaneous goal parameters     | see [AddGoal](#addgoal) chapter                                |
-| `AddResult`   | result type \| * miscellaneous result parameters | see [AddResult](#addresult) chapter                            |
-| `SetGoalText` | `AddGoal` index \| string id                     | goal text will be completed if this specific goal is completed |
+| Key           | Value type         | Arguments                                        | Arguments meaning                                          |
+|:--------------|--------------------|:-------------------------------------------------|:-----------------------------------------------------------|
+| `StartText`   | integer            | cutscene ID                                      | cutscene played when mission becomes active                |
+| `StartTime`   | integer            | seconds                                          | duration from start before mission is checked (in seconds) |
+| `Text`        | integer            | cutscene ID                                      | cutscene played when mission becomes complete              |
+| `Name`        | string             | mission name                                     | mission name used as a textual ID in other missions        |
+| `Type`        | integer            | mission type                                     | mission initial activity state and completion quantifier   |
+| `AddGoal`     | integer \| *       | goal type \| * miscellaneous goal parameters     | mission goal (see [`AddGoal`](#AddGoal) for details)       |
+| `AddResult`   | integer \| *       | result type \| * miscellaneous result parameters | mission result (see [`AddResult`](#AddResult) details)     |
+| `SetGoalText` | integer \| integer | sub-goal index \| string ID                      | goal text visible in mission briefings menu in game        |
 
 ### `StartText` `Text`
 
@@ -34,55 +34,68 @@
 
 ### `AddGoal`
 
-| Goal type | Type meaning                                        | Arguments                                                 |
-|:---------:|:----------------------------------------------------|-----------------------------------------------------------|
-|    `0`    | Trade with player.                                  | acting player \| target player \| good type \| good count |
-|    `1`    | Check is player killed.                             | player                                                    |
-|    `2`    | Collect goods.                                      | player \| good type \| good count                         |
-|    `3`    | Collect goods in house.                             | x \| y \| good type \| good count                         |
-|    `4`    | Build specific house in area.                       | player \| x \| y \| radius \| house type                  |
-|    `5`    | Build any house in area.                            | player \| x \| y \| radius                                |
-|    `6`    | Build multiple instances of specific house in area. | player \| house type \| number of houses                  |
-|    `7`    | Check is another mission completed.                 | mission name                                              |
-|    `8`    | Reach population.                                   | player \| population                                      |
-|    `9`    | Build any house by player.                          | player                                                    |
-|   `10`    | Find player by player.                              | acting player \| target player                            |
-|   `11`    | Check is diplomacy set to friendly.                 | acting player \| target player                            |
-|   `12`    | Check is diplomacy set to enemy.                    | acting player \| target player                            |
-|   `13`    | Start trading with player.                          | acting player \| target player                            |
-|   `14`    | Unlock job.                                         | player \| job type                                        |
-|   `15`    | Place any construction site in area.                | player \| x \| y \| radius                                |
-|   `16`    | Destroy number of houses.                           | acting player \| target player \| number of houses        |
-|   `17`    | Kill number of units.                               | acting player \| target player \| number of units         |
-|   `18`    | Assign houses to given number of units.             | player \| number of units                                 |
-|   `19`    | Check is area explored by player.                   | player \| x \| y \| radius                                |
-|   `20`    | Place signpost in area.                             | player \| x \| y \| radius                                |
-|   `21`    | Train total number of soldiers.                     | player \| number of soldiers                              |
-|   `22`    | Wait time.                                          | duration (in seconds)                                     |
-|   `23`    | [?]<sup>2</sup>                                     |                                                           |
-|   `24`    | [?]<sup>2</sup>                                     | -                                                         |
+| Goal type | Value type                                          | Arguments                                                 | Arguments meaning                                   |
+|:---------:|-----------------------------------------------------|-----------------------------------------------------------|:----------------------------------------------------|
+|    `0`    | integer \| integer \| integer \| integer \| integer | acting player \| target player \| good type \| good count | Trade with player.                                  |
+|    `1`    | integer                                             | player                                                    | Check is player killed.                             |
+|    `2`    | integer \| integer \| integer                       | player \| good type \| good count                         | Collect goods.                                      |
+|    `3`    | integer \| integer \| integer \| integer            | x \| y \| good type \| good count                         | Collect goods in house.                             |
+|    `4`    | integer \| integer \| integer \| integer \| string  | player \| x \| y \| radius \| house type                  | Build specific house in area.                       |
+|    `5`    | integer \| integer \| integer \| integer            | player \| x \| y \| radius                                | Build any house in area.                            |
+|    `6`    | integer \| string \| integer                        | player \| house type \| number of houses                  | Build multiple instances of specific house in area. |
+|    `7`    | string                                              | mission name                                              | Check is another mission completed.                 |
+|    `8`    | integer \| integer                                  | player \| population                                      | Reach population.                                   |
+|    `9`    | integer                                             | player                                                    | Build any house by player.                          |
+|   `10`    | integer \| integer                                  | acting player \| target player                            | Find player by player.                              |
+|   `11`    | integer \| integer                                  | acting player \| target player                            | Check is diplomacy set to friendly.                 |
+|   `12`    | integer \| integer                                  | acting player \| target player                            | Check is diplomacy set to enemy.                    |
+|   `13`    | integer \| integer                                  | acting player \| target player                            | Start trading with player.                          |
+|   `14`    | integer \| integer                                  | player \| job type                                        | Unlock job.                                         |
+|   `15`    | integer \| integer \| integer \| integer            | player \| x \| y \| radius                                | Place any construction site in area.                |
+|   `16`    | integer \| integer \| integer                       | acting player \| target player \| number of houses        | Destroy number of houses.                           |
+|   `17`    | integer \| integer \| integer                       | acting player \| target player \| number of units         | Kill number of units.                               |
+|   `18`    | integer \| integer                                  | player \| number of units                                 | Assign houses to given number of units.             |
+|   `19`    | integer \| integer \| integer \| integer            | player \| x \| y \| radius                                | Check is area explored by player.                   |
+|   `20`    | integer \| integer \| integer \| integer            | player \| x \| y \| radius                                | Place signpost in area.                             |
+|   `21`    | integer \| integer                                  | player \| number of soldiers                              | Train total number of soldiers.                     |
+|   `22`    | integer \| integer                                  | duration (in seconds)                                     | Wait time.                                          |
+|   `23`    |                                                     |                                                           | [?]<sup>2</sup>                                     |
+|   `24`    |                                                     | -                                                         | [?]<sup>2</sup>                                     |
 
 ### `AddResult`
 
-| Result type | Type meaning                                                               | Arguments                                                        |
-|:-----------:|:---------------------------------------------------------------------------|------------------------------------------------------------------|
-|     `0`     | Fail mission.                                                              | -                                                                |
-|     `1`     | Win mission.                                                               | campaign mission id to unlock \| campaign id                     |
-|     `2`     | Win mission and play cutscene. (*Discovery of Vinland*)                    | -                                                                |
-|     `3`     | Set diplomacy to friendly.                                                 | acting player \| target player                                   |
-|     `4`     | Set diplomacy to neutral.                                                  | acting player \| target player                                   |
-|     `5`     | Set diplomacy to enemy.                                                    | acting player \| target player                                   |
-|     `6`     | Unlock house in tech tree.                                                 | player \| house type<sup>3</sup>                                 |
-|     `7`     | Unlock job in school.                                                      | player \| job type<sup>4</sup>                                   |
-|     `8`     | Disable mission.                                                           | mission name                                                     |
-|     `9`     | Enable mission and set its type.                                           | mission name \| mission type                                     |
-|    `10`     | Explore area.                                                              | x \| y \| radius                                                 |
-|    `11`     | Change active AI condition.                                                | must be `1` \| player \| condition id \| enable(1) or disable(0) |
-|    `12`     | Spawn units.<sup>2</sup>                                                   | x \| y \| player \| job type \| number of units                  |
-|    `13`     | Win mission and play cutscene.<sup>2</sup> (*The Revenge of the Rain God*) | -                                                                |
+| Result type | Value type                                          | Arguments                                       | Arguments meaning                                                           |
+|:-----------:|-----------------------------------------------------|-------------------------------------------------|:----------------------------------------------------------------------------|
+|     `0`     | -                                                   | -                                               | Fail mission.                                                               |
+|     `1`     | integer \| integer                                  | campaign mission ID to unlock \| campaign ID    | Win mission.                                                                |
+|     `2`     | -                                                   | -                                               | Exit mission and play cutscene. (*Discovery of Vinland*)                    |
+|     `3`     | integer \| integer                                  | acting player \| target player                  | Set diplomacy to friendly.                                                  |
+|     `4`     | integer \| integer                                  | acting player \| target player                  | Set diplomacy to neutral.                                                   |
+|     `5`     | integer \| integer                                  | acting player \| target player                  | Set diplomacy to enemy.                                                     |
+|     `6`     | integer \| integer                                  | player \| house definition index<sup>3</sup>    | Unlock house.                                                               |
+|     `7`     | integer \| integer                                  | player \| job type<sup>4</sup>                  | Unlock job.                                                                 |
+|     `8`     | string                                              | mission name                                    | Disable mission.                                                            |
+|     `9`     | string \| integer                                   | mission name \| mission type                    | Enable mission and set its type.                                            |
+|    `10`     | integer \| integer \| integer                       | x \| y \| radius                                | Explore area.                                                               |
+|    `11`     | integer \| integer \| integer \| integer            | always `1` \| player \| condition \| activity   | Change activity state of AI condition.                                      |
+|    `12`     | integer \| integer \| integer \| integer \| integer | x \| y \| player \| job type \| number of units | Spawn units.<sup>2</sup>                                                    |
+|    `13`     | -                                                   | -                                               | Exit mission and play cutscene.<sup>2</sup> (*The Revenge of the Rain God*) |
 
-↑ <sup>2</sup> Exclusive for *Cultures: The Revenge of the Rain God*
+↑ <sup>2</sup> Exclusive for *Cultures: The Revenge of the Rain God*  
+↑ <sup>3</sup> House definition index is the number of relevant `House`
+section in `data_v\ve_graphics\houses\houses.cif` file fould after extracting
+`data_l\data_v.lib` library. Indices are counted from zero.  
+↑ <sup>4</sup> Limited to job types ranging from `0` to `48`.
 
-↑ <sup>3</sup> Only houses ids are supported, in order of appearance in the `houses.cif` file.
+### Modifiable `data_v` values
 
-↑ <sup>4</sup> Limited to job types 0-48.
+Multiple values of specific types for `Mission` section can be found in
+`*.cif` files after extracting `data_l\data_v.lib` library to game's main
+directory. For more details check documentation specific for [`*.lib`](../formats/library.md),
+[`*.cif`](../formats/cultures_initialization.md) and [`*.ini`](../formats/initialization.md) files.
+
+| Type       | Path                                                       | Section        | Key         |
+|:-----------|:-----------------------------------------------------------|:---------------|:------------|
+| job type   | `data_v\ve_graphics\creatures\z_creature_descriptions.cif` | `CreatureType` | `MasterJob` |
+| house type | `data_v\ve_graphics\houses\houses.cif`                     | `House`        | `Name`      |
+| good type  | `data_v\ve_graphics\goods\goods.cif`                       | `Good`         | `Type`      |
