@@ -84,6 +84,5 @@ directory. For more details check documentation specific for [`*.lib`](../format
 |        Value         | Value meaning                                                                                              |
 |:--------------------:|:-----------------------------------------------------------------------------------------------------------|
 | `XXXXXX`<sup>4</sup> | Cutscene stored in file path `data_m\c1_txt\c1_fhll\txt_XXXXXX.txt`<sup>4</sup> relative to `Cultures.exe` |
+
 ↑ <sup>4</sup>Where `XXXXXX` are any six decimal digits.
-
-
