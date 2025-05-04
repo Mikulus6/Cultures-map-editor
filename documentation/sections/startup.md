@@ -26,8 +26,8 @@
 | `ForbidJob`                 | integer \| integer                                                        | player \| job type                                                                                                          | Block given job for given player.                                                                                          |
 | `ExploreMap`                | integer \| integer \| integer \| integer                                  | player \| x \| y \| radius                                                                                                  | Explore area for given player.                                                                                             |
 | `SetDiplomacy`              | integer \| integer \| integer                                             | acting player \| target player \| diplomacy status                                                                          | Set diplomacy status of acting player toward target player.                                                                |
-| `Particles_AddFishes`       | float \| float \| int \| float \| float                                   | x \| y \| quantity \| linear speed factor \| exponential speed factor                                                       | Set fish particles in specified quantity on given position. Speed of each fish is determined by speed factors<sup>3</sup>. |
-| `Particles_AddBirds`        | float \| float \| int \| float \| float                                   | x \| y \| quantity \| linear speed factor \| exponential speed factor                                                       | Set bird particles in specified quantity on given position. Speed of each bird is determined by speed factors<sup>3</sup>. |
+| `Particles_AddFishes`       | float \| float \| int \| float \| float                                   | x \| y \| quantity \| linear speed factor \| power speed factor                                                             | Set fish particles in specified quantity on given position. Speed of each fish is determined by speed factors<sup>3</sup>. |
+| `Particles_AddBirds`        | float \| float \| int \| float \| float                                   | x \| y \| quantity \| linear speed factor \| power speed factor                                                             | Set bird particles in specified quantity on given position. Speed of each bird is determined by speed factors<sup>3</sup>. |
 | `MultiplayerTradingGoal`    | integer \| integer                                                        | good type \| good count                                                                                                     | Set production goal for multiplayer game.                                                                                  |
 | `MultiplayerPopulationGoal` | integer                                                                   | population                                                                                                                  | Set population goal for multiplayer game.                                                                                  |
 | `MultiplayerBriefings`      | integer \| integer                                                        | cutscene ID (start) \| cutscene ID (end)                                                                                    | Set briefings for beginning and ending of multiplayer map.                                                                 |
@@ -35,9 +35,9 @@
 ↑ <sup>1</sup>These coordinates must satisfy the following equation: `y mod 4 = 2·(x mod 2)`  
 ↑ <sup>2</sup>Goods quatities in trade offers cannot exceed the value `8`,
 otherwise the trade offer will not work correctly.   
-↑ <sup>3</sup>Speed of `n`-th particle-related animal is proportional to
-formula `A·nᴮ`, where `A` is the linear speed factor and `B` is the
-exponential speed factor.  
+↑ <sup>3</sup>Speed of `n`-th particle-related animal (counting `n` from zero)
+is proportional to formula `A·Bⁿ`, where `A` is the linear speed factor and
+`B` is the power speed factor.  
 
 ### Modifiable `data_v` values
 

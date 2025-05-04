@@ -54,5 +54,5 @@ first broken by bacter and documented on
 Keep in mind, the exact specifications of this algorithm are the same only for
 *Cultures: Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and
 *Cultures Gold*. There is another slightly different version of this file
-format used in *Cultures 2: The Gates of Asgard* and in most of newer game
+format used in *Cultures 2: The Gates of Asgard* and in most of newer games
 released as part of the *Cultures* series.
