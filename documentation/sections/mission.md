@@ -59,7 +59,7 @@
 |   `21`    | integer \| integer                                  | player \| number of soldiers                              | Train total number of soldiers.                                          |
 |   `22`    | integer \| integer                                  | duration (in seconds)                                     | Wait time.                                                               |
 |   `23`    | integer \| integer                                  | x \| y                                                    | Let creature initialized on given position die or be killed.<sup>2</sup> |
-|   `24`    | -                                                   | -                                                         | Obtain any hireling creature<sup>3</sup> by player zero. <sup>2</sup>    |
+|   `24`    | -                                                   | -                                                         | Obtain any hireling creature<sup>3</sup> by player zero.<sup>2</sup>     |
 
 ### `AddResult`
 
