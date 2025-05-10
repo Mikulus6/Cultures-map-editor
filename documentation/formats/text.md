@@ -11,10 +11,17 @@ content of `.txt` file.
 
 ### Syntax
 
-// to do: <brackets> and newline "\n" symbol
+Text files present in *Cultures* corresponds to in-game briefings, which are
+commonly known as yellowed papers usually containing a part of story relevant
+to the gameplay. It is possible to include in such texts custom images, fonts
+and other parameters typical of text formatting tools. For this purpose, text
+files use keyword-value pairs denoted as `<keyword:value>`. All possible
+keywords are available in the [briefings keywords](../briefings/text.md)
+documentation. There is no special syntax for values, as they are just text.
+However, it is common for integers to be separated by commas. Additionally,
+new lines can be denoted as `\n`.
 
 ### Encoding
-
 
 When writing non-[ASCII](https://en.wikipedia.org/wiki/ASCII) characters in
 `*.txt` files it is important to use [Windows-1252](https://en.wikipedia.org/wiki/Windows-1252)
