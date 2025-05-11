@@ -181,5 +181,8 @@ class RemapTables:
 remaptable_default = RemapTable()
 remaptable_default.pack(remaptable_defalut_path, bitmap_shape=(4, 4))
 
+remaptable_direct = RemapTable()
+remaptable_direct.palette = ColorMap({x : (x, x, x) for x in range(256)})
+
 remaptables = RemapTables()
 remaptables.load()
