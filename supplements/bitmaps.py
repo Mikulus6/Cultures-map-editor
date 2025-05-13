@@ -76,7 +76,7 @@ class Frame:
 class Bitmap(dict):
     def __init__(self):
         super().__init__()
-        self.font_metadata = [0, 0]  # Important only for *.fnt files.
+        self.font_size = 0
 
     def load(self, filename: str, font_header=False):
 
@@ -87,8 +87,8 @@ class Bitmap(dict):
 
         if font_header:
             assert buffer.unsigned(length=4) == 40
-            self.font_metadata[0] = buffer.unsigned(length=2)
-            self.font_metadata[1] = buffer.unsigned(length=2)
+            buffer.unsigned(length=2)
+            self.font_size = buffer.unsigned(length=2)
 
         assert buffer.unsigned(length=4) == 25
         buffer.unsigned(4)
@@ -233,8 +233,8 @@ class Bitmap(dict):
 
         if font_header:
             buffer_header.unsigned(40, length=4)
-            buffer_header.unsigned(self.font_metadata[0], length=2)
-            buffer_header.unsigned(self.font_metadata[1], length=2)
+            buffer_header.unsigned(0, length=2)  # Unknown value, no direct connection to display was found.
+            buffer_header.unsigned(self.font_size, length=2)
 
         buffer_header.unsigned(25, length=4)
         buffer_header.unsigned(0, length=4)
@@ -411,7 +411,7 @@ class Bitmap(dict):
         animation.save(filename, frame_duration=frame_duration)
 
     def extract_to_raw_data(self, directory: str):
-        metadata_string = f"{self.font_metadata[0]},{self.font_metadata[1]}\n"
+        metadata_string = f"{self.font_size}\n"
         for frame_index in range(max(self.keys())+1):
             frame = self.get(frame_index, None)
             if not isinstance(frame, Frame) or frame.frame_type == 0:
@@ -426,7 +426,7 @@ class Bitmap(dict):
     def load_from_raw_data(self, directory: str):
         with open(os.path.join(directory, metadata_filename)) as file:
             file_content = file.read().rstrip("\n").split("\n")
-            self.font_metadata = list(map(int, file_content[0].split(",")))
+            self.font_size = int(file_content[0])
             for frame_index, line in enumerate(file_content[1:]):
 
                 frame_type, offset_x, offset_y = map(int, line.split(","))

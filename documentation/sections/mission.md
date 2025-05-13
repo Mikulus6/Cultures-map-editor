@@ -1,6 +1,7 @@
 [← index](../index.md)
 
 ## `[Mission]`
+
 | Key           | Value type         | Arguments                                        | Arguments meaning                                          |
 |:--------------|--------------------|:-------------------------------------------------|:-----------------------------------------------------------|
 | `StartText`   | integer            | cutscene ID                                      | cutscene played when mission becomes active                |

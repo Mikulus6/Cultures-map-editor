@@ -24,18 +24,17 @@ Because of the exact file format specifications for font files, this file
 format cannot be directly converted or extracted in any way that would be
 objectively correct or historically accurate. Hence, it was decided to use a
 purely conventional method to transform stored data into viewable and editable
-content. For extracted data, each frame is stored as [`*.png`](https://en.wikipedia.org/wiki/PNG)
-files, in which the number included in the file name indicates [ASCII](https://en.wikipedia.org/wiki/ASCII)
+content. For extracted data, each frame is stored as a [`*.png`](https://en.wikipedia.org/wiki/PNG)
+file, for which the number included in the name indicates [ASCII](https://en.wikipedia.org/wiki/ASCII)
 value corresponding to given font character texture.
 Additionally `metadata.csv` file contains information relevant to font
-display. In the header of this file, two values are given. The first indicates
-**[??? todo: something unknown]**, while the second indicates vertical spacing between lines of text.
-Following content has three values for each font character. The first is a
-frame type, which in context of `*.fnt` files can be reduced to binary
-indicator of frame presence, while the two other values indicate how much the
-texture of the font character texture should be shifted horizontally and
-vertically before being displayed. All units related to distance are expressed
-in pixels.
+display. In the header of this file, value indicating vertical spacing
+between lines of text is given. Following content has three values for each
+font character. The first is a frame type, which in context of `*.fnt` files
+can be reduced to binary indicator of frame presence, while the two other
+values indicate how much the texture of the font character should be shifted
+horizontally and vertically before being displayed. All units related to
+distances are expressed in pixels.
 
 ### Modifying
 

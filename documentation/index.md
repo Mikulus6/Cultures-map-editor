@@ -20,23 +20,22 @@ Default text and image editors present on commonly known operating systems
 might not have enough functionalities, as it might be necessary to manually
 change text encoding and to modify a bitmap with indexed colormap.
 
-Each fully functional map consists of at least five files: `*.cif`,
-`*txt.cif`, `*.map`, `*.pcx` and `*.txt`. Additionally, there could be
-multiple other `*.pcx` and `*.fnt` files included in map files structure. For
-basic ideas standing behind these files one is expected to look up on their
-own how they are structured inside `data_m` directory in game's main directory
-for maps already present in game. If such directory is absent, it is necessary
-to extract it from `data_l\data_m.lib` accordingly to documentation specific
-for `*.lib` file format. Note that `*.cif` file format is bidirectionally
-interchangeable with plain text `*.ini` format, what is further described
-in documentations specific for `*.cif` and `*.ini` file formats. 
+Each fully functional map consists of at least eight files: `*.cif` (×2),
+`*.fnt`, `*.map`, `*.pcx` (×2) `*txt.cif` and `*.txt`. Additionally, there
+could be multiple other `*.pcx` and `*.fnt` files included in map files
+structure. For basic ideas standing behind these files one is expected to look
+up on their own how they are structured inside `data_m` directory in game's
+main directory for maps already present in game. If such directory is absent,
+it is necessary to extract it from `data_l\data_m.lib` accordingly to
+documentation specific for `*.lib` file format. Note that `*.cif` file format
+is bidirectionally interchangeable with plain text `*.ini` format, what is
+further described in documentations specific for `*.cif` and `*.ini` file
+formats. Dependencies between files from which full map is composed are
+featured visually on graphic below.
+
+![files_dependency](./assets/files_dependency.png)
 
 ## Compendium
-
-### External programs
-
- - [Notepad++](https://notepad-plus-plus.org/)
- - [GIMP](https://www.gimp.org/)
 
 ### File formats
 
@@ -55,6 +54,12 @@ in documentations specific for `*.cif` and `*.ini` file formats.
  - [Mission](sections/mission.md)
  - [text](sections/text.md)
 
-### Briefings
+### Miscellaneous
 
  - [Briefings keywords](briefings/text.md)
+ - [Numerical limits](briefings/limits.md)
+
+### External programs
+
+ - [Notepad++](https://notepad-plus-plus.org/)
+ - [GIMP](https://www.gimp.org/)

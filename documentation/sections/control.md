@@ -1,6 +1,7 @@
 [← index](../index.md)
 
 ## `[Control]`
+
 | Key                | Value type                    | Value meaning                                                                                         |
 |:-------------------|:------------------------------|:------------------------------------------------------------------------------------------------------|
 | `TextFile`         | string                        | path to `*.ini` file with strings (relative from `Cultures.exe`)                                      |

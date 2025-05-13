@@ -1,6 +1,7 @@
 [← index](../index.md)
 
 ## `[AI]`
+
 | Key                                        | Value type                                                                                                 | Arguments                                                                                                                                      | Arguments meaning                                                                    |
 |:-------------------------------------------|:-----------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------|
 | `AI_MainTask_Defend`                       | integer \| integer \| integer \| integer \| integer \| integer \| integer \| integer                       | player \| x \| y \| radius \| soldiers minimum \| soldiers maximum \| priority \| condition                                                    | If condition is active, player will defend given area with given number of soldiers. |
