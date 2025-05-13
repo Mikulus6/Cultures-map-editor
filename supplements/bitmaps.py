@@ -12,6 +12,8 @@ from supplements.remaptables import RemapTable, remaptable_default, remaptable_d
 alpha_index = -1
 shadow_color = (0, 0, 0)
 
+metadata_filename = "metadata.csv"
+
 # Following values might not be exactly correct.
 high_color_shade_alpha = 92
 animation_frame_duration = 0.1  # seconds
@@ -323,12 +325,16 @@ class Bitmap(dict):
                 if indent != -1:
                     row.append(0)
 
-                indent_bin_str = bin(indent % 1024)[2:]
-                indent_bin_str = "0" * (10 - len(indent_bin_str)) + indent_bin_str
-                header_offset_str = bin(len(buffer_section_1))[2:]
-                header_offset_str= "0" * (22 - len(header_offset_str)) + header_offset_str
+                if indent != -1 or not font_header:
+                    indent_bin_str = bin(indent % 1024)[2:]
+                    indent_bin_str = "0" * (10 - len(indent_bin_str)) + indent_bin_str
+                    header_offset_str = bin(len(buffer_section_1))[2:]
+                    header_offset_str= "0" * (22 - len(header_offset_str)) + header_offset_str
 
-                buffer_section_2.unsigned(int(indent_bin_str+header_offset_str, 2), length=4)
+                    buffer_section_2.unsigned(int(indent_bin_str+header_offset_str, 2), length=4)
+
+                else:
+                    buffer_section_2.signed(-1, length=4)
 
                 buffer_section_1.iterable(row)
 
@@ -404,34 +410,33 @@ class Bitmap(dict):
         animation = self.to_animation(remaptable, shading_factor, first_bob, elements)
         animation.save(filename, frame_duration=frame_duration)
 
-    def _extract_to_raw_data(self, directory: str):
+    def extract_to_raw_data(self, directory: str):
         metadata_string = f"{self.font_metadata[0]},{self.font_metadata[1]}\n"
         for frame_index in range(max(self.keys())+1):
             frame = self.get(frame_index, None)
             if not isinstance(frame, Frame) or frame.frame_type == 0:
-                metadata_string += "0,0,0,0,0\n"
+                metadata_string += "0,0,0\n"
                 continue
-            metadata_string += f"{frame.frame_type},{','.join(map(str, frame.rect))}\n"
+            metadata_string += f"{frame.frame_type},{','.join(map(str, frame.rect[:2]))}\n"
             frame.extract(os.path.join(directory, f"{frame_index}.png"), remaptable=remaptable_direct)
 
-        with open(os.path.join(directory, "meta.csv"), "w") as file:
+        with open(os.path.join(directory, metadata_filename), "w") as file:
             file.write(metadata_string.rstrip("\n"))
 
-    def _load_from_raw_data(self, directory: str):
-        with open(os.path.join(directory, "meta.csv")) as file:
+    def load_from_raw_data(self, directory: str):
+        with open(os.path.join(directory, metadata_filename)) as file:
             file_content = file.read().rstrip("\n").split("\n")
             self.font_metadata = list(map(int, file_content[0].split(",")))
             for frame_index, line in enumerate(file_content[1:]):
 
-                frame_type, offset_x, offset_y, width, height = map(int, line.split(","))
+                frame_type, offset_x, offset_y = map(int, line.split(","))
 
                 if frame_type != 0:
                     frame = Frame(frame_type=frame_type,
-                                  rect=[offset_x, offset_y, width, height],
+                                  rect=[offset_x, offset_y, 0, 0],
                                   data=[])
                     frame.from_image(os.path.join(directory, f"{frame_index}.png"),
                                      remaptable=remaptable_direct)
-                    assert tuple(frame.rect[2:4]) == (width, height)
 
                     self[frame_index] = frame
                 else:

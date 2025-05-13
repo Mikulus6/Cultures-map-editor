@@ -73,7 +73,7 @@ recommended extraction and removal of libraries.
 
 ### File format
 
-For the algorithm used by the provided tools, one can look into python file
+For the algorithm used by the provided tools, one can look into Python file
 [*supplements/library.py*](../../supplements/library.py) present in this
 repository. Library file format was firstly documented for Game Extractor's
 specifications of [*Archive_LIB*](https://www.watto.org/specs.html?specs=Archive_LIB)

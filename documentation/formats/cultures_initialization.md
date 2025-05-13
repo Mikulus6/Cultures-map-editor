@@ -43,7 +43,7 @@ Note that capitalization of paths and names is not important.
 
 ### File format
 
-For the algorithm used by the provided tools, one can look into python file
+For the algorithm used by the provided tools, one can look into Python file
 [*supplements/initialization.py*](../../supplements/initialization.py) present
 in this repository. Cipher present in `*.cif` files uses an
 [ASCII](https://en.wikipedia.org/wiki/ASCII)-based

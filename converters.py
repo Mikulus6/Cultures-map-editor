@@ -1,11 +1,13 @@
+import os
 from scripts.buffer import data_encoding
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 from typing import Literal
-from supplements.library import Library
+from supplements.bitmaps import Bitmap
 from supplements.initialization import decode, encode
+from supplements.library import Library
 
 
 def select_input():
@@ -52,18 +54,6 @@ def save_output():
 
 class Conversions:
     @classmethod
-    def extract_lib(cls, in_path, out_path):
-        library = Library()
-        library.load(filename=in_path, cultures_1=True)
-        library.extract(out_path)
-
-    @classmethod
-    def pack_lib(cls, in_path, out_path):
-        library = Library()
-        library.pack(in_path)
-        library.save(out_path, cultures_1=True)
-
-    @classmethod
     def convert_cif_ini(cls, in_path, out_path):
         with open(in_path, "rb") as file:
             content = decode(file.read(), sal_tab_file_format=False)
@@ -91,6 +81,30 @@ class Conversions:
         with open(out_path, "wb",) as file:
             file.write(encode(content, cultures_1=True, sal_tab_file_format=True))
 
+    @classmethod
+    def extract_fnt(cls, in_path, out_path):
+        bitmap = Bitmap()
+        bitmap.load(in_path, font_header=True)
+        bitmap.extract_to_raw_data(os.path.join(out_path, os.path.basename(in_path).split(".")[0]))
+
+    @classmethod
+    def pack_fnt(cls, in_path, out_path):
+        bitmap = Bitmap()
+        bitmap.load_from_raw_data(in_path)
+        bitmap.save(out_path, font_header=True)
+
+    @classmethod
+    def extract_lib(cls, in_path, out_path):
+        library = Library()
+        library.load(filename=in_path, cultures_1=True)
+        library.extract(out_path)
+
+    @classmethod
+    def pack_lib(cls, in_path, out_path):
+        library = Library()
+        library.pack(in_path)
+        library.save(out_path, cultures_1=True)
+
 
 class Option:
     names = []
@@ -108,15 +122,7 @@ class Option:
         assert self.name not in self.__class__.names
         self.__class__.names.append(self.name)
 
-options = [Option("Extract *.lib", input_type="file", output_type="directory",
-                  input_filetypes=(("lib files", "*.lib"), ("all files", "*.*")),
-                  function=Conversions.extract_lib),
-
-           Option("Create *.lib", input_type="directory", output_type="file",
-                  output_filetypes=(("lib files", "*.lib"), ("all files", "*.*")),
-                  function=Conversions.pack_lib),
-
-           Option("Convert *.cif -> *.ini", input_type="file", output_type="file",
+options = [Option("Convert *.cif -> *.ini", input_type="file", output_type="file",
                   input_filetypes=(("cif files", "*.cif"), ("all files", "*.*")),
                   output_filetypes=(("ini files", "*.ini"), ("all files", "*.*")),
                   function=Conversions.convert_cif_ini),
@@ -134,7 +140,23 @@ options = [Option("Extract *.lib", input_type="file", output_type="directory",
            Option("Convert *.txt -> *.sal/*.tab", input_type="file", output_type="file",
                   input_filetypes=(("txt files", "*.txt"), ("all files", "*.*")),
                   output_filetypes=(("sal/tab files", "*.sal;*.tab"), ("all files", "*.*")),
-                  function=Conversions.convert_txt_sal_tab)]
+                  function=Conversions.convert_txt_sal_tab),
+
+           Option("Extract *.fnt", input_type="file", output_type="directory",
+                  input_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
+                  function=Conversions.extract_fnt),
+
+           Option("Create *.fnt", input_type="directory", output_type="file",
+                  output_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
+                  function=Conversions.pack_fnt),
+
+           Option("Extract *.lib", input_type="file", output_type="directory",
+                  input_filetypes=(("lib files", "*.lib"), ("all files", "*.*")),
+                  function=Conversions.extract_lib),
+
+           Option("Create *.lib", input_type="directory", output_type="file",
+                  output_filetypes=(("lib files", "*.lib"), ("all files", "*.*")),
+                  function=Conversions.pack_lib)]
 
 root = tk.Tk()
 root.title("Converters")
