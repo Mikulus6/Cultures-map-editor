@@ -31,7 +31,7 @@ documentation specific for `*.lib` file format. Note that `*.cif` file format
 is bidirectionally interchangeable with plain text `*.ini` format, what is
 further described in documentations specific for `*.cif` and `*.ini` file
 formats. Dependencies between files from which full map is composed are
-featured visually on graphic below.
+featured visually on the image below.
 
 ![files_dependency](./assets/files_dependency.png)
 

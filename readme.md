@@ -49,14 +49,24 @@ Main `Editor.exe` application supports viewing and modifying only `*.map`
 files. These are files that contain information mainly about terrain,
 heightmap, landscapes, and structures. For more dynamic elements like
 creatures and buildings, more complex matters like missions and bots'
-behaviour, or more subtle additions like minimap and texts, which are all
-contained in `*.cif`, `*.fnt`, `*.pcx` and `*.txt` files, it is recommended to
-use supplementary `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+behaviour, or more subtle additions like minimap, fonts and texts, which are
+all contained in `*.cif`, `*.fnt`, `*.pcx` and `*.txt` files, it is
+recommended to use supplementary `Converters.exe` application provided in
+[*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
 and read [*documentation*](documentation/index.md).
 
 Take into account that these additional files are not directly supported by
 our editor, and it might be necessary for the user to install additional
 third-party applications in order to properly read and modify text and images.
+
+One subtle convention present in this project is the separation of the art of
+making maps (*mapping*) from the art of creating more general modifications of
+game files (*modding*). We define mapping as the process of editing the
+content of `data_l\data_m.lib` file and `data_m` directory aimed at making
+maps. Functionalities provided by the given tools are meant to give the user
+complete control over the mapping process. However, we do not provide an
+additional framework, that would support all procedures relevant to the
+modding, because it is not the exact topic of this project.
 
 ## Credits
 
