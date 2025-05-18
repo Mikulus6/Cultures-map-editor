@@ -19,7 +19,7 @@ Libraries are rarely dynamically resizable. They can be extracted or created,
 but it is uncommon to modify them by removing or adding singular files without
 extracting the entire content first.
 
-There are no compression algorithms present within the`*.lib` file format. It
+There are no compression algorithms present within the `*.lib` file format. It
 is simply an organized collection of subdirectories and files put together as
 one bigger file.
 

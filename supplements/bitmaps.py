@@ -9,13 +9,23 @@ from supplements.read import read
 from supplements.remaptables import RemapTable, remaptable_default, remaptable_direct
 
 
+font_family_id = 0
+# Value above is most likely outside of categories of derivable and visible primary data. It seems to be more or less
+# directly tied to number of frames in *.fnt file and number of such frames with frame type equal to 1. However, there
+# are some exception to this. In "Cultures: Discovery of Vinland" in file "data/system/debug.fnt" and in files
+# "data_v\fhll_data\fonts\0.fnt" and "data_v\fhll_data\fonts\1.fnt" This value is different despite the exact same
+# number of frames and frames with frame type 1. Moreover, collection of fonts present in the same game in directory
+# "data\fhll_data\fonts" with common part of name "catan" have the exact same value as previously mentioned "debug.fnt"
+# file despite having different both number of frames and number of frames with frame type 1. Considering the fact that
+# "debug.fnt" file might be derived from the same family of fonts as catan font by pure visual qualities, it is
+# suggested that this value is most likely an inner identificator of font family or typeface. There is no visible
+# difference in game regardless of the exact value put there.
+
+
 alpha_index = -1
 shadow_color = (0, 0, 0)
-
 metadata_filename = "metadata.csv"
-
-# Following values might not be exactly correct.
-high_color_shade_alpha = 92
+high_color_shade_alpha = 92 # Following two values might not be exactly correct.
 animation_frame_duration = 0.1  # seconds
 
 
@@ -233,7 +243,7 @@ class Bitmap(dict):
 
         if font_header:
             buffer_header.unsigned(40, length=4)
-            buffer_header.unsigned(0, length=2)  # Unknown value, no direct connection to display was found.
+            buffer_header.unsigned(font_family_id, length=2)
             buffer_header.unsigned(self.font_size, length=2)
 
         buffer_header.unsigned(25, length=4)

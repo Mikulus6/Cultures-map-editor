@@ -8,7 +8,7 @@ flag_state = 1
 # pathfinding algorithm. When it is set to 1, recalculation function of walk sector points will be called inside main
 # game loop upon first usage of pathfinding algorithm. Obstructing walk sector point with building or landscape will
 # cause this value to be changed to 1. Effectively, this value stores the information about walk sector points not being
-# up-to-date with currect placament of landscapes and buildings. Moreover only around 21% of all unique maps found in
+# up-to-date with currect placament of landscapes and buildings. Moreover, only around 21% of all unique maps found in
 # original games have this flag set to 0, which makes setting this value to 1 a statistically better choice in case of
 # missing the hidden meaning beneath this boolean value.
 
