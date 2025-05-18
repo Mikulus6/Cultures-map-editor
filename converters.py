@@ -5,6 +5,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import ttk
 from typing import Literal
+from scripts.abs_path import abs_path
 from supplements.bitmaps import Bitmap
 from supplements.initialization import decode, encode
 from supplements.library import Library
@@ -142,11 +143,11 @@ options = [Option("Convert *.cif -> *.ini", input_type="file", output_type="file
                   output_filetypes=(("sal/tab files", "*.sal;*.tab"), ("all files", "*.*")),
                   function=Conversions.convert_txt_sal_tab),
 
-           Option("Extract *.fnt", input_type="file", output_type="directory",
+           Option("Extract *.fnt to raw data", input_type="file", output_type="directory",
                   input_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
                   function=Conversions.extract_fnt),
 
-           Option("Create *.fnt", input_type="directory", output_type="file",
+           Option("Create *.fnt from raw data", input_type="directory", output_type="file",
                   output_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
                   function=Conversions.pack_fnt),
 
@@ -162,7 +163,7 @@ root = tk.Tk()
 root.title("Converters")
 root.geometry("235x160")
 root.resizable(False, False)
-root.iconbitmap("assets/icon_converters.ico")
+root.iconbitmap(abs_path("assets/icon_converters.ico"))
 
 input_path = None
 

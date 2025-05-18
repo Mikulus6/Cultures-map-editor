@@ -177,12 +177,16 @@ class RemapTables:
         assert (length := len(self.meta)) == len(self.data)
         return length
 
+try:
+    remaptable_default = RemapTable()
+    remaptable_default.pack(remaptable_defalut_path, bitmap_shape=(4, 4))
 
-remaptable_default = RemapTable()
-remaptable_default.pack(remaptable_defalut_path, bitmap_shape=(4, 4))
+    remaptables = RemapTables()
+    remaptables.load()
+
+except FileNotFoundError:
+    pass  # This will yield further errors if editor is being launched, but for other compilable scripts it removes
+          # dependency from game files while also making it possible to use remaptables. Hence, making it more portable.
 
 remaptable_direct = RemapTable()
 remaptable_direct.palette = ColorMap({x : (x, x, x) for x in range(256)})
-
-remaptables = RemapTables()
-remaptables.load()
