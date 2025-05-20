@@ -12,8 +12,8 @@ from supplements.remaptables import RemapTable, remaptable_default, remaptable_d
 font_family_id = 0
 # Value above is most likely outside of categories of derivable and visible primary data. It seems to be more or less
 # directly tied to number of frames in *.fnt file and number of such frames with frame type equal to 1. However, there
-# are some exception to this. In "Cultures: Discovery of Vinland" in file "data/system/debug.fnt" and in files
-# "data_v\fhll_data\fonts\0.fnt" and "data_v\fhll_data\fonts\1.fnt" This value is different despite the exact same
+# are some exception to this. In the "Cultures: Discovery of Vinland" in the file "data/system/debug.fnt" and in files
+# "data_v\fhll_data\fonts\0.fnt" and "data_v\fhll_data\fonts\1.fnt" this value is different despite the exact same
 # number of frames and frames with frame type 1. Moreover, collection of fonts present in the same game in directory
 # "data\fhll_data\fonts" with common part of name "catan" have the exact same value as previously mentioned "debug.fnt"
 # file despite having different both number of frames and number of frames with frame type 1. Considering the fact that
