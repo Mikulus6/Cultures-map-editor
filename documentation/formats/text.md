@@ -11,7 +11,7 @@ content of `.txt` file.
 
 ### Syntax
 
-Text files present in *Cultures* corresponds to in-game briefings, which are
+Text files present in *Cultures* correspond to in-game briefings, which are
 commonly known as yellowed papers usually containing a part of story relevant
 to the gameplay. It is possible to include in such texts custom images, fonts
 and other parameters typical of text formatting tools. For this purpose, text

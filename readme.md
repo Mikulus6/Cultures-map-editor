@@ -31,7 +31,7 @@ extracted files rather than search for them in the relatively large library.
 Note that when opening the program for the first time it will try to generate
 `cache.bin` file which can take significant time to load. If you  want to skip
 this process you might be able to find this file online, however due to
-copyright restrictions we do not provide access to such file here.  
+copyright restrictions we do not provide access to such file here.
 Keep in mind that `cache.bin` files generated for *Cultures: Discovery of
 Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures Gold* will
 contain different content and are not interchangeable.

@@ -27,8 +27,8 @@ one bigger file.
 
 It is important to note that every library present in game files can be
 extracted to game's main directory. Subdirectories created this way will be
-primary sources of data for game while remaining library will act as failsafe
-for missing files.
+primary sources of data for game while remaining library will act as a
+failsafe for missing files.
 
 Take for example the file `data\system\debug.fnt`, which by default is packed
 inside `data_l\data.lib` archive.  
