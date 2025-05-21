@@ -21,7 +21,7 @@ might not have enough functionalities, as it might be necessary to manually
 change text encoding and to modify a bitmap with indexed colormap.
 
 Each fully functional map consists of at least eight files: `*.cif` (×2),
-`*.fnt`, `*.map`, `*.pcx` (×2) `*txt.cif` and `*.txt`. Additionally, there
+`*.fnt`, `*.map`, `*.pcx` (×2), `*txt.cif` and `*.txt`. Additionally, there
 could be multiple other `*.pcx` and `*.fnt` files included in map files
 structure. For basic ideas standing behind these files one is expected to look
 up on their own how they are structured inside `data_m` directory in game's
