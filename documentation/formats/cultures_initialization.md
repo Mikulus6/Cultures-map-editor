@@ -49,7 +49,7 @@ in this repository. Cipher present in `*.cif` files uses an
 [ASCII](https://en.wikipedia.org/wiki/ASCII)-based
 [Caesar cipher](https://en.wikipedia.org/wiki/Caesar_cipher) combined with
 [XOR cipher](https://en.wikipedia.org/wiki/XOR_cipher). This cipher was
-first broken by bacter and documented on
+first broken by Bacter and documented on
 [XeNTaX forum](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711).
 Keep in mind, the exact specifications of this algorithm are the same only for
 *Cultures: Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and
