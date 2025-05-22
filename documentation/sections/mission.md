@@ -81,11 +81,11 @@
 |    `12`     | integer \| integer \| integer \| integer \| integer | x \| y \| player \| job type \| number of units | Spawn units.<sup>2</sup>                                                    |
 |    `13`     | -                                                   | -                                               | Exit mission and play cutscene.<sup>2</sup> (*The Revenge of the Rain God*) |
 
-↑ <sup>2</sup> Exclusive for *Cultures: The Revenge of the Rain God*  
-↑ <sup>3</sup> Hireling creature is defined by job type equal to `45`, `46` or `47`.  
+↑ <sup>2</sup> Exclusive for *Cultures: The Revenge of the Rain God*
+↑ <sup>3</sup> Hireling creature is defined by job type equal to `45`, `46` or `47`.
 ↑ <sup>4</sup> House definition index is the number of relevant `House`
-section in `data_v\ve_graphics\houses\houses.cif` file fould after extracting
-`data_l\data_v.lib` library. Indices are counted from zero.  
+section in `data_v\ve_graphics\houses\houses.cif` file found after extracting
+`data_l\data_v.lib` library. Indices are counted from zero.
 ↑ <sup>5</sup> Limited to job types ranging from `0` to `48`.
 
 ### Modifiable `data_v` values
