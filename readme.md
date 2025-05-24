@@ -21,7 +21,10 @@ After downloading necessary files from [*releases section*](https://github.com/M
 make sure to put them in game's main directory, so that the downloaded
 executable file `Editor.exe` and game's executable file `Cultures.exe` file
 are in the same location. Alternatively you can copy `data_l` folder from game
-files and paste it to directory of newly downloaded application.
+files and paste it to directory of newly downloaded application. It is also
+possible to launch the editor in different directory, where game is absent. In
+case of such scenario you will be asked to specify manually where game is
+located.
 
 Optionally, if you want to speed up the program startup you can extract
 `data_l\data_v.lib` library to game's main directory. This way, during the

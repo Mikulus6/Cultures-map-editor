@@ -1,6 +1,7 @@
 import os
 from typing import Literal
 from scripts.buffer import data_encoding
+from scripts.fallback import load_with_fallback
 from supplements.library import Library
 from supplements.initialization import decode
 
@@ -8,6 +9,7 @@ from supplements.initialization import decode
 libraries_directory = "data_l"
 loaded_libraries = dict()
 
+@load_with_fallback
 def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
          skip_file = False, skip_library = False, skip_cif_check = False,
          cultures_1 = True) -> bytes | str:

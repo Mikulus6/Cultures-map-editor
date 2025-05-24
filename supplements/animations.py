@@ -6,6 +6,7 @@ from tkinter import Tk, ttk, messagebox
 import time
 from scripts.animation import Animation
 from scripts.buffer import BufferGiver, BufferTaker
+from scripts.fallback import fallback_directories
 from scripts.report import Report
 from supplements.bitmaps import Bitmap
 from supplements.landscapedefs import landscapedefs, name_max_length
@@ -117,6 +118,10 @@ class Animations(dict):
         # palettes takes around 15 minutes, while loading it from cache file takes around 3 seconds. Loading time is
         # therefore improved by around 27500% by cache usage.
 
+        os.chdir(fallback_directories[-1])  # We want cache file to be loaded from fallback directory. It is recommended
+                                            # to do it like that due to possible confusion of cache file from multiple
+                                            # different versions of the game, which can result in further errors.
+
         try:
             self.load_cache()
         except FileNotFoundError:
@@ -141,6 +146,8 @@ class Animations(dict):
                 top.quit()
                 top.destroy()
                 sys_exit()
+
+        os.chdir(fallback_directories[0])
 
     def load_all_animations(self, *, report=False) -> dict:
         report = Report(muted=not report)
