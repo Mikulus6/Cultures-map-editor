@@ -71,11 +71,6 @@ Out of each triplet, first argument is a command name which can be obtained
 by running uncompiled [*converters.py*](./converters.py) script and reading
 textual output. Second and third values in each tripet are respectively
 responsible for input path and output path relevant to specific conversion.
-As an example one can obtain textual information about houses by running
-the following command in the game main directory:
-```commandline
-Converters.exe --quick-conversions lib-dir "data_l\data_v.lib" "." cif-ini "data_v\ve_graphics\houses\houses.cif" "data_v\ve_graphics\houses\houses.ini"
-```
 
 One subtle convention present in this project is the separation of the art of
 making maps (*mapping*) from the art of creating more general modifications of
