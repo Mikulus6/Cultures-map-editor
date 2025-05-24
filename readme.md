@@ -13,7 +13,7 @@ series.
 
 ![example](assets/readme/example.png)
 
-## Installation
+## Installation & Usage
 
 ### Editor
 
@@ -61,6 +61,21 @@ and read [*documentation*](documentation/index.md).
 Take into account that these additional files are not directly supported by
 our editor, and it might be necessary for the user to install additional
 third-party applications in order to properly read and modify text and images.
+
+There exists an additional functionality making converters implementable to
+further external projects. `Converters.exe` app can be launched via command
+line with additional arguments. If first such argument is
+`--quick-conversions` then all further arguments will be interpreted as
+triplets of data and window with user interface will not be initialized.
+Out of each triplet, first argument is a command name which can be obtained
+by running uncompiled [*converters.py*](./converters.py) script and reading
+textual output. Second and third values in each tripet are respectively
+responsible for input path and output path relevant to specific conversion.
+As en example one can obtain textual information about houses by running
+the following command in the game main directory:
+```commandline
+Converters.exe --quick-conversions lib-dir "data_l\data_v.lib" "." cif-ini "data_v\ve_graphics\houses\houses.cif" "data_v\ve_graphics\houses\houses.ini"
+```
 
 One subtle convention present in this project is the separation of the art of
 making maps (*mapping*) from the art of creating more general modifications of

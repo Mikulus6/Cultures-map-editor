@@ -1,3 +1,4 @@
+import copy
 import os
 from scripts.buffer import data_encoding
 import tkinter as tk
@@ -9,6 +10,7 @@ from scripts.abs_path import abs_path
 from supplements.bitmaps import Bitmap
 from supplements.initialization import decode, encode
 from supplements.library import Library
+from sys import argv as sys_argv, exit as sys_exit
 
 
 def select_input():
@@ -110,10 +112,12 @@ class Conversions:
 class Option:
     names = []
 
-    def __init__(self, name: str, input_type: Literal["directory", "file"], output_type: Literal["directory", "file"],
+    def __init__(self, name: str, cli_name: str,
+                 input_type: Literal["directory", "file"], output_type: Literal["directory", "file"],
                  input_filetypes = (("all files", "*.*"),), output_filetypes = (("all files", "*.*"),),
                  function = lambda in_path, out_path: None):
         self.name = name
+        self.cli_name = cli_name
         self.input_type = input_type
         self.output_type = output_type
         self.input_filetypes = input_filetypes if input_type == "file" else None
@@ -123,41 +127,79 @@ class Option:
         assert self.name not in self.__class__.names
         self.__class__.names.append(self.name)
 
-options = [Option("Convert *.cif -> *.ini", input_type="file", output_type="file",
+options = [Option("Convert *.cif -> *.ini", "cif-ini",
+                  input_type="file", output_type="file",
                   input_filetypes=(("cif files", "*.cif"), ("all files", "*.*")),
                   output_filetypes=(("ini files", "*.ini"), ("all files", "*.*")),
                   function=Conversions.convert_cif_ini),
 
-           Option("Convert *.ini -> *.cif", input_type="file", output_type="file",
+           Option("Convert *.ini -> *.cif", "ini-cif",
+                  input_type="file", output_type="file",
                   input_filetypes=(("ini files", "*.ini"), ("all files", "*.*")),
                   output_filetypes=(("cif files", "*.cif"), ("all files", "*.*")),
                   function=Conversions.convert_ini_cif),
 
-           Option("Convert *.sal/*.tab -> *.txt", input_type="file", output_type="file",
+           Option("Convert *.sal/*.tab -> *.txt", "sal-txt",
+                  input_type="file", output_type="file",
                   input_filetypes=(("sal/tab files", "*.sal;*.tab"), ("all files", "*.*")),
                   output_filetypes=(("txt files", "*.txt"), ("all files", "*.*")),
                   function=Conversions.convert_sal_tab_txt),
 
-           Option("Convert *.txt -> *.sal/*.tab", input_type="file", output_type="file",
+           Option("Convert *.txt -> *.sal/*.tab", "txt-sal",
+                  input_type="file", output_type="file",
                   input_filetypes=(("txt files", "*.txt"), ("all files", "*.*")),
                   output_filetypes=(("sal/tab files", "*.sal;*.tab"), ("all files", "*.*")),
                   function=Conversions.convert_txt_sal_tab),
 
-           Option("Extract *.fnt to raw data", input_type="file", output_type="directory",
+           Option("Extract *.fnt to raw data", "fnt-dir",
+                  input_type="file", output_type="directory",
                   input_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
                   function=Conversions.extract_fnt),
 
-           Option("Create *.fnt from raw data", input_type="directory", output_type="file",
+           Option("Create *.fnt from raw data", "dir-fnt",
+                  input_type="directory", output_type="file",
                   output_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
                   function=Conversions.pack_fnt),
 
-           Option("Extract *.lib", input_type="file", output_type="directory",
+           Option("Extract *.lib", "lib-dir",
+                  input_type="file", output_type="directory",
                   input_filetypes=(("lib files", "*.lib"), ("all files", "*.*")),
                   function=Conversions.extract_lib),
 
-           Option("Create *.lib", input_type="directory", output_type="file",
+           Option("Create *.lib", "dir-lib",
+                  input_type="directory", output_type="file",
                   output_filetypes=(("lib files", "*.lib"), ("all files", "*.*")),
                   function=Conversions.pack_lib)]
+
+# This print statement is an integrated part of documentation, due to pyinstaller ignoring print statements when
+# compiling Python code to executable file with command-line explicitly turned off. This statement provides information
+# about conversion names in command line mode.
+print("\n".join(f"{option.cli_name} ({option.name})" for option in options))
+
+remove_quotation = lambda string: string[1:-1] if string.startswith("\"") and string.endswith("\"") else string
+
+sys_argv_copy = copy.copy(sys_argv)
+sys_argv_copy.pop(0)
+
+if len(sys_argv_copy) > 0 and sys_argv_copy[0] == "--quick-conversions":
+    sys_argv_copy.pop(0)
+    sys_argv_copy_len = len(sys_argv_copy)
+    sys_argv_copy = iter(sys_argv_copy)
+
+    for _ in range(sys_argv_copy_len // 3):
+
+        conv_cli_name = next(sys_argv_copy)
+        conv_in_path  = remove_quotation(next(sys_argv_copy))
+        conv_out_path = remove_quotation(next(sys_argv_copy))
+
+        for opiton in options:
+            if opiton.cli_name.lower() == conv_cli_name.lower():
+                opiton.function(conv_in_path, conv_out_path)
+                break
+        else:
+            raise NameError
+
+    sys_exit()
 
 root = tk.Tk()
 root.title("Converters")
