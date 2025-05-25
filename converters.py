@@ -171,35 +171,42 @@ options = [Option("Convert *.cif -> *.ini", "cif-ini",
                   output_filetypes=(("lib files", "*.lib"), ("all files", "*.*")),
                   function=Conversions.pack_lib)]
 
-# This print statement is an integrated part of documentation, due to pyinstaller ignoring print statements when
-# compiling Python code to executable file with command-line explicitly turned off. This statement provides information
-# about conversion names in command line mode.
-print("\n".join(f"{option.cli_name} ({option.name})" for option in options))
 
-remove_quotation = lambda string: string[1:-1] if string.startswith("\"") and string.endswith("\"") else string
+def quick_conversions():
 
-sys_argv_copy = copy.copy(sys_argv)
-sys_argv_copy.pop(0)
+    if __name__ == "__main__":
+        # This print statement is an integrated part of documentation, due to pyinstaller ignoring print statements when
+        # compiling Python code to executable file with command-line explicitly turned off. This statement provides
+        # information about conversion names in command line mode.
+        print("\n".join(f"{option.cli_name} ({option.name})" for option in options))
 
-if len(sys_argv_copy) > 0 and sys_argv_copy[0] == "--quick-conversions":
+    remove_quotation = lambda string: string[1:-1] if string.startswith("\"") and string.endswith("\"") else string
+
+    sys_argv_copy = copy.copy(sys_argv)
     sys_argv_copy.pop(0)
-    sys_argv_copy_len = len(sys_argv_copy)
-    sys_argv_copy = iter(sys_argv_copy)
 
-    for _ in range(sys_argv_copy_len // 3):
+    if len(sys_argv_copy) > 0 and sys_argv_copy[0] == "--quick-conversions":
+        sys_argv_copy.pop(0)
+        sys_argv_copy_len = len(sys_argv_copy)
+        sys_argv_copy = iter(sys_argv_copy)
 
-        conv_cli_name = next(sys_argv_copy)
-        conv_in_path  = remove_quotation(next(sys_argv_copy))
-        conv_out_path = remove_quotation(next(sys_argv_copy))
+        for _ in range(sys_argv_copy_len // 3):
 
-        for opiton in options:
-            if opiton.cli_name.lower() == conv_cli_name.lower():
-                opiton.function(conv_in_path, conv_out_path)
-                break
-        else:
-            raise NameError
+            conv_cli_name = remove_quotation(next(sys_argv_copy))
+            conv_in_path  = remove_quotation(next(sys_argv_copy))
+            conv_out_path = remove_quotation(next(sys_argv_copy))
 
-    sys_exit()
+            for opiton in options:
+                if opiton.cli_name.lower() == conv_cli_name.lower():
+                    opiton.function(conv_in_path, conv_out_path)
+                    break
+            else:
+                raise NameError
+
+        sys_exit()
+
+
+quick_conversions()
 
 root = tk.Tk()
 root.title("Converters")

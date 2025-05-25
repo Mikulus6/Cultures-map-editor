@@ -62,16 +62,6 @@ Take into account that these additional files are not directly supported by
 our editor, and it might be necessary for the user to install additional
 third-party applications in order to properly read and modify text and images.
 
-There exists an additional functionality making converters implementable to
-further external projects. `Converters.exe` app can be launched via command
-line with additional arguments. If first such argument is
-`--quick-conversions` then all further arguments will be interpreted as
-triplets of data and window with user interface will not be initialized.
-Out of each triplet, first argument is a command name which can be obtained
-by running uncompiled [*converters.py*](./converters.py) script and reading
-textual output. Second and third values in each tripet are respectively
-responsible for input path and output path relevant to specific conversion.
-
 One subtle convention present in this project is the separation of the art of
 making maps (*mapping*) from the art of creating more general modifications of
 game files (*modding*). We define mapping as the process of editing the
@@ -80,6 +70,17 @@ maps. Functionalities provided by the given tools are meant to give the user
 complete control over the mapping process. However, we do not provide an
 additional framework, that would support all procedures relevant to the
 modding, because it is not the exact topic of this project.
+
+There exists additional functionality, making converters implementable to
+further external projects. The `Converters.exe` app can be launched via
+command line with additional `--quick-conversions` argument. If this argument
+is present, then all further arguments will be interpreted as triplets of
+data, and window with user interface will not be initialized. In each triplet,
+the first argument is a command name, which can be obtained by running
+uncompiled [*converters.py*](./converters.py) script and reading textual
+output. The second and third values in each tripet are respectively
+responsible for input path and output path relevant to the specific
+conversion.
 
 ## Credits
 
