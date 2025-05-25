@@ -3,9 +3,9 @@ from scripts.abs_path import abs_path
 
 mstr_colormap_filepath = "assets\\colormaps\\mstr.json"
 mep_colormap_filepath = "assets\\colormaps\\mep.json"  # This color map is based on in-game minimap display, however due
-                                                       # to duplication of some RGB values there, some of the
-                                                       # colors are slightly modified in order to have unique value for
-                                                       # each type of mep terrain triangle.
+                                                       # to duplication of some RGB values there, some of the colors are
+                                                       # slightly modified in order to have unique value for each type
+                                                       # of mep terrain triangle.
 
 template_editgroups_palette_filepath = "assets\\colormaps\\template_editgroups.json"  # This palette is arbitrary.
 

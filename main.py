@@ -1,5 +1,10 @@
-from editor import Editor
+from scripts.fallback import fallback
 
-editor = Editor()
+@fallback
+def initialization():
+    from editor import Editor
+    return Editor()
+
+editor = initialization()
 editor.loop()
 editor.exit()

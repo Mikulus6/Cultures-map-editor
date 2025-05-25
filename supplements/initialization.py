@@ -24,7 +24,7 @@ def apply_cipher(bytes_obj: bytes, mode: Literal["decode", "encode"]) -> bytes:
     return bytes(result)
 
 # cif -> ini
-def decode(content: bytes, tab_sal_file_format: bool) -> str:
+def decode(content: bytes, sal_tab_file_format: bool) -> str:
     buffer = BufferGiver(content)
 
     match buffer.unsigned(length=2):
@@ -40,7 +40,7 @@ def decode(content: bytes, tab_sal_file_format: bool) -> str:
             text_table_encoded = buffer.bytes(buffer.unsigned(4))
 
         case 1021: # cultures 2
-            assert not tab_sal_file_format
+            assert not sal_tab_file_format
             assert buffer.unsigned(length=6) == 0
             assert buffer.unsigned(length=4) == 1
             entries_num = buffer.unsigned(4)
@@ -73,7 +73,7 @@ def decode(content: bytes, tab_sal_file_format: bool) -> str:
 
         line_buffer = BufferGiver(bytes(text_table_entry_taker))
 
-        if not tab_sal_file_format:
+        if not sal_tab_file_format:
             match line_buffer.unsigned(length=1):
                 case 1: line = "[" + str(line_buffer) + "]"
                 case 2: line = str(line_buffer)
@@ -86,8 +86,8 @@ def decode(content: bytes, tab_sal_file_format: bool) -> str:
 
 
 # ini -> cif
-def encode(content: str, *, cultures_1: bool, tab_sal_file_format: bool) -> bytes:
-    assert cultures_1 or not tab_sal_file_format
+def encode(content: str, *, cultures_1: bool, sal_tab_file_format: bool) -> bytes:
+    assert cultures_1 or not sal_tab_file_format
 
     text_table_taker = BufferTaker()
     index_table_taker = BufferTaker()
@@ -95,7 +95,7 @@ def encode(content: str, *, cultures_1: bool, tab_sal_file_format: bool) -> byte
     for line in content.split("\n")[:-1]:
         line = line.replace(newline_representation, "\n")
         index_table_taker.unsigned(len(text_table_taker), length=4)
-        if not tab_sal_file_format:
+        if not sal_tab_file_format:
             if line.startswith("[") and line.endswith("]"):
                 text_table_taker.unsigned(1, length=1)
                 text_table_taker.string(line[1:-1])

@@ -1,6 +1,7 @@
 import os
 from typing import Literal
 from scripts.buffer import data_encoding
+from scripts.fallback import load_with_fallback
 from supplements.library import Library
 from supplements.initialization import decode
 
@@ -8,6 +9,7 @@ from supplements.initialization import decode
 libraries_directory = "data_l"
 loaded_libraries = dict()
 
+@load_with_fallback
 def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
          skip_file = False, skip_library = False, skip_cif_check = False,
          cultures_1 = True) -> bytes | str:
@@ -36,12 +38,12 @@ def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
                     try:
                         content = read(sub_filepath, mode= "r" if is_decoded else "rb",
                                        skip_file=not skip_lib, skip_library=skip_lib)
-                        return content if isinstance(content, str) else decode(content, tab_sal_file_format=False)
+                        return content if isinstance(content, str) else decode(content, sal_tab_file_format=False)
                     except FileNotFoundError:
                         pass
 
         if (filepath.endswith(".tab") or filepath.endswith(".sal")) and mode == "r":
-            return decode(read(filepath, "rb", skip_file=False, skip_library=False), tab_sal_file_format=True)
+            return decode(read(filepath, "rb", skip_file=False, skip_library=False), sal_tab_file_format=True)
 
     if not skip_file:
         try:
@@ -59,8 +61,8 @@ def read(filepath: str, mode: Literal["r", "rb"] = "r", *,
             pass
 
     if not skip_cif_check and filepath.endswith(".ini"):
-        try:                      return decode(read(filepath[:-4]+".cif", mode="rb", skip_cif_check=True),
-                                                tab_sal_file_format=False)
+        try:                      return decode(read(filepath[:-4] + ".cif", mode="rb", skip_cif_check=True),
+                                                sal_tab_file_format=False)
         except FileNotFoundError: pass
 
     if not skip_library:
