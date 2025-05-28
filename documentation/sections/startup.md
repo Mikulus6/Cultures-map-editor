@@ -33,12 +33,12 @@
 | `MultiplayerPopulationGoal` | integer                                                                   | population                                                                                                                  | Set population goal for multiplayer game.                                                                                  |
 | `MultiplayerBriefings`      | integer \| integer                                                        | cutscene ID (start) \| cutscene ID (end)                                                                                    | Set briefings for beginning and ending of multiplayer map.                                                                 |
 
-↑ <sup>1</sup>These coordinates must satisfy the following equation: `y mod 4 = 2·(x mod 2)`
+↑ <sup>1</sup>These coordinates must satisfy the following equation: `y mod 4 = 2·(x mod 2)`  
 ↑ <sup>2</sup>Goods quantities in trade offers cannot exceed the value `8`,
-otherwise the trade offer will not work correctly.
+otherwise the trade offer will not work correctly.  
 ↑ <sup>3</sup>Speed of `n`-th particle-related animal (counting `n` from zero)
 is proportional to formula `A·Bⁿ`, where `A` is the linear speed factor and
-`B` is the power speed factor.
+`B` is the power speed factor.  
 
 ### Modifiable `data_v` values
 

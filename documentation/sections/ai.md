@@ -29,8 +29,8 @@
 | `AI_SoldiersDefaultPosition`               | integer \| integer \| integer \| integer                                                                   | player \| x \| y \| range                                                                                                                      | Player will gather their armies in this area and defend it by default.               |
 | `AI_Disable`                               | integer                                                                                                    | player                                                                                                                                         | Player ignores all tasks and do not develop.                                         |
 
-↑ <sup>1</sup> One can declare multiple tributes for repetitive diplomacy status changes.
-↑ <sup>2</sup> Tribute type for `AI_SetTributeHireling` key has value always equal to `3`.
+↑ <sup>1</sup> One can declare multiple tributes for repetitive diplomacy status changes.  
+↑ <sup>2</sup> Tribute type for `AI_SetTributeHireling` key has value always equal to `3`.  
 
 ### Modifiable `data_v` values
 
