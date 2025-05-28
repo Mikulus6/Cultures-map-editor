@@ -78,7 +78,7 @@ is present, then all further arguments will be interpreted as triplets of
 data, and window with user interface will not be initialized. In each triplet,
 the first argument is a command name, which can be obtained by running
 uncompiled [*converters.py*](./converters.py) script and reading textual
-output. The second and third values in each tripet are respectively
+output. The second and third values in each triplet are respectively
 responsible for input path and output path relevant to the specific
 conversion.
 
