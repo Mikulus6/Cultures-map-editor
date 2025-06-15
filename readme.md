@@ -19,12 +19,11 @@ series.
 
 After downloading necessary files from [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
 make sure to put them in game's main directory, so that the downloaded
-executable file `Editor.exe` and game's executable file `Cultures.exe` file
-are in the same location. Alternatively you can copy `data_l` folder from game
-files and paste it to directory of newly downloaded application. It is also
-possible to launch the editor in different directory, where game is absent. In
-case of such scenario you will be asked to specify manually where game is
-located.
+executable file `Editor.exe` and game's executable file `Cultures.exe` are in
+the same location. Alternatively you can copy `data_l` folder from game files
+and paste it to directory of newly downloaded application. It is also possible
+to launch the editor in different directory, where game is absent. In case of
+such scenario you will be asked to specify manually where game is located.
 
 Optionally, if you want to speed up the program startup you can extract
 `data_l\data_v.lib` library to game's main directory. This way, during the
@@ -86,7 +85,7 @@ conversion.
 
 This project is a fan-made tool created by [*CulturesNation*](https://culturesnation.pl/)
 community. It is not affiliated with the official legacy of *Cultures* series.
-For official developers' website, visit [*Funatics*](https://www.funatics.de/).
+For official developers' website visit [*Funatics*](https://www.funatics.de/).
 
 ### Contributors
 
@@ -107,7 +106,7 @@ For official developers' website, visit [*Funatics*](https://www.funatics.de/).
 ### License
 
 This program and its source code are distributed under [*GNU General Public License 3.0*](https://www.gnu.org/licenses/gpl-3.0.txt),
-which can be found in the [license.txt](license.txt) file. *Cultures* itself
+which can be found in the [*license.txt*](license.txt) file. *Cultures* itself
 is the property of [*Funatics Software*](https://www.funatics.de/) with all
 rights reserved as stated in the game manual, and is not covered by the
 aforementioned license.
