@@ -192,7 +192,7 @@ class Map:
         return self.mbio == derive_biomes(self.mepa, self.mepb, self.mstr, self.map_width, self.map_height)
 
     def test_ground_set_flags(self):
-        # Maps created before 22nd August 2000 might not pass this test due to different landscapes' shapes.
+        # Maps created before 18th August 2000 might not pass this test due to different landscapes' shapes.
 
         mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
         mgfs_flags_4 = "0" * (self.map_width * self.map_height)
@@ -564,19 +564,19 @@ if __name__ == "__main__":  # This part of code is responsible for testing corre
             continue
 
         path = os.path.join(directory_input, item)
-        directory = os.path.join(directory_output, os.path.splitext(item)[0])
+        directory_path = os.path.join(directory_output, os.path.splitext(item)[0])
         print(item)
 
         try:
             map_object = Map()
             map_object.load(path)
-            map_object.extract(directory)
-            map_object._extract_to_raw_data(os.path.join(directory, "raw"))  # noqa
+            map_object.extract(directory_path)
+            map_object._extract_to_raw_data(os.path.join(directory_path, "raw"))  # noqa
             del map_object
 
             map_object_new = Map()
-            map_object_new.pack(directory)
-            map_object_new._extract_to_raw_data(os.path.join(directory, "raw2"))  # noqa
+            map_object_new.pack(directory_path)
+            map_object_new._extract_to_raw_data(os.path.join(directory_path, "raw2"))  # noqa
             del map_object_new
 
             # Compare 'raw' and 'raw2' folders to verify the correctness of derivations.

@@ -40,7 +40,7 @@ Values in entries have one of three specified data types. These data types
 are: *float*, *integer* and *string*. Syntax related to value declaration of
 each mentioned data type is consistent with [C++](https://en.wikipedia.org/wiki/C++).
 Floating point representation is dot (`.`) character and strings are enclosed
-by double quotation marks (`""`).
+by quotation marks (`"`).
 
 ### Example
 

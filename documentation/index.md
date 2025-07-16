@@ -9,8 +9,8 @@ provides functionalities necessary to view and modify `*.map` files. This is
 enough to freely manipulate terrain, heightmap, landscapes and structures but
 not enough to create a fully playable map in game on its own. For this, one
 has to construct additional text and image files which, combined with `*.map`
-file, can contribute to playable content. These are `*.cif`, `*.pcx` and
-`.txt` files. The following documentation is meant to explain how these
+file, can contribute to playable content. These are `*.cif`, `*.fnt`, `*.pcx`
+and `*.txt` files. The following documentation is meant to explain how these
 additional files are constructed and how to properly modify them.
 
 There are required third-party programs meant for modifying those
@@ -43,6 +43,7 @@ featured visually on the image below.
  - [`*.fnt` Font file](formats/font.md)
  - [`*.ini` Initialization file](formats/initialization.md)
  - [`*.lib` Library](formats/library.md)
+ - [`*.map` Map file](formats/map.md)
  - [`*.pcx` Picture exchange](formats/picture_exchange.md)
  - [`*.txt` Text file](formats/text.md)
 
