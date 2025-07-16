@@ -63,7 +63,7 @@ class Frame:
                     array[y, x] = (*remaptable_default[value], alpha_effective)
                 else:
                     array[y, x] = (*remaptable.palette[value], alpha_effective)
-        return Image.fromarray(array, 'RGBA')
+        return Image.fromarray(array).convert("RGBA")
 
     def from_image(self, filepath, remaptable: RemapTable = None):
         with Image.open(filepath).convert("RGBA") as img:

@@ -51,7 +51,7 @@ class RemapTable:
             self.palette = {np.ubyte(key): tuple(img.getpalette()[key*3: (key+1)*3]) for key in range(256)}
 
     def extract(self, filepath):
-        pil_image = Image.fromarray(self.bitmap, mode='P')
+        pil_image = Image.fromarray(self.bitmap).convert("P")
         palette_list = [0] * 768
         for key, (r, g, b) in self.palette.items():
             palette_list[key*3: (key+1)*3] = [r, g, b]
