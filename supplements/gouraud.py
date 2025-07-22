@@ -3,7 +3,7 @@ import os
 from PIL import Image
 from scripts.buffer import BufferGiver, BufferTaker
 from supplements.read import read
-from supplements.remaptables import remaptable_default, remaptable_direct
+from supplements.remaptables import remaptable_default
 
 filepath_default = "data_v\\ve_graphics\\gouraud\\gouraud.dat"
 entry_size = 256
