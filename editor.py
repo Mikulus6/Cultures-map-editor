@@ -8,7 +8,7 @@ from scripts.abs_path import abs_path
 from sections.walk_sector_points import sector_width
 from supplements.animations import animations
 from supplements.textures import patterndefs_textures, transition_textures
-from sys import exit as sys_exit
+from sys import argv as sys_argv, exit as sys_exit
 import time
 from typing import Literal
 
@@ -121,6 +121,9 @@ class Editor:
         self.hover_any_button = False
 
         self.clock = pygame.time.Clock()
+
+        if len(sys_argv) > 1 and os.path.exists(open_path := sys_argv[1]):
+            self.open(open_path)  # Used for opening maps via "Open with" > "Editor.exe".
 
     def loop(self):
         running = True

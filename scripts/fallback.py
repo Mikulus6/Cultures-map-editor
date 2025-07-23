@@ -1,11 +1,11 @@
 import copy
 import os
-from sys import exit as sys_exit
+from sys import argv as sys_argv, exit as sys_exit
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 
-fallback_directories = [os.getcwd()]
+fallback_directories = [os.path.dirname(os.path.abspath(sys_argv[0]))]
 
 def fallback(function):
     def new_function(*args, **kwargs):
@@ -18,7 +18,7 @@ def fallback(function):
             top.attributes("-topmost", True)
 
             if messagebox.askyesno("File not found",
-                                   "Some of game files cannot be found in working directory.\n" + \
+                                   "Some of game files cannot be found in current directory.\n" + \
                                    "Would you like to specify fallback directory manually?",
                                    icon="warning", parent=top):
                 top.quit()
