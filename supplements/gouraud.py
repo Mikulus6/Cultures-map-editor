@@ -3,7 +3,7 @@ import os
 from PIL import Image
 from scripts.buffer import BufferGiver, BufferTaker
 from supplements.read import read
-from supplements.remaptables import remaptable_default
+from supplements.remaptables import RemapTable, remaptable_default
 
 filepath_default = "data_v\\ve_graphics\\gouraud\\gouraud.dat"
 entry_size = 256
@@ -57,16 +57,16 @@ class Gouraud:
     def pack(self, directory: str):
         directory_full = os.path.join(directory, directory_name)
         with open(os.path.join(directory_full, metadata_filename), "r") as file:
-            self.value1, self.value2 = map(float, file.read().strip("\n").split("\n"))
+            self.value1, self.value2 = map(float, file.read().strip("\n").split(","))
         self.array = np.array(Image.open(os.path.join(directory_full, bitmap_filename)))
 
-    def extract(self, directory: str):
+    def extract(self, directory: str, *, remaptable: RemapTable = remaptable_default):
         directory_full = os.path.join(directory, directory_name)
         os.makedirs(directory_full, exist_ok=True)
         with open(os.path.join(directory_full, metadata_filename), "w") as file:
-            file.write(f"{self.value1}\n{self.value2}")
+            file.write(f"{self.value1},{self.value2}")
         image = Image.fromarray(self.array)
-        image.putpalette([value for rgb in [remaptable_default[i] for i in range(256)] for value in rgb])
+        image.putpalette([value for rgb in [remaptable[i] for i in range(256)] for value in rgb])
         image.save(os.path.join(directory_full, bitmap_filename))
         # In created bitmap, horizontal axis represents palette index and vertical axis represents brightness.
         # Values present there are responsible for displaying palette colors corrected by in-game light.

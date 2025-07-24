@@ -10,16 +10,13 @@ important of them are terrain triangles types, heightmap, landscapes and
 road/water/snow overlay. This file format is directly supported by
 `Editor.exe` present in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases).
 
-Note that there are a few of `*.map` files which are not supported by
-the aforementioned editor. Maps as a general concept can be divided into
-so-called cleanmaps and macromaps. Cleanmap is the type of map which is seen
-directly by the user during gameplay, while macromap is the technical term
-for a special type of brush which can be used to paint terrain over a cleanmap.
-To distinguish cleanmap and macromap from each other check the first byte of a
-`*.map` file in any hexadecimal editor. If this byte has a value equal to
-`0x0C` it indicates cleanmap presence. Since macromaps are much more rarely
-found than cleanmaps, further descriptions of the map concept will refer mostly
-to cleanmaps.
+Maps as a general concept can be divided into so-called cleanmaps and
+macromaps. Cleanmap is the type of map which is seen directly by the user
+during gameplay, while macromap is the technical term for a special type of
+brush which can be used to paint terrain over a cleanmap. To distinguish
+cleanmap and macromap from each other check the first byte of a `*.map` file
+in any hexadecimal editor. If this byte has a value equal to `0x0C` it
+indicates cleanmap presence.
 
 ### Map geometry
 

@@ -29,7 +29,7 @@ from sections.walk_sector_points import update_sectors, draw_sectors_connections
 
 
 class Map:
-    _number_of_sections = 12
+    _number_of_sections = 13
     _xsec_additional_length = 20
 
     def __init__(self):
@@ -56,7 +56,7 @@ class Map:
 
     def update_all(self, *, exclude_continents=False, report: Report = None):
         if report is None: report = Report(muted=True)
-        elif report is True: report = Report(muted=False)
+        elif report: report = Report(muted=False)
         if not exclude_continents:
             report.report("Updating continents.")
             self.update_continents()
@@ -117,7 +117,7 @@ class Map:
 
             if pre_sectors_update:
                 report.report("Updating ground set flag sectors data.")
-                mgfs_flags_3 = sectors_flag(self.xsec, self.map_width, self.map_height)
+                mgfs_flags_3 = sectors_flag([], self.map_width, self.map_height)
             else:
                 mgfs_flags_3 = sequence_to_flags(self.mgfs)[3]
 
@@ -221,6 +221,9 @@ class Map:
     # =================================== load & save ===================================
 
     def load(self, filename: str):
+
+        self.__init__()
+
         with open(filename, 'rb') as file:
             buffer = BufferGiver(file.read())
 
@@ -228,28 +231,39 @@ class Map:
         self.map_width   = buffer.unsigned(2)  # noqa: E221
         self.map_height  = buffer.unsigned(2)  # noqa: E221
 
-        for _ in range(self.__class__._number_of_sections):
-            section_name   = buffer.string(4)[::-1]  # noqa: E221
-            section_length = buffer.unsigned(4)      # noqa: E221
+        match self.map_version:
+            case 6:
+                self.__class__ = MapVersion6
+                self.__init__()
+                self.load(filename)
+                return
 
-            if section_name == "xsec":
-                section_length += self.__class__._xsec_additional_length
+            case 11 | 12:
+                for _ in range(self.__class__._number_of_sections):
+                    section_name = buffer.string(4)[::-1]  # noqa: E221
+                    section_length = buffer.unsigned(4)    # noqa: E221
 
-            section_data = buffer.bytes(section_length)
+                    if section_name == "xsec":
+                        section_length += self.__class__._xsec_additional_length
 
-            if section_name in map_const.keys():
-                vars(self)[section_name] = run_length_decryption(section_data,
-                                                                 bytes_per_entry=map_const[section_name][0])
-            else:
-                match section_name:
-                    case "llan": self.llan = load_landscapes_from_llan(section_data)
-                    case "xcot": self.xcot = load_continents_from_xcot(section_data)
-                    case "xsec": self.xsec, self.smmw = load_sectors_from_xsec(section_data)
-                    case _: raise NotImplementedError
+                    section_data = buffer.bytes(section_length)
 
-        assert buffer.string(3)[::-1] == "end"
-        assert buffer.unsigned(5) == 0
-        assert len(buffer) == 0
+                    if section_name in map_const.keys():
+                        vars(self)[section_name] = run_length_decryption(section_data,
+                                                                         bytes_per_entry=map_const[section_name][0])
+                    else:
+                        match section_name:
+                            case "llan": self.llan = load_landscapes_from_llan(section_data)
+                            case "xcot": self.xcot = load_continents_from_xcot(section_data)
+                            case "xsec": self.xsec, self.smmw = load_sectors_from_xsec(section_data)
+                            case _: pass
+
+                    if section_name == "\x00end":
+                        break
+                assert len(buffer) == 0
+
+            case _: raise NotImplementedError
+
 
     def save(self, filename: str):
 
@@ -260,7 +274,7 @@ class Map:
 
         buffer = BufferTaker()
 
-        buffer.unsigned(self.map_version, length=2)
+        buffer.unsigned(self.map_version if self.map_version != 6 else 12, length=2)
         buffer.unsigned(self.map_width,   length=2)
         buffer.unsigned(self.map_height,  length=2)
 
@@ -552,6 +566,114 @@ class Map:
             self.to_bytearrays()
 
 
+class MapVersion6(Map):
+    _version_number = 6
+
+    def __init__(self):
+        super().__init__()
+        self.map_version = self.__class__._version_number
+        self.m_unknown = b""
+
+    def load(self, filename: str):
+        self.__init__()
+
+        with open(filename, 'rb') as file:
+            buffer = BufferGiver(file.read())
+
+        self.map_version = buffer.unsigned(2)      # noqa: E221
+        self.map_width   = buffer.unsigned(2) * 2  # noqa: E221
+        self.map_height  = buffer.unsigned(2) * 2  # noqa: E221
+
+        if self.map_version != self.__class__._version_number:
+            del self.m_unknown
+            self.__class__ = Map
+            self.__init__()
+            self.load(filename)
+            return
+
+        self.mhei =  buffer.bytes(self.map_width * self.map_height // 4)
+        self.mlig =  buffer.bytes(self.map_width * self.map_height // 4)
+        self.mepa = buffer.bytes(self.map_width * self.map_height // 2)
+        self.mepb = buffer.bytes(self.map_width * self.map_height // 2)
+
+        self.m_unknown = buffer.bytes(self.map_width * self.map_height * 3 // 4)  # Purpose of this section is unknown.
+        assert self.m_unknown == len(self.m_unknown) * b"\x00"
+        assert buffer.signed(2) == -1
+        assert len(buffer) == 0
+
+        # Structures must be declared, because this is both a primary section and something dependent on map size.
+        self.mstr = b"\x00" * (self.map_width * self.map_height * 2)
+
+    def save(self, filename: str, *, use_original_format: bool = False):
+
+        if use_original_format:
+
+            assert self.map_version == self.__class__._version_number
+
+            buffer_taker = BufferTaker()
+            buffer_taker.unsigned(self.map_version,    length=2)
+            buffer_taker.unsigned(self.map_width // 2,  length=2)
+            buffer_taker.unsigned(self.map_height // 2, length=2)
+            buffer_taker.bytes(self.mhei)
+            buffer_taker.bytes(self.mlig)
+            buffer_taker.bytes(self.mepa)
+            buffer_taker.bytes(self.mepb)
+            buffer_taker.bytes(b"\x00" * (self.map_width * self.map_height * 3 // 4))
+            buffer_taker.signed(-1, length=2)
+
+            with open(filename, 'wb') as file:
+                file.write(bytes(buffer_taker))
+
+        else:
+            super().save(filename)
+
+    def pack(self, directory: str, report: bool = False):
+
+        super().pack(directory, report)
+        self.map_version = self.__class__._version_number
+        self.m_unknown = b"\x00" * (self.map_width * self.map_height * 3 // 4)
+
+    def _load_from_raw_data(self, directory: str, interprete_structures=False):
+        if interprete_structures:
+            raise AttributeError(f"Maps from version {self.__class__._version_number} do not contain structures")
+
+        with open(os.path.join(directory, "header.csv"), "r") as file:
+            self.map_version, self.map_width, self.map_height = map(int, file.read().strip("\n").split(","))
+            print(self.map_width, self.map_height)
+            self.map_width *= 2
+            self.map_height *= 2
+
+        self.mhei = image_to_bytes(os.path.join(directory, "mhei.png"))
+        self.mlig = image_to_bytes(os.path.join(directory, "mlig.png"))
+        self.mepa, self.mepb = split_mep(image_to_shorts(os.path.join(directory, "mep.png")))
+        self.m_unknown = bytes([value for rgb in image_to_rgb(os.path.join(directory, "unknown.png")) for value in rgb])
+
+    def _extract_to_raw_data(self,directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
+
+        # Setting 'expand' to True makes this conversion one-directional.
+
+        if interprete_structures or interprete_sectors:
+            raise AttributeError(f"Maps from version {self.__class__._version_number} " + \
+                                  "do not contain structures or sectors")
+
+        os.makedirs(directory, exist_ok=True)
+
+        with open(os.path.join(directory, "header.csv"), "w") as file:
+            file.write(f"{self.map_version},{self.map_width // 2},{self.map_height // 2}\n")
+
+        os.makedirs(directory, exist_ok=True)
+
+        bytes_to_image(self.mhei, os.path.join(directory, "mhei.png"), width=self.map_width // 2,
+                       expansion_mode="hexagon" if expand else None)
+        bytes_to_image(self.mlig, os.path.join(directory, "mlig.png"), width=self.map_width // 2,
+                       expansion_mode="hexagon" if expand else None)
+        shorts_to_image(combine_mep(self.mepa, self.mepb), os.path.join(directory, "mep.png"), width=self.map_width,
+                        expansion_mode="triangle" if expand else None)
+        rgb_to_image([tuple(self.m_unknown[i:i+3]) for i in range(0, len(self.m_unknown), 3)],
+                     os.path.join(directory, "unknown.png"), width=self.map_width // 2,
+                     expansion_mode="hexagon" if expand else None)
+
+
 if __name__ == "__main__":  # This part of code is responsible for testing correctness of derivations.
 
     # Following directories should be created manually
@@ -572,12 +694,12 @@ if __name__ == "__main__":  # This part of code is responsible for testing corre
             map_object.load(path)
             map_object.extract(directory_path)
             map_object._extract_to_raw_data(os.path.join(directory_path, "raw"))  # noqa
-            del map_object
 
-            map_object_new = Map()
+            map_object_new = MapVersion6() if isinstance(map_object, MapVersion6) else Map()
             map_object_new.pack(directory_path)
             map_object_new._extract_to_raw_data(os.path.join(directory_path, "raw2"))  # noqa
-            del map_object_new
+
+            del map_object, map_object_new
 
             # Compare 'raw' and 'raw2' folders to verify the correctness of derivations.
 
