@@ -1,7 +1,7 @@
 from map import Map
 from typing import Literal
-from interface.const import terrain_light_factor
 from interface.interpolation import get_data_interpolated
+from supplements.gouraud import gouraud
 from supplements.textures import patterndefs_textures
 
 
@@ -49,7 +49,7 @@ def get_major_triangle_light_values(coordinates, triangle_type: Literal["a", "b"
         light_value = map_object.mlig[(corner[1] % (map_object.map_height // 2)) * map_object.map_width // 2 +
                                       (corner[0] % (map_object.map_width  // 2))]
 
-        light_value = terrain_light_factor * (light_value - 127) / 128
+        light_value = gouraud.shading_factor * (light_value - 127) / 128
         light_values.append(light_value)
 
     return tuple(light_values)
@@ -59,7 +59,7 @@ def get_minor_triangle_light_values(coordinates, triangle_type: Literal["a", "b"
     light_values = []
     for corner in get_triangle_corner_vertices(coordinates, triangle_type):
         light_value = get_data_interpolated(corner, (map_object.map_width, map_object.map_height), map_object.mlig)
-        light_value = terrain_light_factor * (light_value - 127) / 128
+        light_value = gouraud.shading_factor * (light_value - 127) / 128
         light_values.append(light_value)
 
     return tuple(light_values)

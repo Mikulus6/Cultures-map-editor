@@ -28,7 +28,7 @@ from interface.horizont import enforce_horizonless_heightmap
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
 from interface.landscapes_area import AreaTable
-from interface.landscapes_light import adjust_opaque_pixels
+from interface.landscapes_light import adjust_opaque_pixels, check_remap_disability
 from interface.light import update_light_local
 from interface.message import message, set_font_text, one_frame_popup
 from interface.minimap import Minimap
@@ -616,10 +616,13 @@ class Editor:
             elif landscape_name is not None:
                 animation = animations[landscape_name.lower()]
                 frame = floor(time.time() * animation_frames_per_second) % len(animation.images)
-                image = adjust_opaque_pixels(animation.images[frame], get_data_interpolated(coordinates,
-                                                                                            (self.map.map_width,
-                                                                                             self.map.map_height),
-                                                                                            self.map.mlig))
+                if check_remap_disability(landscape_name):
+                    image = animation.images[frame]
+                else:
+                    image = adjust_opaque_pixels(animation.images[frame], get_data_interpolated(coordinates,
+                                                                                                (self.map.map_width,
+                                                                                                 self.map.map_height),
+                                                                                                self.map.mlig))
                 self.root.blit(image, (draw_coordinates[0] + animation.rect[0],
                                        draw_coordinates[1] + animation.rect[1]))
                 landscapes_on_screen += 1
