@@ -11,7 +11,6 @@ def check_remap_disability(landscape_name: str) -> bool:
         case 1: return True
         case _: raise ValueError
 
-
 @lru_cache(maxsize=lru_cache_landscapes_light_maxsize)
 def adjust_opaque_pixels(surface: pygame.Surface, factor: int):
 
