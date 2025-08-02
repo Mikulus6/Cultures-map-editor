@@ -44,8 +44,8 @@ def ask_new_map(editor):
         try:
             width_val = int(width_entry.get())
             height_val = int(height_entry.get())
-            rounded_width = round(width_val // sector_width) * sector_width
-            rounded_height = round(height_val // sector_width) * sector_width
+            rounded_width = max(round(width_val // sector_width) * sector_width, sector_width)
+            rounded_height = max(round(height_val // sector_width) * sector_width, sector_width)
             width_entry.delete(0, tk.END)
             width_entry.insert(0, str(rounded_width))
             height_entry.delete(0, tk.END)
