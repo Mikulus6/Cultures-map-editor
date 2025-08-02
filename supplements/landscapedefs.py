@@ -10,7 +10,7 @@ landscapedefs_cif_path = "data_v\\ve_graphics\\landscape\\landscapedefs.cif"
 
 
 class LandscapeDefs(dict):
-    def __init__(self, cif_path: str = landscapedefs_cif_path):
+    def __init__(self, cif_path: str = landscapedefs_cif_path, *, load_cdf: bool = False):
 
         super().__init__(load_ini_as_dict(cif_path, allowed_section_names=("LandscapeElement",),
                          entries_duplicated=("BaseArea", "ExtendedArea", "SpecialArea", "AddNextLandscape", "FlagSet"),
@@ -19,9 +19,12 @@ class LandscapeDefs(dict):
         # Following fields are meant for storing info which present in *.cdf file is not redundant to *.cif file
         # content. This is most likely a result of unused leftover data with no deeper meaning. Remember that *.cdf file
         # cannot be fully interpreted alone without *.cif file, because there is no distinction between the beginning of
-        # "AddNextLandscape" parameter and new "Name" parameter.
+        # "AddNextLandscape" parameter and new "Name" parameter. It is also not necessary to read *.cdf file at all.
         self.data_add_next_duplicates = dict()
         self.data_groups = dict()
+
+        if load_cdf:
+            self.load_cdf()
 
     def load_cdf(self, cdf_path: str = landscapedefs_cdf_path):
         buffer = BufferGiver(read(cdf_path, mode="rb"))
@@ -125,5 +128,4 @@ class LandscapeDefs(dict):
             self.data_groups[name] = values
 
 
-landscapedefs = LandscapeDefs()
-landscapedefs.load_cdf()
+landscapedefs = LandscapeDefs(load_cdf=False)

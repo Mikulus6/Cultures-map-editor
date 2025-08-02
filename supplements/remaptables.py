@@ -91,24 +91,57 @@ class RemapTables:
                                         global_key=lambda x: x["Name"], merge_duplicates=False)
 
     def load(self, cdf_path: str = remaptables_cdf_path):
-        buffer = BufferGiver(read(cdf_path, mode="rb"))
 
-        for _ in range(buffer.unsigned(4)):
-            name_raw = buffer.bytes(length=name_max_length)
-            name_length = name_raw.find(0)
+        if os.path.isfile(cdf_path):
 
-            if name_length == -1:
-                name_length = name_max_length
+            buffer = BufferGiver(read(cdf_path, mode="rb"))
 
-            name = str(name_raw[:name_length], encoding=data_encoding)
-            filename = self.meta[name]["FileName"]
+            for _ in range(buffer.unsigned(4)):
+                name_raw = buffer.bytes(length=name_max_length)
+                name_length = name_raw.find(0)
 
-            remaptable = RemapTable()
-            remaptable.load(buffer.bytes(length=1288))
-            self.data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
+                if name_length == -1:
+                    name_length = name_max_length
 
-        # RemapTable16 data stored in *.cdf file is redundant to RemapTable data stored in the same file and additional
-        # metadata stored in *.cif file. It is suggested to not keep this data separately in memory.
+                name = str(name_raw[:name_length], encoding=data_encoding)
+
+                try:
+                    filename = self.meta[name]["FileName"]
+                except KeyError:
+                    buffer.bytes(length=1288)
+                    continue
+
+                remaptable = RemapTable()
+                remaptable.load(buffer.bytes(length=1288))
+                self.data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
+
+                # RemapTable16 data stored in *.cdf file is redundant to RemapTable data stored in the same file and
+                # additional metadata stored in *.cif file. It is suggested to not keep this data separately in memory.
+
+        if not self.is_loaded:
+            # This is backup loading procedure in case not all remaptables are in *.cdf file.
+
+            base_directory = os.path.dirname(cdf_path)
+
+            for meta_key, meta_values in self.meta.items():
+                if meta_key.lower() in self.data.keys():
+                    continue
+
+                name = meta_values["Name"]
+                filename = meta_values["FileName"]
+
+                remaptable = RemapTable()
+                remaptable.pack(os.path.join(base_directory, filename))
+                self.data[name.lower()] = {"FileName": filename, "RemapTable": remaptable}
+
+        if not self.is_loaded:
+            raise FileNotFoundError
+
+    def reload_fix(self):
+        if not self.is_loaded:
+            self.load()
+        if not self.is_loaded:
+            raise FileNotFoundError
 
     def save(self, cdf_path: str = remaptables_cdf_path):
         with open(cdf_path, "wb") as file:
@@ -127,6 +160,10 @@ class RemapTables:
 
     def clear(self):
         self.data.clear()
+
+    @property
+    def is_loaded(self):
+        return len(self.data) == len(self.meta)
 
     def __bytes__(self):
         buffer_taker = BufferTaker()

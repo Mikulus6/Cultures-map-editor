@@ -27,8 +27,7 @@ def fallback(function):
                 value = function(*args, **kwargs)
             else:
                 sys_exit()
-                value = None  # unreachable code
-        return value
+        return value  # noqa
     return new_function
 
 
@@ -44,7 +43,11 @@ def load_with_fallback(function):
             directories_to_search = [current_working_directory, *fallback_directories]
 
         for directory in directories_to_search:
-            os.chdir(directory)
+            try:
+                os.chdir(directory)
+            except OSError:
+                sys_exit()
+
             try:
                 value = function(*args, **kwargs)
                 break

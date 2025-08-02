@@ -1,8 +1,10 @@
 import numpy as np
-from scripts.colormap import mstr_colormap
+from scripts.colormap import ColorMap
 
+mstr_colormap = ColorMap({0 : (128, 128, 128),
+	                      1 : (0, 0, 255),
+	                      2 : (255, 255, 255)})
 empty_color = (0, 0, 0)
-assert empty_color not in mstr_colormap.values()
 
 def coordinates_in_radius(start_position, radius):
     coordinates_set_old = set()

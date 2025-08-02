@@ -3,6 +3,7 @@ import os
 from math import sqrt
 import numpy as np
 from PIL import Image, ImageDraw
+from scripts.colormap import ColorMap
 from supplements.patterns import patterndefs_normal, transition_defs
 from supplements.read import read
 from typing import Literal
@@ -14,7 +15,7 @@ def get_average_color(image: Image.Image) -> tuple:
     img_array = np.array(image)
     non_transparent_pixels = img_array[:, :, :3][img_array[:, :, 3] > 0]
 
-    if len(non_transparent_pixels) > 0: return tuple(np.mean(non_transparent_pixels, axis=0).astype(int))
+    if len(non_transparent_pixels) > 0: return tuple(map(int, np.mean(non_transparent_pixels, axis=0).astype(int)))
     else:                               return None
 
 
@@ -184,9 +185,25 @@ class Textures(dict):
                (pixel_coords[2], pixel_coords[3]), \
                (pixel_coords[4], pixel_coords[5])
 
+    def load_colormap(self) -> ColorMap:
+        assert not self.transitions
+        _default_color = (0, 0, 0)
+        colormap = ColorMap()
+        for key, value in self.items():
+            average_color_a = value["a"].average_color if value["a"].average_color is not None else _default_color
+            average_color_b = value["b"].average_color if value["b"].average_color is not None else _default_color
+
+            colormap[key] = ((average_color_a[0] + average_color_b[0]) // 2,
+                             (average_color_a[1] + average_color_b[1]) // 2,
+                             (average_color_a[2] + average_color_b[2]) // 2)
+
+        colormap.deduplicate_colors()
+        return colormap
+
 
 patterndefs_textures = Textures(transitions=False)
 patterndefs_textures.load(source_dict=patterndefs_normal)
+mep_colormap = patterndefs_textures.load_colormap()
 
 transition_textures = Textures(transitions=True)
 transition_textures.load(source_dict=transition_defs)

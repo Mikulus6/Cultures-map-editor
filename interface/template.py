@@ -3,7 +3,7 @@ from itertools import product
 from PIL import Image
 import numpy as np
 from interface.triangle_transitions import update_triangles
-from scripts.colormap import template_editgroups_palette
+from scripts.colormap import template_editgroups_palette, find_closest_color
 from supplements.patterns import patterndefs_normal, patterndefs_normal_by_name
 from supplements.textures import patterndefs_textures
 from supplements.groups import pattern_edit_group, get_random_group_entry
@@ -29,8 +29,8 @@ def get_patternedit_color_data():
             average_color_result = [sum(x) for x in zip(average_color, average_color_result)]
         average_color_result = [x // len(textures) for x in average_color_result]
         if tuple(average_color_result) in color_per_editgroup.values():
-            average_color_result[0] += 1  # To prevent dupliction. This is a simplified solition for editgroups
-                                          # "Clay" and "Meadow/Clay" from "Cultures: Discovery of Vinland".
+            average_color_result = find_closest_color(average_color_result,
+                                                      excluded_colors=color_per_editgroup.values())
         color_per_editgroup[name] = tuple(average_color_result)
     assert len(color_per_editgroup.values()) == len(set(color_per_editgroup.values()))  # There are no duplicates.
     editgroup_per_color = {color: name for name, color in color_per_editgroup.items()}  # noqa

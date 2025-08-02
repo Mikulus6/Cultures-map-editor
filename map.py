@@ -3,7 +3,6 @@ import os
 
 from scripts.array_paste import paste_in_bounds
 from scripts.buffer import BufferGiver, BufferTaker
-from scripts.colormap import mep_colormap
 from scripts.const import map_const, section_names
 from scripts.flags import sequence_to_flags, flags_to_sequence
 from scripts.image import bytes_to_image, shorts_to_image, bits_to_image, rgb_to_image, \
@@ -26,6 +25,7 @@ from sections.sectors_flag import sectors_flag
 from sections.structures import update_structures, validate_structures_continuity, structures_to_rgb, rgb_to_structures
 from sections.summary import update_summary
 from sections.walk_sector_points import update_sectors, draw_sectors_connections, sector_width
+from supplements.textures import mep_colormap
 
 
 class Map:

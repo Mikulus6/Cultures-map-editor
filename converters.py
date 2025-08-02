@@ -88,12 +88,12 @@ class Conversions:
     def extract_fnt(cls, in_path, out_path):
         bitmap = Bitmap()
         bitmap.load(in_path, font_header=True)
-        bitmap.extract_to_raw_data(os.path.join(out_path, os.path.basename(in_path).split(".")[0]))
+        bitmap.extract_to_raw_data(os.path.join(out_path, os.path.basename(in_path).split(".")[0]), font_header=True)
 
     @classmethod
     def pack_fnt(cls, in_path, out_path):
         bitmap = Bitmap()
-        bitmap.load_from_raw_data(in_path)
+        bitmap.load_from_raw_data(in_path, font_header=True)
         bitmap.save(out_path, font_header=True)
 
     @classmethod

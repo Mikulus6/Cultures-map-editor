@@ -61,6 +61,7 @@ def get_structure_type_of_vertex(map_object: Map, coordinates) -> Literal[None, 
         case 0: return "road"
         case 1: return "river"
         case 2: return "snow"
+        case _: raise ValueError
 
 def update_structures(map_object: Map, coordinates, structure_type: Literal[None, "road", "river", "snow"],
                       ignore_undo: bool = False):

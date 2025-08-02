@@ -403,6 +403,8 @@ class Editor:
         if filepath is None:
             filepath = asksaveasfilename(self, title="Save map", default=self.map_filepath,
                                          filetypes=(("map files", "*.map"), ("all files", "*.*")))
+            if not filepath.lower().endswith(".map"):
+                filepath += ".map"
         try:
             if filepath is None:
                 raise TypeError

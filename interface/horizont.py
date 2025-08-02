@@ -17,11 +17,11 @@ def enforce_horizonless_heightmap(editor):
         for x in range(0, editor.map.map_width // 2):
             editor.update_height((x, y), 0)
 
-    mhei_ndarray = np.frombuffer(editor.map.mhei, dtype=np.ubyte).reshape((editor.map.map_height//2,
-                                                                           editor.map.map_width//2))
+    mhei_ndarray = np.frombuffer(editor.map.mhei, dtype=np.ubyte).reshape((editor.map.map_height // 2,
+                                                                           editor.map.map_width // 2))
 
     for y in range(void_margin, editor.map.map_height // 2 - void_margin):
-        for x in range(void_margin, editor.map.map_width//2 - void_margin):
+        for x in range(void_margin, editor.map.map_width // 2 - void_margin):
             old_height = mhei_ndarray[y, x]
             match y:
                 case 2: mhei_ndarray[y, x] = min(mhei_ndarray[y, x], 2 * max_steepness)

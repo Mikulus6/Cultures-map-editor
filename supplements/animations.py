@@ -6,7 +6,7 @@ from tkinter import Tk, ttk, messagebox
 import time
 from scripts.animation import Animation
 from scripts.buffer import BufferGiver, BufferTaker
-from scripts.fallback import fallback_directories
+from scripts.fallback import fallback_directories, load_with_fallback
 from scripts.report import Report
 from supplements.bitmaps import Bitmap
 from supplements.landscapedefs import landscapedefs, name_max_length
@@ -107,7 +107,11 @@ class Animations(dict):
     name_max_bytes = ceil(log2(name_max_length))
     pygame_converted = False
 
+    @load_with_fallback
     def __init__(self, *, report=False):
+
+        remaptables.reload_fix()
+
         super().__init__(dict())
         if self.__class__.initialized:
             raise ValueError(f"{self.__class__.__name__} is a singleton.")

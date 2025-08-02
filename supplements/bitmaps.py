@@ -88,7 +88,7 @@ class Bitmap(dict):
         super().__init__()
         self.font_size = 0
 
-    def load(self, filename: str, font_header=False):
+    def load(self, filename: str, font_header: bool = False):
 
         # Following code written below was initially constructed in year 2013 on XeNTaX forum.
         # Original discussion was available here: https://forum.xentax.com/viewtopic.php?t=10705
@@ -160,20 +160,11 @@ class Bitmap(dict):
                     indent = warp_sign(int(row_header[:10], 2), 10)
 
                     if indent == -1:
-                        match frame_type:
-                            case 1: row = [alpha_index] * width
-                            case 2: row = [alpha_index] * width
-                            case 3: row = [alpha_index] * width
-                            case 4: row = [alpha_index, 0] * width
+                        row = [alpha_index] * width
                         head = 0
 
                     else:
-                        match frame_type:
-                            case 1: row = [alpha_index] * indent
-                            case 2: row = [alpha_index] * indent
-                            case 3: row = [alpha_index] * indent
-                            case 4: row = [alpha_index, 0] * indent
-
+                        row = [alpha_index] * indent
                         buffer_section_1 = BufferGiver(sections[1])
                         buffer_section_1.skip(int(row_header[10:], 2))
                         head = -1  # This value can be anything else than zero.
@@ -188,13 +179,13 @@ class Bitmap(dict):
                                 case 1: row_to_add = buffer_section_1.iterable(length=head)
                                 case 2: row_to_add = [0] * head
                                 case 3: row_to_add = buffer_section_1.iterable(length=1) * head
-                                case 4: row_to_add = buffer_section_1.iterable(length=head * 2)
+                                case _: raise ValueError
 
                             match frame_type:
                                 case 1: number_of_pixels_counted += head
                                 case 2: number_of_pixels_counted += 0
                                 case 3: number_of_pixels_counted += 1
-                                case 4: number_of_pixels_counted += head * 2
+                                case _: raise ValueError
 
                         elif head < 0:
                             head += 128
@@ -202,13 +193,9 @@ class Bitmap(dict):
                                 case 1: row_to_add = [alpha_index] * head
                                 case 2: row_to_add = [alpha_index] * head
                                 case 3: raise NotImplementedError
-                                case 4: row_to_add = [alpha_index, 0] * head
+                                case _: raise ValueError
                         else:
-                            match frame_type:
-                                case 1: row_to_add = [alpha_index] * (width - len(row))
-                                case 2: row_to_add = [alpha_index] * (width - len(row))
-                                case 3: row_to_add = [alpha_index] * (width - len(row))
-                                case 4: row_to_add = [alpha_index, 0] * (width - len(row) // 2)
+                            row_to_add = [alpha_index] * (width - len(row))
 
                         row += row_to_add  # noqa
 
@@ -216,7 +203,7 @@ class Bitmap(dict):
                         case 1: row = [(color, 255) if color != alpha_index else (0, 0) for color in row]
                         case 2: row = [(0, 255) if color != alpha_index else (0, 0) for color in row]
                         case 3: row = [(alpha, 255) if alpha not in (alpha_index, 255) else (0, 0) for alpha in row]
-                        case 4: row = [(row[i] if row[i] != alpha_index else 0, row[i + 1]) for i in range(0, len(row), 2)]
+                        case _: raise ValueError
 
                     assert len(row) == width
 
@@ -231,11 +218,12 @@ class Bitmap(dict):
                 self[frame_index] = Frame(frame_type=frame_type,
                                           rect=(offset_x, offset_y, width, height),
                                           data=frame_data)
+
         if not has_unreadable_parts and not font_header:
             assert number_of_pixels == number_of_pixels_counted
             assert number_of_rows == number_of_rows_counted
 
-    def save(self, filename: str, font_header=False):
+    def save(self, filename: str, font_header: bool = False):
 
         # This function is meant to be used only for bitmaps consisting of frames with frame type equal to 0 or 1.
 
@@ -250,17 +238,16 @@ class Bitmap(dict):
         buffer_header.unsigned(0, length=4)
         number_of_frames = max((*self.keys(), -1)) + 1
         buffer_header.unsigned(number_of_frames, length=4)
-        number_of_pixels = 0
         number_of_rows = 0
         buffer_section_0, buffer_section_1, buffer_section_2 = [BufferTaker() for _ in range(3)]
 
         def insert_pixels():
-            nonlocal frame, row, row_to_add, number_of_pixels
+            nonlocal frame, row, row_to_add
+
             match frame.frame_type:  # noqa
                 case 1: row.extend([len(row_to_add), *row_to_add])
                 case 2: row.append(len(row_to_add))
-                case 3: raise ValueError
-                case 4: raise ValueError
+                case 3: raise NotImplementedError
                 case _: raise ValueError
 
         for frame_index in range(number_of_frames):
@@ -290,9 +277,8 @@ class Bitmap(dict):
 
                     match frame.frame_type:
                         case 1: color = color if alpha != 0 else alpha_index
-                        case 2: raise NotImplementedError
+                        case 2: color = alpha_index if alpha == 0 else 0
                         case 3: raise NotImplementedError
-                        case 4: raise NotImplementedError
                         case _: raise ValueError
 
                     if color == alpha_index:
@@ -323,7 +309,8 @@ class Bitmap(dict):
                 if len(row) == 0:
                     indent = -1
                 elif row[0] == -1:
-                    raise NotImplementedError
+                    row.pop(0)
+                    indent = 127
                 elif row[0] > 128:
                     indent = row.pop(0) - 128
                 else:
@@ -331,6 +318,9 @@ class Bitmap(dict):
 
                 while len(row) > 0 and row[-1] == -1:
                     row.pop(-1)
+
+                while -1 in row:
+                    row[row.index(-1)] = 255
 
                 if indent != -1:
                     row.append(0)
@@ -348,57 +338,9 @@ class Bitmap(dict):
 
                 buffer_section_1.iterable(row)
 
-        buffer_giver_section_0 = BufferGiver(bytes(buffer_section_0))
-        buffer_giver_section_1 = BufferGiver(bytes(buffer_section_1))
-
-        for frame_index in range(number_of_frames):  # This loop is only to calculate number of pixels, it might be
-                                                     # possible to integrate it into the previous loop.
-            frame = self.get(frame_index, None)
-
-            if not isinstance(frame, Frame):
-                continue
-
-            buffer_giver_section_0.unsigned(length=20)
-            buffer_inverse_section_2 = BufferGiver(bytes(buffer_section_2))
-            buffer_inverse_section_2.skip(buffer_giver_section_0.unsigned(length=4) * 4)
-            buffer_giver_section_0.unsigned(length=4)
-
-            for _ in range(frame.rect[3]):
-
-                row_header = buffer_inverse_section_2.binary(length=4, byteorder="little")
-                indent = warp_sign(int(row_header[:10], 2), 10)
-
-                if indent == -1:
-                    head = 0
-                else:
-
-                    buffer_giver_section_1 = BufferGiver(bytes(buffer_section_1))
-                    buffer_giver_section_1.skip(int(row_header[10:], 2))
-                    head = -1  # This value can be anything else than zero.
-
-                while head != 0:
-                    head = buffer_giver_section_1.signed(length=1)  # noqa
-
-                    number_of_pixels += 1
-
-                    if head > 0:
-                        match frame.frame_type:
-                            case 1: buffer_giver_section_1.skip(head)
-                            case 3: buffer_giver_section_1.skip(1)
-                            case 4: buffer_giver_section_1.skip(head * 2)
-
-                        match frame.frame_type:
-                            case 1: number_of_pixels += head
-                            case 2: number_of_pixels += 0
-                            case 3: number_of_pixels += 1
-                            case 4: number_of_pixels += head * 2
-
-                    elif head < 0:
-                        head += 128
-                    else:
-                        pass
-
-        buffer_header.unsigned(number_of_pixels, length=4)
+        buffer_header.unsigned(self.__class__.count_pixels((buffer_section_0,
+                                                            buffer_section_1,
+                                                            buffer_section_2)), length=4)
         buffer_header.unsigned(number_of_rows, length=4)
         buffer_header.unsigned(number_of_rows, length=4)
         buffer_header.unsigned(0, length=8)
@@ -420,24 +362,30 @@ class Bitmap(dict):
         animation = self.to_animation(remaptable, shading_factor, first_bob, elements)
         animation.save(filename, frame_duration=frame_duration)
 
-    def extract_to_raw_data(self, directory: str):
-        metadata_string = f"{self.font_size}\n"
-        for frame_index in range(max(self.keys())+1):
-            frame = self.get(frame_index, None)
-            if not isinstance(frame, Frame) or frame.frame_type == 0:
-                metadata_string += "0,0,0\n"
-                continue
-            metadata_string += f"{frame.frame_type},{','.join(map(str, frame.rect[:2]))}\n"
-            frame.extract(os.path.join(directory, f"{frame_index}.png"), remaptable=remaptable_direct)
+    def extract_to_raw_data(self, directory: str, font_header: bool = False):
+        os.makedirs(directory, exist_ok=True)
+        metadata_string = f"{self.font_size}\n" if font_header else ""
+
+        if len(self.keys()) > 0:
+            for frame_index in range(max(self.keys())+1):
+                frame = self.get(frame_index, None)
+                if not isinstance(frame, Frame) or frame.frame_type == 0:
+                    metadata_string += "0,0,0\n"
+                    continue
+                metadata_string += f"{frame.frame_type},{','.join(map(str, frame.rect[:2]))}\n"
+                frame.extract(os.path.join(directory, f"{frame_index}.png"), remaptable=remaptable_direct)
 
         with open(os.path.join(directory, metadata_filename), "w") as file:
             file.write(metadata_string.rstrip("\n"))
 
-    def load_from_raw_data(self, directory: str):
+    def load_from_raw_data(self, directory: str, font_header: bool = False):
         with open(os.path.join(directory, metadata_filename)) as file:
             file_content = file.read().rstrip("\n").split("\n")
-            self.font_size = int(file_content[0])
-            for frame_index, line in enumerate(file_content[1:]):
+
+            if font_header: self.font_size = int(file_content.pop(0))
+            else:           self.font_size = 0
+
+            for frame_index, line in enumerate(file_content):
 
                 frame_type, offset_x, offset_y = map(int, line.split(","))
 
@@ -459,3 +407,55 @@ class Bitmap(dict):
         animation.from_bitmap_dict(self, remaptable, shading_factor, first_bob,
                                    elements, high_color_shading_mode, masked_file)
         return animation
+
+    @classmethod
+    def count_pixels(cls, sections: list | tuple) -> int:
+
+        number_of_pixels = 0
+        buffer_section_0 = BufferGiver(sections[0])
+
+        for frame_index in range(len(sections[0]) // 28):
+
+            frame_type = buffer_section_0.unsigned(length=4)
+            buffer_section_0.unsigned(length=12)
+            height = buffer_section_0.unsigned(length=4)
+
+            buffer_section_2 = BufferGiver(sections[2])
+            buffer_section_2.skip(buffer_section_0.unsigned(length=4) * 4)
+            buffer_section_0.unsigned(length=4)
+
+            if frame_type == 3:
+                raise NotImplementedError
+
+            for _ in range(height):
+
+                row_header = buffer_section_2.binary(length=4, byteorder="little")
+                indent = warp_sign(int(row_header[:10], 2), 10)
+
+                if indent == -1:
+                    head = 0
+
+                else:
+                    buffer_section_1 = BufferGiver(sections[1])
+                    buffer_section_1.skip(int(row_header[10:], 2))
+                    head = -1  # This value can be anything else than zero.
+
+                while head != 0:
+                    head = buffer_section_1.signed(length=1)  # noqa
+
+                    number_of_pixels += 1
+
+                    if head > 0:
+                        match frame_type:
+                            case 1: buffer_section_1.iterable(length=head)
+                            case 2: pass
+                            case 3: buffer_section_1.iterable(length=1) * head
+                            case _: raise ValueError
+
+                        match frame_type:
+                            case 1: number_of_pixels += head
+                            case 2: number_of_pixels += 0
+                            case 3: number_of_pixels += 1
+                            case _: raise ValueError
+
+        return number_of_pixels
