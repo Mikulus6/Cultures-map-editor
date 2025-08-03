@@ -1,5 +1,5 @@
 {
-  "Meadow Dark":           [0, 155, 0],
+  "Meadow Dark":           [0, 115, 0],
   "Meadow Bright":         [0, 217, 0],
   "Meadow Forest":         [0, 64, 0],
   "Meadow Yellow":         [0, 166, 0],
@@ -7,7 +7,7 @@
   "Stone":                 [63, 61, 57],
   "Strand":                [211, 211, 0],
   "Water":                 [0, 128, 255],
-  "Beach":                 [0, 255, 255],
+  "Beach":                 [255, 255, 0],
   "Desert":                [208, 208, 128],
   "Desert/Meadow":         [128, 255, 0],
   "Swamp":                 [0, 128, 80],

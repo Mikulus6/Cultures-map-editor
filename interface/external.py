@@ -75,7 +75,7 @@ def ask_new_map(editor):
     def on_load():
         nonlocal load_template_string, map_template_filepath
         map_template_filepath = askopenfilename(editor, title="Open map template", default="*.png;*.pcx;*.bmp",
-                                                filetypes=(("images", "*.png;*.pcx;*.bmp"), ("all files", "*.*")))
+                                                filetypes=(("images", "*.png;*.bmp"), ("all files", "*.*")))
         if map_template_filepath is not None:
             load_template_string.set(os.path.basename(map_template_filepath))
 

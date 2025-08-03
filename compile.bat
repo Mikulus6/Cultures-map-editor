@@ -5,6 +5,7 @@ pyinstaller --onefile -w --icon=assets\icon.ico^
   --add-data="assets\shadows;assets\shadows" ^
    main.py
 pyinstaller --onefile -w --icon=assets\icon_converters.ico --add-data="assets;assets" converters.py
+python palette.py
 del main.exe
 del converters.exe
 move dist\main.exe
