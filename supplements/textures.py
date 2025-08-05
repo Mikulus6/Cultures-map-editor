@@ -4,7 +4,7 @@ from math import sqrt
 import numpy as np
 from PIL import Image, ImageDraw
 from scripts.colormap import ColorMap
-from supplements.patterns import patterndefs_normal, transition_defs
+from supplements.patterns import patterndefs_normal
 from supplements.read import read
 from typing import Literal
 
@@ -210,4 +210,4 @@ patterndefs_textures.load(source_dict=patterndefs_normal)
 mep_colormap = patterndefs_textures.load_colormap()
 
 transition_textures = Textures(transitions=True)
-transition_textures.load(source_dict=transition_defs)
+transition_textures.load(source_dict=patterndefs_normal.transition_defs)

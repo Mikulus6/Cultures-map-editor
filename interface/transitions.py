@@ -1,14 +1,14 @@
 from map import Map
 from interface.const import transition_stretch_factor
 from interface.triangles import get_neighbouring_triangles
-from supplements.patterns import patterndefs_normal, transitions
+from supplements.patterns import patterndefs_normal
 from supplements.textures import transition_textures
 from typing import Literal
 
 
 # Prepare lookup table for quickly finding correct transition textures.
 transitions_by_group = dict()
-for transition in transitions.values():
+for transition in patterndefs_normal.transitions.values():
     src_key = transition["SrcGroup"].lower()
     dest_key = transition["DestGroup"].lower()
     textures = transition_textures[transition["Name"].lower()]
