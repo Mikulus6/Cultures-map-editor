@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image
 from scripts.animation import Animation
 from scripts.buffer import BufferGiver, BufferTaker
-from scripts.flags import warp_sign
 from scripts.image import get_rgb_negative
 from supplements.read import read
 from supplements.remaptables import RemapTable, remaptable_default, remaptable_direct
@@ -26,7 +25,7 @@ alpha_index = -1
 shadow_color = (0, 0, 0)
 metadata_filename = "metadata.csv"
 high_color_shade_alpha = 92 # Following two values might not be exactly correct.
-animation_frame_duration = 0.1  # seconds
+animation_frame_duration = 1/6  # seconds
 
 
 class Frame:
@@ -86,38 +85,47 @@ class Frame:
 class Bitmap(dict):
     def __init__(self):
         super().__init__()
+        self.font = False
         self.font_size = 0
 
-    def load(self, filename: str, font_header: bool = False):
+    def load(self, filename: str):
 
-        # Following code written below was initially constructed in year 2013 on XeNTaX forum.
+        # Part of code written below was initially constructed in year 2013 on XeNTaX forum.
         # Original discussion was available here: https://forum.xentax.com/viewtopic.php?t=10705
 
         buffer =  BufferGiver(read(filename, mode="rb"))
 
-        if font_header:
-            assert buffer.unsigned(length=4) == 40
+        match buffer.unsigned(length=4):
+            case 25: self.font = False
+            case 40: self.font = True
+            case _: raise ValueError
+
+        if self.font:
             buffer.unsigned(length=2)
             self.font_size = buffer.unsigned(length=2)
+            assert buffer.unsigned(length=4) == 25
 
-        assert buffer.unsigned(length=4) == 25
-        buffer.unsigned(4)
+        frame_index_offset = buffer.unsigned(4)
+
         number_of_frames = buffer.unsigned(4)
         number_of_pixels = buffer.unsigned(4)
         number_of_rows = buffer.unsigned(4)
-        if not font_header:
+        if not self.font:
             assert number_of_rows == buffer.unsigned(4)
         else:
             buffer.unsigned(4)
-        buffer.unsigned(length=8)
+
+        # Following two values are most likely related to number of reduced pixels and reduced rows. They are not
+        # entirely relevant to reading and writing algorithms, as they only provide memory optimization and not the
+        # information necessary to actually read and modify bitmaps.
+        buffer.unsigned(length=4)
+        deduplication = (buffer.unsigned(length=4) != 0)
 
         if number_of_frames == 0:
             return
 
         number_of_pixels_counted = 0
         number_of_rows_counted = 0
-
-        has_unreadable_parts = False
 
         sections = []
 
@@ -131,131 +139,119 @@ class Bitmap(dict):
 
         for frame_index in range(number_of_frames):
 
-            try:
-                frame_type = buffer_section_0.unsigned(length=4)
-                offset_x = buffer_section_0.signed(length=4)
-                offset_y = buffer_section_0.signed(length=4)
-                width = buffer_section_0.unsigned(length=4)
-                height = buffer_section_0.unsigned(length=4)
+            frame_type = buffer_section_0.unsigned(length=4)
+            offset_x = buffer_section_0.signed(length=4)
+            offset_y = buffer_section_0.signed(length=4)
+            width = buffer_section_0.unsigned(length=4)
+            height = buffer_section_0.unsigned(length=4)
 
-                assert frame_type in range(5)
-                assert frame_type != 0 or (width == height == 0)
+            assert frame_type in range(4)
+            assert frame_type != 0 or (width == height == 0)
 
-                buffer_section_2 = BufferGiver(sections[2])
-                buffer_section_2.skip(buffer_section_0.unsigned(length=4) * 4)
-                buffer_section_0.unsigned(length=4)
+            buffer_section_2 = BufferGiver(sections[2])
+            buffer_section_2.skip(buffer_section_0.unsigned(length=4) * 4)
+            buffer_section_0.unsigned(length=4)
 
-                if frame_type == 3:
-                    # None of lanscapes and fonts from games "Cultures: Discovery of Vinland" and "Cultures: The Revenge
-                    # of the Rain God" use this type of frame when parameters "FirstBob" and "Elements" are considered.
-                    raise NotImplementedError
+            frame_data = []
 
-                frame_data = []
+            for _ in range(height):
 
-                for _ in range(height):
+                row_header = buffer_section_2.binary(length=4, byteorder="little")
+                indent = int(row_header[:10], 2)
 
-                    row = []
+                if indent == 1023:  # -1
+                    row = [alpha_index] * width
+                    head = 0
 
-                    row_header = buffer_section_2.binary(length=4, byteorder="little")
-                    indent = warp_sign(int(row_header[:10], 2), 10)
+                else:
+                    row = [alpha_index] * indent
+                    buffer_section_1 = BufferGiver(sections[1])
+                    buffer_section_1.skip(int(row_header[10:], 2))
+                    head = -1  # This value can be anything else than zero.
 
-                    if indent == -1:
-                        row = [alpha_index] * width
-                        head = 0
-
-                    else:
-                        row = [alpha_index] * indent
-                        buffer_section_1 = BufferGiver(sections[1])
-                        buffer_section_1.skip(int(row_header[10:], 2))
-                        head = -1  # This value can be anything else than zero.
-
-                    while head != 0:
-                        head = buffer_section_1.signed(length=1)  # noqa
-
-                        number_of_pixels_counted += 1
-
-                        if head > 0:
-                            match frame_type:
-                                case 1: row_to_add = buffer_section_1.iterable(length=head)
-                                case 2: row_to_add = [0] * head
-                                case 3: row_to_add = buffer_section_1.iterable(length=1) * head
-                                case _: raise ValueError
-
-                            match frame_type:
-                                case 1: number_of_pixels_counted += head
-                                case 2: number_of_pixels_counted += 0
-                                case 3: number_of_pixels_counted += 1
-                                case _: raise ValueError
-
-                        elif head < 0:
-                            head += 128
-                            match frame_type:
-                                case 1: row_to_add = [alpha_index] * head
-                                case 2: row_to_add = [alpha_index] * head
-                                case 3: raise NotImplementedError
-                                case _: raise ValueError
-                        else:
-                            row_to_add = [alpha_index] * (width - len(row))
-
-                        row += row_to_add  # noqa
-
+                while head != 0:
                     match frame_type:
-                        case 1: row = [(color, 255) if color != alpha_index else (0, 0) for color in row]
-                        case 2: row = [(0, 255) if color != alpha_index else (0, 0) for color in row]
-                        case 3: row = [(alpha, 255) if alpha not in (alpha_index, 255) else (0, 0) for alpha in row]
+                        case 1 | 2: head = buffer_section_1.signed(length=1)  # noqa
+                        case 3:     head = buffer_section_1.unsigned(length=1)
                         case _: raise ValueError
 
-                    assert len(row) == width
+                    number_of_pixels_counted += 1
 
-                    frame_data.append(row)
-                    number_of_rows_counted += 1
+                    if head > 0:
+                        match frame_type:
+                            case 1:
+                                row_to_add = buffer_section_1.iterable(length=head)
+                                number_of_pixels_counted += head
+                            case 2:
+                                row_to_add = [0] * head
+                            case 3:
+                                row_to_add = buffer_section_1.iterable(length=1) * head
+                                number_of_pixels_counted += 1
 
-            except NotImplementedError:
-                self[frame_index] = None
-                has_unreadable_parts = True
+                    elif head < 0: row_to_add = [alpha_index] * (head + 128)
+                    else:          row_to_add = [alpha_index] * (width - len(row))
+
+                    row += row_to_add
+
+                match frame_type:
+                    case 1: row = [(color, 255) if color != alpha_index else (0, 0) for color in row]
+                    case 2: row = [(0, 255) if color != alpha_index else (0, 0) for color in row]
+                    case 3: row = [(color, 255) if color not in (alpha_index, 255) else (0, 0) for color in row]
+
+                assert len(row) == width
+
+                frame_data.append(row)
+                number_of_rows_counted += 1
 
             else:
-                self[frame_index] = Frame(frame_type=frame_type,
-                                          rect=(offset_x, offset_y, width, height),
-                                          data=frame_data)
+                self[frame_index+frame_index_offset] = Frame(frame_type=frame_type,
+                                                             rect=(offset_x, offset_y, width, height),
+                                                             data=frame_data)
 
-        if not has_unreadable_parts and not font_header:
+        if not deduplication:
             assert number_of_pixels == number_of_pixels_counted
             assert number_of_rows == number_of_rows_counted
+            # Some files use additional compression which can link different parts of frames to the same row or
+            # horizontal sequence of pixels. This, as a result, makes some files smaller simultaneously making it more
+            # difficult to count actual number of lines and number of rows. However, such optimization is not necessary
+            # for practical cases on modern hardware. Files can be packed back without this optimization.
 
-    def save(self, filename: str, font_header: bool = False):
+    def save(self, filename: str, insert_offset: bool = True):
 
-        # This function is meant to be used only for bitmaps consisting of frames with frame type equal to 0 or 1.
+        # The following function is not optimized. The bitmaps packing algorithm originally used by developers includes
+        # additional compression procedure which deduplicates horizontal sequences of pixels. Such algorithm is neither
+        # necessary for loading bitmaps nor for saving them. However, this optimization would make bitmap files slightly
+        # smaller, yet the following code would be more complex. Because of the lack of this detail, recreated files are
+        # usually not identical to the ones present in game files despite being displayed the exactly same way.
 
-        buffer_header = BufferTaker()
-
-        if font_header:
-            buffer_header.unsigned(40, length=4)
-            buffer_header.unsigned(font_family_id, length=2)
-            buffer_header.unsigned(self.font_size, length=2)
-
-        buffer_header.unsigned(25, length=4)
-        buffer_header.unsigned(0, length=4)
         number_of_frames = max((*self.keys(), -1)) + 1
-        buffer_header.unsigned(number_of_frames, length=4)
         number_of_rows = 0
         buffer_section_0, buffer_section_1, buffer_section_2 = [BufferTaker() for _ in range(3)]
 
+        frame_index_offset = 0
+
         def insert_pixels():
-            nonlocal frame, row, row_to_add
+            nonlocal frame, row, row_to_add, pixels_count, current_color
 
             match frame.frame_type:  # noqa
                 case 1: row.extend([len(row_to_add), *row_to_add])
                 case 2: row.append(len(row_to_add))
-                case 3: raise NotImplementedError
+                case 3: row.extend([pixels_count, current_color])
                 case _: raise ValueError
 
         for frame_index in range(number_of_frames):
+
             frame = self.get(frame_index, None)
 
             if not isinstance(frame, Frame) or frame.frame_type == 0:
-                buffer_section_0.unsigned(0, length=28)
+                if insert_offset:
+                    frame_index_offset += 1
+                else:
+                    buffer_section_0.unsigned(0, length=28)
+                    insert_offset = False
                 continue
+
+            insert_offset = False
 
             buffer_section_0.unsigned(frame.frame_type, length=4)
             for i in range(4):
@@ -267,7 +263,8 @@ class Bitmap(dict):
 
             for row_index in range(frame.rect[3]):
 
-                current_alpha = True
+                current_alpha = False if frame.frame_type == 3 else True
+                current_color = alpha_index
                 pixels_count = 0
                 row_to_add = []
                 row = []
@@ -276,48 +273,77 @@ class Bitmap(dict):
                     color, alpha = frame.data[row_index][x]
 
                     match frame.frame_type:
-                        case 1: color = color if alpha != 0 else alpha_index
+                        case 1 | 3 : color = color if alpha != 0 else alpha_index
                         case 2: color = alpha_index if alpha == 0 else 0
-                        case 3: raise NotImplementedError
                         case _: raise ValueError
 
-                    if color == alpha_index:
-                        if not current_alpha and pixels_count > 0:
+                    del alpha
+
+                    if frame.frame_type in (1, 2):
+                        if color == alpha_index:
+                            if not current_alpha and pixels_count > 0:
+                                insert_pixels()
+                                row_to_add = []
+                                pixels_count = 0
+                            pixels_count += 1
+                            if pixels_count == 127:
+                                row.append(-1)
+                                pixels_count = 0
+                            current_alpha = True
+                        else:
+                            if current_alpha and pixels_count > 0:
+                                row.append((pixels_count - 128) % 256)
+                                pixels_count = 0
+                            row_to_add.append(color)
+                            pixels_count += 1
+                            if pixels_count == 127:
+                                insert_pixels()
+                                row_to_add = []
+                                pixels_count = 0
+                            current_alpha = False
+
+                    elif frame.frame_type == 3:
+                        if pixels_count == 0:
+                            current_color = color
+                            pixels_count += 1
+                        elif color != current_color or pixels_count >= 255:
                             insert_pixels()
-                            row_to_add = []
-                            pixels_count = 0
-                        pixels_count += 1
-                        if pixels_count == 127:
-                            row.append(-1)
-                            pixels_count = 0
-                        current_alpha = True
-                    else:
-                        if current_alpha and pixels_count > 0:
-                            row.append((pixels_count - 128) % 256)
-                            pixels_count = 0
-                        row_to_add.append(color)
-                        pixels_count += 1
-                        if pixels_count == 127:
-                            insert_pixels()
-                            row_to_add = []
-                            pixels_count = 0
-                        current_alpha = False
+                            current_color = color
+                            pixels_count = 1
+                        else:
+                            pixels_count += 1
 
                 if pixels_count > 0 and not current_alpha:
                     insert_pixels()
 
-                if len(row) == 0:
-                    indent = -1
-                elif row[0] == -1:
-                    row.pop(0)
-                    indent = 127
-                elif row[0] > 128:
-                    indent = row.pop(0) - 128
-                else:
-                    indent = 0
+                if  frame.frame_type == 3:
 
-                while len(row) > 0 and row[-1] == -1:
-                    row.pop(-1)
+                    while len(row) > 0 and row[-1] == -1:
+                        row = row[:-2]
+
+                    if len(row) == 0:
+                        indent = -1
+                    elif row[1] == -1:
+                        indent = row[0]
+                        row = row[2:]
+                    else:
+                        indent = 0
+
+                else:
+                    if len(row) == 0:
+                        indent = -1
+                    elif row[0] == -1:
+                        row.pop(0)
+                        indent = 127
+                    elif row[0] > 128:
+                        indent = row.pop(0) - 128
+                    else:
+                        indent = 0
+
+                    # Technically indent can be as big as 1022. Such possibility is not implemented here.
+
+                    while len(row) > 0 and row[-1] == -1:
+                        row.pop(-1)
 
                 while -1 in row:
                     row[row.index(-1)] = 255
@@ -325,18 +351,27 @@ class Bitmap(dict):
                 if indent != -1:
                     row.append(0)
 
-                if indent != -1 or not font_header:
+                if indent == -1:
+                    buffer_section_2.signed(-1, length=4)
+                else:
                     indent_bin_str = bin(indent % 1024)[2:]
                     indent_bin_str = "0" * (10 - len(indent_bin_str)) + indent_bin_str
                     header_offset_str = bin(len(buffer_section_1))[2:]
                     header_offset_str= "0" * (22 - len(header_offset_str)) + header_offset_str
-
                     buffer_section_2.unsigned(int(indent_bin_str+header_offset_str, 2), length=4)
 
-                else:
-                    buffer_section_2.signed(-1, length=4)
-
                 buffer_section_1.iterable(row)
+
+        buffer_header = BufferTaker()
+
+        if self.font:
+            buffer_header.unsigned(40, length=4)
+            buffer_header.unsigned(font_family_id, length=2)
+            buffer_header.unsigned(self.font_size, length=2)
+
+        buffer_header.unsigned(25, length=4)
+        buffer_header.unsigned(frame_index_offset, length=4)
+        buffer_header.unsigned(number_of_frames - frame_index_offset, length=4)
 
         buffer_header.unsigned(self.__class__.count_pixels((buffer_section_0,
                                                             buffer_section_1,
@@ -351,6 +386,7 @@ class Bitmap(dict):
                 buffer_header.unsigned(len(buffer_section), length=4)
                 buffer_header.bytes(bytes(buffer_section))
 
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, "wb") as file:
             file.write(bytes(buffer_header))
 
@@ -362,9 +398,9 @@ class Bitmap(dict):
         animation = self.to_animation(remaptable, shading_factor, first_bob, elements)
         animation.save(filename, frame_duration=frame_duration)
 
-    def extract_to_raw_data(self, directory: str, font_header: bool = False):
+    def extract_to_raw_data(self, directory: str):
         os.makedirs(directory, exist_ok=True)
-        metadata_string = f"{self.font_size}\n" if font_header else ""
+        metadata_string = f"{self.font_size}\n" if self.font else ""
 
         if len(self.keys()) > 0:
             for frame_index in range(max(self.keys())+1):
@@ -378,27 +414,31 @@ class Bitmap(dict):
         with open(os.path.join(directory, metadata_filename), "w") as file:
             file.write(metadata_string.rstrip("\n"))
 
-    def load_from_raw_data(self, directory: str, font_header: bool = False):
+    def load_from_raw_data(self, directory: str):
         with open(os.path.join(directory, metadata_filename)) as file:
             file_content = file.read().rstrip("\n").split("\n")
 
-            if font_header: self.font_size = int(file_content.pop(0))
-            else:           self.font_size = 0
+            self.font = file_content[0].isdigit()
 
-            for frame_index, line in enumerate(file_content):
+            if self.font: self.font_size = int(file_content.pop(0))
+            else:         self.font_size = 0
 
-                frame_type, offset_x, offset_y = map(int, line.split(","))
+            if len("".join(file_content)) > 0:
 
-                if frame_type != 0:
-                    frame = Frame(frame_type=frame_type,
-                                  rect=[offset_x, offset_y, 0, 0],
-                                  data=[])
-                    frame.from_image(os.path.join(directory, f"{frame_index}.png"),
-                                     remaptable=remaptable_direct)
+                for frame_index, line in enumerate(file_content):
 
-                    self[frame_index] = frame
-                else:
-                    self[frame_index] = None
+                    frame_type, offset_x, offset_y = map(int, line.split(","))
+
+                    if frame_type != 0:
+                        frame = Frame(frame_type=frame_type,
+                                      rect=[offset_x, offset_y, 0, 0],
+                                      data=[])
+                        frame.from_image(os.path.join(directory, f"{frame_index}.png"),
+                                         remaptable=remaptable_direct)
+
+                        self[frame_index] = frame
+                    else:
+                        self[frame_index] = Frame(frame_type=0, rect=(0, 0, 0, 0), data=[])
 
     def to_animation(self, remaptable: RemapTable = None, shading_factor=255,
                      first_bob = 0, elements = 1, high_color_shading_mode = 0, masked_file: bool = False):
@@ -410,6 +450,8 @@ class Bitmap(dict):
 
     @classmethod
     def count_pixels(cls, sections: list | tuple) -> int:
+
+        # This function does not take into account deduplication procedure present in some of the bitmaps.
 
         number_of_pixels = 0
         buffer_section_0 = BufferGiver(sections[0])
@@ -424,15 +466,12 @@ class Bitmap(dict):
             buffer_section_2.skip(buffer_section_0.unsigned(length=4) * 4)
             buffer_section_0.unsigned(length=4)
 
-            if frame_type == 3:
-                raise NotImplementedError
-
             for _ in range(height):
 
                 row_header = buffer_section_2.binary(length=4, byteorder="little")
-                indent = warp_sign(int(row_header[:10], 2), 10)
+                indent = int(row_header[:10], 2)
 
-                if indent == -1:
+                if indent == 1023:  # -1
                     head = 0
 
                 else:
@@ -441,21 +480,20 @@ class Bitmap(dict):
                     head = -1  # This value can be anything else than zero.
 
                 while head != 0:
-                    head = buffer_section_1.signed(length=1)  # noqa
+                    match frame_type:
+                        case 1 | 2: head = buffer_section_1.signed(length=1)  # noqa
+                        case 3:     head = buffer_section_1.unsigned(length=1)
+                        case _: raise ValueError
 
                     number_of_pixels += 1
 
                     if head > 0:
                         match frame_type:
-                            case 1: buffer_section_1.iterable(length=head)
-                            case 2: pass
-                            case 3: buffer_section_1.iterable(length=1) * head
-                            case _: raise ValueError
-
-                        match frame_type:
-                            case 1: number_of_pixels += head
-                            case 2: number_of_pixels += 0
-                            case 3: number_of_pixels += 1
-                            case _: raise ValueError
+                            case 1:
+                                buffer_section_1.iterable(length=head)
+                                number_of_pixels += head
+                            case 3:
+                                buffer_section_1.iterable(length=1)
+                                number_of_pixels += 1
 
         return number_of_pixels

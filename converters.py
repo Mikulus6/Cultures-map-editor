@@ -85,16 +85,16 @@ class Conversions:
             file.write(encode(content, cultures_1=True, sal_tab_file_format=True))
 
     @classmethod
-    def extract_fnt(cls, in_path, out_path):
+    def extract_bmd(cls, in_path, out_path):
         bitmap = Bitmap()
-        bitmap.load(in_path, font_header=True)
-        bitmap.extract_to_raw_data(os.path.join(out_path, os.path.basename(in_path).split(".")[0]), font_header=True)
+        bitmap.load(in_path)
+        bitmap.extract_to_raw_data(os.path.join(out_path, os.path.basename(in_path).split(".")[0]))
 
     @classmethod
-    def pack_fnt(cls, in_path, out_path):
+    def pack_bmd(cls, in_path, out_path):
         bitmap = Bitmap()
-        bitmap.load_from_raw_data(in_path, font_header=True)
-        bitmap.save(out_path, font_header=True)
+        bitmap.load_from_raw_data(in_path)
+        bitmap.save(out_path)
 
     @classmethod
     def extract_lib(cls, in_path, out_path):
@@ -151,15 +151,15 @@ options = [Option("Convert *.cif -> *.ini", "cif-ini",
                   output_filetypes=(("sal/tab files", "*.sal;*.tab"), ("all files", "*.*")),
                   function=Conversions.convert_txt_sal_tab),
 
-           Option("Extract *.fnt to raw data", "fnt-dir",
+           Option("Extract *.bmd/*.fnt to raw data", "bmd-dir",
                   input_type="file", output_type="directory",
-                  input_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
-                  function=Conversions.extract_fnt),
+                  input_filetypes=(("bmd/fnt files", "*.bmd;*.fnt"), ("all files", "*.*")),
+                  function=Conversions.extract_bmd),
 
-           Option("Create *.fnt from raw data", "dir-fnt",
+           Option("Create *.bmd/*.fnt from raw data", "dir-bmd",
                   input_type="directory", output_type="file",
-                  output_filetypes=(("fnt files", "*.fnt"), ("all files", "*.*")),
-                  function=Conversions.pack_fnt),
+                  output_filetypes=(("bmd/fnt files", "*.bmd;*.fnt"), ("all files", "*.*")),
+                  function=Conversions.pack_bmd),
 
            Option("Extract *.lib", "lib-dir",
                   input_type="file", output_type="directory",
@@ -175,7 +175,7 @@ options = [Option("Convert *.cif -> *.ini", "cif-ini",
 def quick_conversions():
 
     if __name__ == "__main__":
-        # This print statement is an integrated part of documentation, due to pyinstaller ignoring print statements when
+        # This print statement is an integrated part of documentation due to pyinstaller ignoring print statements when
         # compiling Python code to executable file with command-line explicitly turned off. This statement provides
         # information about conversion names in command line mode.
         print("\n".join(f"{option.cli_name} ({option.name})" for option in options))
