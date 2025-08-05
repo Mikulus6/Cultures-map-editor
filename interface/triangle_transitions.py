@@ -7,7 +7,7 @@ from supplements.patterns import corner_types, patterndefs_normal, patterndefs_n
 
 def update_triangles(editor, triangles: list | tuple):
 
-    # Some of the visual triangle transitions present in game might not be correctly filed by this function due to
+    # Some of the visual triangle transitions present in game might not be correctly filled by this function due to
     # incomplete data present in files of "Cultures: Discovery of Vinland" and "Cultures: The Revenge of the Rain God".
     # It is assumed that original developers for some of the transitions used macromaps instead of algorithm like this.
 
@@ -17,11 +17,10 @@ def update_triangles(editor, triangles: list | tuple):
         if len(set(local_corner_types)) == 2 and None not in local_corner_types:
             try:
                 transitions_list = triangle_transitions_by_corner_types[tuple(sorted(set(local_corner_types)))]
-                transition = transitions_list[random.randint(0, 2520) % len(transitions_list)]
-                                                                # ^ Reasonalbly big number from this sequence:
-                                                                #   https://oeis.org/A003418
             except KeyError:
                 continue  # Transition does not exist.
+
+            transition = random.choice(transitions_list)
 
             value = (local_corner_types[0] == transition["corner_types"][0]) + \
                     (local_corner_types[1] == transition["corner_types"][0]) * 2 + \

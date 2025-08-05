@@ -15,6 +15,10 @@ def get_average_color(image: Image.Image) -> tuple:
     img_array = np.array(image)
     non_transparent_pixels = img_array[:, :, :3][img_array[:, :, 3] > 0]
 
+    # Arithmetic mean is not the correct way to average a set of colors in an RGB color space.
+    # However, most of the textures are homogenous enough to make this fact negligible.
+    # For further context watch this video: https://www.youtube.com/watch?v=LKnqECcg6Gw
+
     if len(non_transparent_pixels) > 0: return tuple(map(int, np.mean(non_transparent_pixels, axis=0).astype(int)))
     else:                               return None
 
