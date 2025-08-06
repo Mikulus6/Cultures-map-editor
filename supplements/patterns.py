@@ -12,11 +12,12 @@ road_path        = "data_v\\ve_graphics\\roads\\road.cif"
 class PatternDefs(dict):
     def __init__(self, cif_path: str = patterndefs_cif_path, *, load_cdf: bool = False):
 
-        super().__init__(load_ini_as_dict(cif_path,
-                                          allowed_section_names=("PatternDef",),
-                                          entries_duplicated=("GroundFlagSet", ),
-                                          global_key = lambda x: x["Id"] + x["SetId"] * 256,
-                                          merge_duplicates=True))
+        super().__init__(
+            load_ini_as_dict(cif_path,
+                             allowed_section_names=("PatternDef",),
+                             entries_duplicated=("GroundFlagSet", ),
+                             global_key = lambda x: x["Id"] + x["SetId"] * 256,
+                             merge_duplicates=True))
 
         self.transitions = \
             load_ini_as_dict(patterndefs_cif_path,
