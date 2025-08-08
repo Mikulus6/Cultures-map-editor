@@ -62,5 +62,5 @@ featured visually on the image below.
 
 ### External programs
 
- - [Notepad++](https://notepad-plus-plus.org/)
  - [GIMP](https://www.gimp.org/)
+ - [Notepad++](https://notepad-plus-plus.org/)

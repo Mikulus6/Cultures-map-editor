@@ -13,10 +13,12 @@
 | `PatternIni`       | string                        | path to `.ini` file with `[PatternDef]` sections (relative from `data_v`)                             |
 | `TexturePath`      | string                        | path to directory with textures contained in `free` and `sys` subdirectories (relative from `data_v`) |
 | `MapSubMode`       | integer                       | map gameplay type (based on final goal)                                                               |
-| `NumberOfPlayer`   | integer \| integer            | always `1` \| sum of human and AI players present on map                                              |
+| `NumberOfPlayer`   | integer \| integer            | always `1` \| sum of human and AI players present on map<sup>1</sup>                                  |
 | `MapMode`          | integer \| integer \| integer | menu tab for map \| campaign / tutorial ID \| campaign / tutorial mission ID                          |
 | `MapPicture`       | string                        | path to `*.pcx` file with map preview (relative from `Cultures.exe`)                                  |
 | `CDAudioTrack`     | integer                       | number of music soundtrack                                                                            |
+
+↑ <sup>1</sup>Sum of players cannot exceed the value `6`.  
 
 ### `MapSubMode`
 
