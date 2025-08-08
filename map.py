@@ -591,8 +591,8 @@ class MapVersion6(Map):
             self.load(filename)
             return
 
-        self.mhei =  buffer.bytes(self.map_width * self.map_height // 4)
-        self.mlig =  buffer.bytes(self.map_width * self.map_height // 4)
+        self.mhei = buffer.bytes(self.map_width * self.map_height // 4)
+        self.mlig = buffer.bytes(self.map_width * self.map_height // 4)
         self.mepa = buffer.bytes(self.map_width * self.map_height // 2)
         self.mepb = buffer.bytes(self.map_width * self.map_height // 2)
 
