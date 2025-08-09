@@ -6,7 +6,7 @@ from supplements.gouraud import gouraud
 import numpy as np
 
 def check_remap_disability(landscape_name: str) -> bool:
-    match landscapedefs[landscape_name].get("RemapDisable", 0):
+    match landscapedefs[landscape_name.lower()].get("RemapDisable", 0):
         case 0: return False
         case 1: return True
         case _: raise ValueError

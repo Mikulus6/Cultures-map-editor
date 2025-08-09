@@ -9,6 +9,7 @@ class Message:
     def __init__(self):
         if self.__class__.initialized:
             raise ValueError(f"{self.__class__.__name__} is a singleton.")
+        self.__class__.initialized = True
 
         self.last_time = time.time() - 2 * message_duration
         self.text = ""
