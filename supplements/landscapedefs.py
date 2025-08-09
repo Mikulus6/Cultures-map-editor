@@ -1,5 +1,5 @@
 from scripts.buffer import BufferGiver, data_encoding
-from scripts.data_loader import load_ini_as_dict
+from scripts.data_loader import load_ini_as_dict, load_ini_as_sections, filter_section_by_name, merge_entries_to_dicts
 from supplements.read import read
 
 name_max_length = 84
@@ -129,3 +129,10 @@ class LandscapeDefs(dict):
 
 
 landscapedefs = LandscapeDefs(load_cdf=False)
+
+landscapes_sorted = tuple(map(lambda x: x["Name"], merge_entries_to_dicts(filter_section_by_name(
+                                                   load_ini_as_sections(landscapedefs_cif_path),
+                                                   allowed_section_names=("LandscapeElement",)),
+                                                   entries_duplicated=("BaseArea", "ExtendedArea", "SpecialArea",
+                                                                       "AddNextLandscape", "FlagSet"),
+                                                   merge_duplicates=False)))

@@ -2,16 +2,16 @@ from scripts.buffer import BufferGiver, BufferTaker
 from typing import Literal
 
 
-def run_length_decryption(sequence: bytes, *, bytes_per_entry: int) -> bytes:
+def run_length_decryption(sequence: bytes, *, bytes_per_entry: int, from_save_file: bool = False) -> bytes:
     buffer_input = BufferGiver(sequence)
     buffer_output = BufferTaker()
 
-    assert buffer_input.unsigned(1)     == 1            # noqa: E221
-    assert buffer_input.string(4)[::-1] == "Xpck"       # noqa: E221
-    assert int(buffer_input.string(1)) in (8, 6)        # noqa: E221
-    assert buffer_input.string(3)[::-1] == "rle"        # noqa: E221
-    assert buffer_input.unsigned(2)     == 0            # noqa: E221
-    assert buffer_input.bytes(2)        == b"\xee\xee"  # noqa: E221
+    assert buffer_input.unsigned(1)     == 1                                                 # noqa: E221
+    assert buffer_input.string(4)[::-1] == "Xpck"                                            # noqa: E221
+    assert int(buffer_input.string(1)) in (8, 6)                                             # noqa: E221
+    assert buffer_input.string(3)[::-1] == "rle"                                             # noqa: E221
+    assert buffer_input.unsigned(2)     == 0                                                 # noqa: E221
+    assert buffer_input.bytes(2)        == (b"\x01\x00" if from_save_file else b"\xee\xee")  # noqa: E221
 
     number_of_tiles   = buffer_input.unsigned(4)  # noqa: E221
     number_of_entries = buffer_input.unsigned(4)  # noqa: E221
@@ -33,7 +33,8 @@ def run_length_decryption(sequence: bytes, *, bytes_per_entry: int) -> bytes:
     return bytes(buffer_output)
 
 
-def run_length_encryption(sequence: bytes, *, bytes_per_entry: int, header_digit: Literal[6, 8]) -> bytes:
+def run_length_encryption(sequence: bytes, *, bytes_per_entry: int, header_digit: Literal[6, 8],
+                          to_save_file: bool = False) -> bytes:
 
     buffer_input = BufferGiver(sequence)
     buffer_output = BufferTaker()
@@ -44,7 +45,7 @@ def run_length_encryption(sequence: bytes, *, bytes_per_entry: int, header_digit
     buffer_output.string(str(header_digit))
     buffer_output.string("rle"[::-1])
     buffer_output.unsigned(0, length=2)
-    buffer_output.bytes(b"\xee\xee")
+    buffer_output.bytes(b"\x01\x00" if to_save_file else b"\xee\xee")
     buffer_output.unsigned(len(sequence), length=4)
 
     assert len(sequence) % bytes_per_entry == 0

@@ -1,4 +1,7 @@
+import numpy as np
 from scripts.buffer import BufferGiver, BufferTaker
+from sections.run_length import run_length_decryption
+from supplements.landscapedefs import landscapes_sorted
 
 
 def load_landscapes_from_llan(sequence: bytes) -> dict:
@@ -24,6 +27,27 @@ def load_landscapes_from_llan(sequence: bytes) -> dict:
     assert len(buffer) == 0
 
     return landscapes_dict
+
+
+def load_landscapes_from_mobj(sequence: bytes, map_width: int) -> dict:
+
+    # File landscapedefs.cif is necessary for loading landscapes from "mobj" section.
+
+    map_objects = run_length_decryption(sequence, bytes_per_entry=2, from_save_file=True)
+    map_height = len(map_objects) // (2 * map_width)
+    map_objects_ndarray = np.frombuffer(map_objects, dtype=np.short).reshape((map_height, map_width))
+
+    landscapes = dict()
+
+    for y in range(map_height):
+        for x in range(map_width):
+            if (landscape_id := int(map_objects_ndarray[y, x])) != -1:
+                try:
+                    landscapes[x, y] = landscapes_sorted[landscape_id % 65536]  # Conversion to unsigned short.
+                except IndexError:
+                    pass  # Section "mobj" is used to store information not only about landscapes.
+
+    return landscapes
 
 
 def load_llan_from_landscapes(landscapes: dict) -> bytes:

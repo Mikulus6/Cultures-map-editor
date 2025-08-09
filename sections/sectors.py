@@ -14,7 +14,8 @@ def load_sectors_from_xsec(sequence: bytes) -> (list, list):
     for _ in range(smmw_data[2]):
         sector_type = buffer.unsigned(2)
 
-        assert sector_type in (0, 1)
+        assert sector_type in ((0, 1, 257) if smmw_data[3] == 1 else (0, 1))
+        sector_type %= 256  # Sector type 257 appears only in *.sav files.
 
         sector_value = buffer.binary(1)
         buffer.skip(1)  # mco2 vertex duplicate

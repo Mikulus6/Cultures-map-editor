@@ -50,6 +50,10 @@ class BufferGiver(bytes):
         self.offset += n
         if self.offset > len(self.sequence): raise IndexError  # noqa: E701
 
+    def skip_to(self, n: int):
+        self.offset = n
+        if self.offset > len(self.sequence): raise IndexError  # noqa: E701
+
 
 class BufferTaker(bytes):
     """Bytes-like class for taking data to bytes object
