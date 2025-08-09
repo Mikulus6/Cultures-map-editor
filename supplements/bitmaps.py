@@ -83,24 +83,37 @@ class Frame:
 
 
 class Bitmap(dict):
+    # What is called here a bitmap, is in original nomenclature of developers called a bob (blitter object).
+
+    # It is important to remember that any operation which turns a *.bmd or *.fnt file into a displayable object is
+    # inherently a lossy decompression. This is because the same information can be compressed in many different ways,
+    # and after the decompression procedure, the information how something was compressed is essentially lost. Take, for
+    # example, run-length encoding and the initially decompressed string "aaaabbb". This can be compressed in many
+    # different ways, which can result in following exemplary compressed strings: "4a3b", "2a2a3b", "1a1a1a1a1b1b1b",
+    # "4a1b2b". After decompressing it back to "aaaabbb" string, we don't know which way was is compressed in the first
+    # place. Because of this, performing operations load() and save() in consecutive order might result in a file
+    # different from the initial *.bmd or *.fnt file. Despite this, it's going to be displayed in the game the same way
+    # the original file would be.
+
     def __init__(self):
         super().__init__()
-        self.font = False
+        self.is_font = False
         self.font_size = 0
 
     def load(self, filename: str):
 
         # Part of code written below was initially constructed in year 2013 on XeNTaX forum.
         # Original discussion was available here: https://forum.xentax.com/viewtopic.php?t=10705
+        # Technical details were reuploaded here: https://dl.siguza.net/cultrix/specs/bmd_fnt.html
 
         buffer =  BufferGiver(read(filename, mode="rb"))
 
         match buffer.unsigned(length=4):
-            case 25: self.font = False
-            case 40: self.font = True
+            case 25: self.is_font = False
+            case 40: self.is_font = True
             case _: raise ValueError
 
-        if self.font:
+        if self.is_font:
             buffer.unsigned(length=2)
             self.font_size = buffer.unsigned(length=2)
             assert buffer.unsigned(length=4) == 25
@@ -110,7 +123,7 @@ class Bitmap(dict):
         number_of_frames = buffer.unsigned(4)
         number_of_pixels = buffer.unsigned(4)
         number_of_rows = buffer.unsigned(4)
-        if not self.font:
+        if not self.is_font:
             assert number_of_rows == buffer.unsigned(4)
         else:
             buffer.unsigned(4)
@@ -364,7 +377,7 @@ class Bitmap(dict):
 
         buffer_header = BufferTaker()
 
-        if self.font:
+        if self.is_font:
             buffer_header.unsigned(40, length=4)
             buffer_header.unsigned(font_family_id, length=2)
             buffer_header.unsigned(self.font_size, length=2)
@@ -400,7 +413,7 @@ class Bitmap(dict):
 
     def extract_to_raw_data(self, directory: str):
         os.makedirs(directory, exist_ok=True)
-        metadata_string = f"{self.font_size}\n" if self.font else ""
+        metadata_string = f"{self.font_size}\n" if self.is_font else ""
 
         if len(self.keys()) > 0:
             for frame_index in range(max(self.keys())+1):
@@ -418,9 +431,9 @@ class Bitmap(dict):
         with open(os.path.join(directory, metadata_filename)) as file:
             file_content = file.read().rstrip("\n").split("\n")
 
-            self.font = file_content[0].isdigit()
+            self.is_font = file_content[0].isdigit()
 
-            if self.font: self.font_size = int(file_content.pop(0))
+            if self.is_font: self.font_size = int(file_content.pop(0))
             else:         self.font_size = 0
 
             if len("".join(file_content)) > 0:
