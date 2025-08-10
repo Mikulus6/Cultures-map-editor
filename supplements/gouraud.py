@@ -63,13 +63,14 @@ class Gouraud:
             file.write(bytes(buffer_taker))
 
     def pack(self, directory: str):
-        directory_full = os.path.join(directory, directory_name)
-        with open(os.path.join(directory_full, metadata_filename), "r") as file:
+        os.makedirs(directory, exist_ok=True)
+        with open(os.path.join(directory, metadata_filename), "r") as file:
             self.correction_term, self.shading_factor = map(float, file.read().strip("\n").split(","))
-        self.array = np.array(Image.open(os.path.join(directory_full, bitmap_filename)))
+        self.array = np.array(Image.open(os.path.join(directory, bitmap_filename)))
 
-    def extract(self, directory: str, *, remaptable: RemapTable = remaptable_default):
-        directory_full = os.path.join(directory, directory_name)
+    def extract(self, directory: str, *, remaptable: RemapTable = remaptable_default,
+                create_subdirectory: bool = False):
+        directory_full = os.path.join(directory, directory_name) if create_subdirectory else directory
         os.makedirs(directory_full, exist_ok=True)
         with open(os.path.join(directory_full, metadata_filename), "w") as file:
             file.write(f"{self.correction_term},{self.shading_factor}")

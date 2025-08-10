@@ -144,6 +144,7 @@ class RemapTables:
             raise FileNotFoundError
 
     def save(self, cdf_path: str = remaptables_cdf_path):
+        os.makedirs(os.path.dirname(cdf_path), exist_ok=True)
         with open(cdf_path, "wb") as file:
             file.write(bytes(self))
 
@@ -214,9 +215,16 @@ class RemapTables:
         assert (length := len(self.meta)) == len(self.data)
         return length
 
+
+def load_remaptable_default(path: str = remaptable_defalut_path):
+    remaptable_default_local = RemapTable()
+    remaptable_default_local.pack(path, bitmap_shape=(4, 4))
+    return remaptable_default_local
+
+remaptable_default = RemapTable()
+
 try:
-    remaptable_default = RemapTable()
-    remaptable_default.pack(remaptable_defalut_path, bitmap_shape=(4, 4))
+    remaptable_default = load_remaptable_default()
 
     remaptables = RemapTables()
     remaptables.load()
