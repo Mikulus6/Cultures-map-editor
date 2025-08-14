@@ -1,7 +1,8 @@
 from typing import Literal
 from scripts.buffer import BufferGiver, BufferTaker
 
-newline_representation = "\\n"
+newline_representation = "\\r\\n"
+newline_factual = "\r\n"
 
 # Cultures Initialization File (*.cif) format
 
@@ -81,7 +82,7 @@ def decode(content: bytes, sal_tab_file_format: bool) -> str:
         else:
             line = str(line_buffer)
 
-        decoded_string += line.replace("\n", newline_representation) + "\n"
+        decoded_string += line.replace(newline_factual, newline_representation) + newline_factual
     return decoded_string
 
 
@@ -92,8 +93,8 @@ def encode(content: str, *, cultures_1: bool, sal_tab_file_format: bool) -> byte
     text_table_taker = BufferTaker()
     index_table_taker = BufferTaker()
 
-    for line in content.split("\n")[:-1]:
-        line = line.replace(newline_representation, "\n")
+    for line in content.split(newline_factual)[:-1]:
+        line = line.replace(newline_representation, newline_factual)
         index_table_taker.unsigned(len(text_table_taker), length=4)
         if not sal_tab_file_format:
             if line.startswith("[") and line.endswith("]"):
