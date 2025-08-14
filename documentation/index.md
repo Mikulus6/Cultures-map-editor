@@ -35,9 +35,17 @@ featured visually on the image below.
 
 ![files_dependency](./assets/files_dependency.png)
 
+Game files contain also other file formats, which are not directly relevant to
+the procedure of creating a fully functional map, but can be read or modified
+for other purposes such as modding and reverse engineering. These files consist
+of formats listed below in compedium alongside other file formats relevant to
+the process of creating a map.
+
 ## Compendium
 
 ### File formats
+
+#### *Mapping*
 
  - [`*.cif` Cultures initialization file](formats/cultures_initialization.md)
  - [`*.fnt` Font file](formats/font.md)
@@ -47,7 +55,21 @@ featured visually on the image below.
  - [`*.pcx` Picture exchange](formats/picture_exchange.md)
  - [`*.txt` Text file](formats/text.md)
 
-### Sections
+#### *Modding exclusive*
+
+ - `*.bik` Bink video
+ - [`*.bmd` Bob manager data](formats/bob_manager_data.md)
+ - [`*.cdf` Cultures data file](formats/cultures_data.md)
+ - [`*.cur` Cursor file](formats/cursor.md)
+ - [`*.dat` Data file](formats/data.md)
+ - [`*.mp3` Moving picture audio layer](formats/moving_picture_3.md)
+ - [`*.ogg` Ogging file](formats/ogging.md)
+ - [`*.sav` Save file](formats/save.md)
+ - [`*.wav` Waveform audio file](formats/waveform_audio.md)
+
+### Documentation <span style="color: gray; font-size:smaller; font-weight:1;">(*Mapping exclusive*)</span>
+
+##### *Sections*
 
  - [Control](sections/control.md)
  - [AI](sections/ai.md)
@@ -55,12 +77,19 @@ featured visually on the image below.
  - [Mission](sections/mission.md)
  - [text](sections/text.md)
 
-### Miscellaneous
+#### *Miscellaneous*
 
  - [Briefings keywords](briefings/text.md)
  - [Numerical limits](briefings/limits.md)
 
 ### External programs
 
+#### *Mapping*
+
  - [GIMP](https://www.gimp.org/)
  - [Notepad++](https://notepad-plus-plus.org/)
+
+#### *Modding exclusive*
+
+ - [Audacity](https://www.audacityteam.org/download/)
+ - [Bink Video](https://www.radgametools.com/bnkdown.htm)

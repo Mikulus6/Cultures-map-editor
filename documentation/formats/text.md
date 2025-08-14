@@ -1,6 +1,6 @@
 [← index](../index.md)
 
-## Text file `(*.txt)`
+## Text file (`*.txt`)
 
 ### Introduction
 

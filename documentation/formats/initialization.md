@@ -1,6 +1,6 @@
 [← index](../index.md)
 
-## Initialization file `(*.ini)`
+## Initialization file (`*.ini`)
 
 ### Introduction
 

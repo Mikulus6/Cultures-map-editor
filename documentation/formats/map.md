@@ -1,6 +1,6 @@
 [← index](../index.md)
 
-## Map file `(*.map)`
+## Map file (`*.map`)
 
 ### Introduction
 
@@ -64,14 +64,14 @@ All geometrical ideas described above are shown in the exemplary image below.
 
 ### File format
 
-For the algorithm used by the provided tools, one can look into Python file
-[*map.py*](../../map.py) present in this repository. Keep in mind that the exact
-specifications of this algorithm are the same only for *Cultures: Discovery of
-Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures Gold*. There
-is another version of this file format used in *Cultures 2: The Gates of
-Asgard* and in most of newer games released as part of the *Cultures* series.
-In these newer games this file format is called `*.dat` instead of `*.map`.
-Differences between these two file formats are so significant, that despite
-representing a very similar internal concept present in game, one should not
-expect the internal structure of `*.map` files to be particularly useful when
-decoding `*.dat` file format.
+For the algorithm used by the provided tools, one can look into the Python
+file [*map.py*](../../map.py) present in this repository. Keep in mind that
+the exact specifications of this algorithm are the same only for *Cultures:
+Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures
+Gold*. There is another version of this file format used in *Cultures 2: The
+Gates of Asgard* and in most of the newer games released as part of the
+*Cultures* series. In these newer games this file format is called `*.dat`
+instead of `*.map`. Differences between these two file formats are so
+significant, that despite representing a very similar internal concept present
+in game, one should not expect the internal structure of `*.map` files to be
+particularly useful when decoding `*.dat` file format.

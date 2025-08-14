@@ -1,6 +1,6 @@
 [← index](../index.md)
 
-## Picture Exchange `(*.pcx)`
+## Picture Exchange (`*.pcx`)
 
 ### Introduction
 

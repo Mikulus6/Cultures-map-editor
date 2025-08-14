@@ -1,10 +1,10 @@
 [← index](../index.md)
 
-## Cultures initialization file `(*.cif)`
+## Cultures initialization file (`*.cif`)
 
 ### Introduction
 
-Cultures initialization file `(*.cif)` is a file format used by *Cultures*,
+Cultures initialization file (`*.cif`) is a file format used by *Cultures*,
 meant for storing textual data. Content of this file format is protected by
 cipher. Breaking it makes it possible to losslessly convert this type of file
 to plain text stored as an `*.ini` file. Applying this cipher to a decrypted
@@ -43,9 +43,9 @@ Note that capitalization of paths and names is not important.
 
 ### File format
 
-For the algorithm used by the provided tools, one can look into Python file
-[*supplements/initialization.py*](../../supplements/initialization.py) present
-in this repository. Cipher present in `*.cif` files uses an
+For the algorithm used by the provided tools, one can look into the Python
+file [*supplements/initialization.py*](../../supplements/initialization.py)
+present in this repository. Cipher present in `*.cif` files uses an
 [ASCII](https://en.wikipedia.org/wiki/ASCII)-based
 [Caesar cipher](https://en.wikipedia.org/wiki/Caesar_cipher) combined with
 [XOR cipher](https://en.wikipedia.org/wiki/XOR_cipher). This cipher was
@@ -54,5 +54,5 @@ first broken by Bacter and documented on
 Keep in mind, the exact specifications of this algorithm are the same only for
 *Cultures: Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and
 *Cultures Gold*. There is another slightly different version of this file
-format used in *Cultures 2: The Gates of Asgard* and in most of newer games
-released as part of the *Cultures* series.
+format used in *Cultures 2: The Gates of Asgard* and in most of the newer
+games released as part of the *Cultures* series.
