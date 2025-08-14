@@ -149,6 +149,15 @@ class Animations(dict):
             else:
                 top.quit()
                 top.destroy()
+
+                top = tk.Tk()
+                top.withdraw()
+                top.attributes("-topmost", True)
+                messagebox.showerror("File not found", "Editor cannot be launched without cache file being generated.",
+                                     icon="error", parent=top)
+                top.quit()
+                top.destroy()
+
                 sys_exit()
 
         os.chdir(fallback_directories[0])
