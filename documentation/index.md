@@ -57,7 +57,7 @@ the process of creating a map.
 
 #### *Modding exclusive*
 
- - `*.bik` Bink video
+ - [`*.bik` Bink video](formats/bink_video.md)
  - [`*.bmd` Bob manager data](formats/bob_manager_data.md)
  - [`*.cdf` Cultures data file](formats/cultures_data.md)
  - [`*.cur` Cursor file](formats/cursor.md)
@@ -92,4 +92,4 @@ the process of creating a map.
 #### *Modding exclusive*
 
  - [Audacity](https://www.audacityteam.org/download/)
- - [Bink Video](https://www.radgametools.com/bnkdown.htm)
+ - [RAD Video Tools](https://www.radgametools.com/bnkdown.htm)
