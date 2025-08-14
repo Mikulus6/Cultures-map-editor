@@ -38,12 +38,13 @@ Keep in mind that `cache.bin` files generated for *Cultures: Discovery of
 Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures Gold* will
 contain different content and are not interchangeable.
 
-Remember that the display of terrain and landscapes in the editor might not be
-exactly the same as in the game. Always check important aesthetics by opening
-`*.map` files via original game.
-
-Project was tested on Python 3.13 with all used third party
-libraries being up to date at the moment of publication.
+One can, after proper installation of `Editor.exe`, associate it with opening
+`*.map` files by using the context menu. Opening a map through such a file
+association works exactly the same as opening a file through the internal
+graphical interface of the aforementioned application. Remember that the
+display of terrain and landscapes in the editor might not be exactly the same
+as in the game. Always check important aesthetics by opening `*.map` files in
+the original game.
 
 ### Converters
 
@@ -55,20 +56,23 @@ behaviour, or more subtle additions like minimap, fonts and texts, which are
 all contained in `*.cif`, `*.fnt`, `*.pcx` and `*.txt` files, it is
 recommended to use supplementary `Converters.exe` application provided in
 [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
-and read [*documentation*](documentation/index.md).
-
-Take into account that these additional files are not directly supported by
-our editor, and it might be necessary for the user to install additional
-third-party applications in order to properly read and modify text and images.
+and read [*documentation*](documentation/index.md). Take into account that
+these additional files are not directly supported by our editor, and it might
+be necessary for the user to install additional third-party applications in
+order to properly read and modify text and images.
 
 One subtle convention present in this project is the separation of the art of
 making maps (*mapping*) from the art of creating more general modifications of
 game files (*modding*). We define mapping as the process of editing the
-content of `data_l\data_m.lib` file and `data_m` directory aimed at making
-maps. Functionalities provided by the given tools are meant to give the user
-complete control over the mapping process. However, we do not provide an
-additional framework, that would support all procedures relevant to the
-modding, because it is not the exact topic of this project.
+content of the `data_l\data_m.lib` file and the `data_m` directory aimed at
+making maps. Functionalities provided by the given tools are primarily meant
+to give the user complete control over the mapping process. However, an
+additional framework is also provided in the form of documentation and code
+modules that support most of the significant procedures relevant to modding.
+If you want to have access to all procedures related to modding, make sure
+`Converters.exe` and the game's executable file `Cultures.exe` are in the same
+location. Keep in mind that any modification of game files which is not part of
+mapping may break backward compatibility with already existing maps.
 
 There exists additional functionality, making converters implementable to
 further external projects. The `Converters.exe` app can be launched via
