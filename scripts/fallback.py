@@ -1,11 +1,27 @@
 import copy
 import os
+import sys
 from sys import argv as sys_argv, exit as sys_exit
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 
-fallback_directories = [os.path.dirname(os.path.abspath(sys_argv[0]))]
+fallback_directories = [getattr(sys, '_MEIPASS', os.getcwd()),  # This path is relevant only for compiled *.exe file
+                        os.path.dirname(os.path.abspath(sys_argv[0]))]
+
+if fallback_directories[0] == fallback_directories[1]:
+    fallback_directories.pop(-1)
+
+def quit_fallback():
+    top = tk.Tk()
+    top.withdraw()
+    top.attributes("-topmost", True)
+    messagebox.showerror("File not found", "Editor cannot be launched without specified game directory.",
+                         icon="error", parent=top)
+    top.quit()
+    top.destroy()
+    sys_exit()
+
 
 def fallback(function):
     def new_function(*args, **kwargs):
@@ -26,7 +42,7 @@ def fallback(function):
                 fallback_directories.append(filedialog.askdirectory())
                 value = function(*args, **kwargs)
             else:
-                sys_exit()
+                quit_fallback()
         return value  # noqa
     return new_function
 
@@ -46,7 +62,7 @@ def load_with_fallback(function):
             try:
                 os.chdir(directory)
             except OSError:
-                sys_exit()
+                quit_fallback()
 
             try:
                 value = function(*args, **kwargs)
