@@ -2,10 +2,10 @@
 
 ## Data file (`*.dat`)
 
-<span style="color: gray">**Important note:**  
+**Important note:**  
 Do not confuse this file format with the one present in *Cultures 2: The Gates
 of Asgard* and in most of the newer games  released as part of the *Cultures*
-series. This file format is completely different from `map.dat` files.</span>
+series. This file format is completely different from `map.dat` files.
 
 ### Introduction
 

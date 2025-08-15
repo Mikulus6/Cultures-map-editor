@@ -45,7 +45,7 @@ the process of creating a map.
 
 ### File formats
 
-#### *Mapping*
+#### Mapping
 
  - [`*.cif` Cultures initialization file](formats/cultures_initialization.md)
  - [`*.fnt` Font file](formats/font.md)
@@ -55,7 +55,7 @@ the process of creating a map.
  - [`*.pcx` Picture exchange](formats/picture_exchange.md)
  - [`*.txt` Text file](formats/text.md)
 
-#### *Modding exclusive*
+#### Modding exclusive
 
  - [`*.bik` Bink video](formats/bink_video.md)
  - [`*.bmd` Bob manager data](formats/bob_manager_data.md)
@@ -67,9 +67,9 @@ the process of creating a map.
  - [`*.sav` Save file](formats/save.md)
  - [`*.wav` Waveform audio file](formats/waveform_audio.md)
 
-### Documentation <span style="color: gray; font-size:smaller; font-weight:1;">(*Mapping exclusive*)</span>
+### Mapping documentation
 
-##### *Sections*
+#### Sections
 
  - [Control](sections/control.md)
  - [AI](sections/ai.md)
@@ -77,19 +77,19 @@ the process of creating a map.
  - [Mission](sections/mission.md)
  - [text](sections/text.md)
 
-#### *Miscellaneous*
+#### Miscellaneous
 
  - [Briefings keywords](briefings/text.md)
  - [Numerical limits](briefings/limits.md)
 
 ### External programs
 
-#### *Mapping*
+#### Mapping
 
  - [GIMP](https://www.gimp.org/)
  - [Notepad++](https://notepad-plus-plus.org/)
 
-#### *Modding exclusive*
+#### Modding exclusive
 
  - [Audacity](https://www.audacityteam.org/download/)
  - [RAD Video Tools](https://www.radgametools.com/bnkdown.htm)
