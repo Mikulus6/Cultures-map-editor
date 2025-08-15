@@ -82,7 +82,7 @@ def decode(content: bytes, sal_tab_file_format: bool) -> str:
         else:
             line = str(line_buffer)
 
-        decoded_string += line.replace(newline_factual, newline_representation) + newline_factual
+        decoded_string += line.replace(newline_factual, newline_representation) + "\n"
     return decoded_string
 
 
@@ -93,7 +93,7 @@ def encode(content: str, *, cultures_1: bool, sal_tab_file_format: bool) -> byte
     text_table_taker = BufferTaker()
     index_table_taker = BufferTaker()
 
-    for line in content.split(newline_factual)[:-1]:
+    for line in content.split("\n")[:-1]:
         line = line.replace(newline_representation, newline_factual)
         index_table_taker.unsigned(len(text_table_taker), length=4)
         if not sal_tab_file_format:
