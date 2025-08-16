@@ -12,11 +12,13 @@ from supplements.bitmaps import Bitmap
 from supplements.initialization import decode, encode
 from supplements.library import Library
 from supplements.remaptables import RemapTables
-from sys import argv as sys_argv, exit as sys_exit
+from sys import argv as sys_argv, exit as sys_exit, executable as sys_executable
+
+quick_conversions_param_name = "--quick-conversions"
 
 # Some procedures require additional information provided by files included in the game.
 game_found = False
-fallback_active = not(len(sys_argv) > 1 and sys_argv[1] == "--quick-conversions")
+fallback_active = not(len(sys_argv) > 1 and sys_argv[1] == quick_conversions_param_name)
 default_directory = os.getcwd()
 
 while fallback_active:
@@ -320,7 +322,7 @@ def quick_conversions():
     sys_argv_copy = copy.copy(sys_argv)
     sys_argv_copy.pop(0)
 
-    if len(sys_argv_copy) > 0 and sys_argv_copy[0] == "--quick-conversions":
+    if len(sys_argv_copy) > 0 and sys_argv_copy[0] == quick_conversions_param_name:
         sys_argv_copy.pop(0)
         sys_argv_copy_len = len(sys_argv_copy)
         sys_argv_copy = iter(sys_argv_copy)
@@ -328,8 +330,8 @@ def quick_conversions():
         for _ in range(sys_argv_copy_len // 3):
 
             conv_cli_name = remove_quotation(next(sys_argv_copy))
-            conv_in_path  = remove_quotation(next(sys_argv_copy))
-            conv_out_path = remove_quotation(next(sys_argv_copy))
+            conv_in_path  = os.path.join(os.path.dirname(sys_executable), remove_quotation(next(sys_argv_copy)))
+            conv_out_path = os.path.join(os.path.dirname(sys_executable), remove_quotation(next(sys_argv_copy)))
 
             for opiton in options:
                 if opiton.cli_name.lower() == conv_cli_name.lower():
