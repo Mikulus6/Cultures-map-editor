@@ -13,11 +13,11 @@ cutscenes.
 Note that, when downloading [RAD Video Tools](https://www.radgametools.com/bnkdown.htm)
 from the official website, a password is required to extract the downloaded
 archive. Because of this, it might be necessary to install [WinRAR](https://www.win-rar.com/start.html)
-in the first place and use it to type in the password.
+first and use it to type in the password.
 
 ### Modifying
 
-In order to replace a video cutscene in the game with a different one, by using [RAD Video Tools](https://www.radgametools.com/bnkdown.htm),
+In order to replace a video cutscene in the game with a different one, using [RAD Video Tools](https://www.radgametools.com/bnkdown.htm),
 one must export a given video to a common file format first, such as
 `*.avi` or `*.mp4`. Next, by using the aforementioned application, select the
 chosen file in the explorer and use the option `RAD Video Tools > Bink it!`.

@@ -9,14 +9,14 @@ storing data relevant to fonts used in the game. Unlike regular [fonts](https://
 which are composed of [vector graphics](https://en.wikipedia.org/wiki/Vector_graphics),
 this format uses [raster graphics](https://en.wikipedia.org/wiki/Raster_graphics)
 and contains only information about bitmaps without any colormaps, which for
-further display requires inheriting such data from additional [`*.pcx`](./picture_exchange.md)
+further display requires inheriting such data from an additional [`*.pcx`](./picture_exchange.md)
 file. Font file format (`*.fnt`) is very similar to more general bitmap file
 format ([`*.bmd`](bob_manager_data.md)), which is meant for storing bitmaps
 displayable in the game. 
 
-Using `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+Using `Converters.exe` application provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
 one can freely extract `*.fnt` files to a purely conventional collection of
-files with common file types or pack it back into singular `*.fnt` file.
+files with common file types or pack them back into singular `*.fnt` file.
 
 ### Conventional extraction
 
@@ -49,7 +49,7 @@ values and fully transparent pixels.
 ### File format
 
 For the algorithm used by the provided tools, one can look into the Python
-file [*supplements/bitmaps.py*](../../supplements/bitmaps.py) present in this
+file [`supplements/bitmaps.py`](../../supplements/bitmaps.py) present in this
 repository. This file format was first decoded by [Siguza](https://github.com/siguza)
 and documented on [XeNTaX forum](https://web.archive.org/web/20210724120011/https://forum.xentax.com/viewtopic.php?t=10705).
 Keep in mind, the exact specifications of this algorithm are the same only for

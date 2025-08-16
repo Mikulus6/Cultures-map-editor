@@ -19,7 +19,7 @@ series.
 
 ### Usages
 
-Using `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+Using `Converters.exe` application provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
 one can import `*.map` file contained within `*.sav` file.
 
 Using additional external tools ([*PC: Cheats für Cultures - Die Entdeckung Vinlands*](https://www.mogelpower.de/cheats/Cultures-Die-Entdeckung_PC_8556.html))

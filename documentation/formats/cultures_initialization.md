@@ -5,16 +5,16 @@
 ### Introduction
 
 Cultures initialization file (`*.cif`) is a file format used by *Cultures*,
-meant for storing textual data. Content of this file format is protected by
+meant for storing textual data. Content of this file format is protected by a
 cipher. Breaking it makes it possible to losslessly convert this type of file
 to plain text stored as an `*.ini` file. Applying this cipher to a decrypted
 file also makes it possible to losslessly convert it back to original file
 format. In short, this means `*.cif` and `*.ini` file formats are
 bidirectionally interchangeable.
 
-Using `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+Using `Converters.exe` application provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
 one can freely decrypt `*.cif` files or encrypt `*.ini` files. Historically,
-[*cif2txt.exe*](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)
+[`cif2txt.exe`](https://web.archive.org/web/20210724220815/https://forum.xentax.com/viewtopic.php?t=3711)
 was used to partially perform these conversions and had further backward
 compatibility for old operating systems, but it is neither recommended nor
 easily available online anymore.
@@ -44,7 +44,7 @@ Note that capitalization of paths and names is not important.
 ### File format
 
 For the algorithm used by the provided tools, one can look into the Python
-file [*supplements/initialization.py*](../../supplements/initialization.py)
+file [`supplements/initialization.py`](../../supplements/initialization.py)
 present in this repository. Cipher present in `*.cif` files uses an
 [ASCII](https://en.wikipedia.org/wiki/ASCII)-based
 [Caesar cipher](https://en.wikipedia.org/wiki/Caesar_cipher) combined with

@@ -8,7 +8,7 @@ Map files are directly responsible for terrain-related properties of maps
 present in *Cultures*. These properties are in great numbers. The most
 important of them are terrain triangles types, heightmap, landscapes and
 road/water/snow overlay. This file format is directly supported by
-`Editor.exe` present in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases).
+`Editor.exe` present in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases).
 
 Maps as a general concept can be divided into so-called cleanmaps and
 macromaps. Cleanmap is the type of map which is seen directly by the user
@@ -31,7 +31,7 @@ triangle and B triangle are called *macro vertices*. In game, coordinates of
 such vertices satisfy the following equation: `y mod 4 = 2·(x mod 2)`.
 
 Additional vertices can be obtained by shifting any macro vertex. Vertices
-obtained in this way always lie on edge of triangle A or triangle B. The
+obtained in this way always lie on the edge of a triangle A or triangle B. The
 distance of the aforementioned shift is equal to half the length of the edge
 along which the vertex is being shifted. These newly created vertices are
 called *micro vertices*. In game, coordinates of such vertices are always a
@@ -44,8 +44,8 @@ on problems related to these concepts it is useful to imagine only vertices
 without underlying triangles. One can easily see that by rotating the image of
 flat terrain by 45° the structure of vertices is geometrically equivalent to
 the regular grid made out of squares. This explains intuitively why creatures
-in game can move in eight directions, which inherently is caused by triangles
-not having all sides of the same length.
+in the game can move in eight directions, which inherently is caused by
+triangles not having all sides of the same length.
 
 For cases without the constraint of predefined visual distance between
 vertices one can notice that moving on triangular grid vertex by vertex is
@@ -65,7 +65,7 @@ All geometrical ideas described above are shown in the exemplary image below.
 ### File format
 
 For the algorithm used by the provided tools, one can look into the Python
-file [*map.py*](../../map.py) present in this repository. Keep in mind that
+file [`map.py`](../../map.py) present in this repository. Keep in mind that
 the exact specifications of this algorithm are the same only for *Cultures:
 Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures
 Gold*. There is another version of this file format used in *Cultures 2: The

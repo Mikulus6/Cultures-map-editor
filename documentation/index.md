@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Main application `Editor.exe` present in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+Main application `Editor.exe` present in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
 provides functionalities necessary to view and modify `*.map` files. This is
 enough to freely manipulate terrain, heightmap, landscapes and structures but
 not enough to create a fully playable map in game on its own. For this, one
@@ -15,7 +15,7 @@ additional files are constructed and how to properly modify them.
 
 There are required third-party programs meant for modifying those
 files. These are listed below. User is expected to have them installed
-alongside `Converters.exe` supplement provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases).
+alongside `Converters.exe` supplement provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases).
 Default text and image editors present on commonly known operating systems
 might not have enough functionalities, as it might be necessary to manually
 change text encoding and to modify a bitmap with indexed colormap.
@@ -35,11 +35,11 @@ featured visually on the image below.
 
 ![files_dependency](./assets/files_dependency.png)
 
-Game files contain also other file formats, which are not directly relevant to
+Game files contain also other file formats, that are not directly relevant to
 the procedure of creating a fully functional map, but can be read or modified
-for other purposes such as modding and reverse engineering. These files consist
-of formats listed below in compedium alongside other file formats relevant to
-the process of creating a map.
+for other purposes such as modding and reverse engineering. These files
+consist of formats listed below in compendium alongside other file formats
+relevant to the process of creating a map.
 
 ## Compendium
 
@@ -65,6 +65,7 @@ the process of creating a map.
  - [`*.mp3` Moving picture audio layer](formats/moving_picture_3.md)
  - [`*.ogg` Ogging file](formats/ogging.md)
  - [`*.sav` Save file](formats/save.md)
+ - [`*.sal`/`*.tab` Text table](formats/text_table.md)
  - [`*.wav` Waveform audio file](formats/waveform_audio.md)
 
 ### Mapping documentation

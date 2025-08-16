@@ -9,8 +9,8 @@
 multiple subdirectories and files within itself. Those files can be found
 inside `data_l` directory present in game files.
 
-Using `Converters.exe` application provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
-one can freely extract or create `*.lib` files. Historically, [*Game Extractor*](https://www.watto.org/game_extractor.html)
+Using `Converters.exe` application provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
+one can freely extract or create `*.lib` files. Historically, [Game Extractor](https://www.watto.org/game_extractor.html)
 was used to read those files and might be a considerable choice on old
 operating systems due to its further backward compatibility than tools
 provided as supplement for this documentation.
@@ -27,7 +27,7 @@ one bigger file.
 
 It is important to note that every library present in game files can be
 extracted to game's main directory. Subdirectories created this way will be
-primary sources of data for game while remaining library will act as a
+the primary sources of data for game while remaining library will act as a
 failsafe for missing files.
 
 Take for example the file `data\system\debug.fnt`, which by default is packed
@@ -54,7 +54,7 @@ rather than deal with archives.
 
 Before dealing with any different filetype in *Cultures*, go to `data_l`
 folder and extract three libraries present there to game's main directory
-using converters provided in [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases).
+using converters provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases).
 These libraries are `data.lib`, `data_m.lib` and `data_v.lib`. If there are
 any collisions between files extracted from these libraries and those already
 present in destined location, it is not recommended to replace them. However,
@@ -63,7 +63,7 @@ is not important in this case.
 
 After extracting the mentioned archives, one can delete or temporarily remove
 `*.lib` files from their initial location and try to run the game, which, if
-properly working, indicates the correctness of preformed extractions.
+properly working, indicates the correctness of performed extractions.
 Make sure to have a backup of files meant for deletion in case something goes
 wrong.
 
@@ -74,9 +74,9 @@ recommended extraction and removal of libraries.
 ### File format
 
 For the algorithm used by the provided tools, one can look into the Python
-file [*supplements/library.py*](../../supplements/library.py) present in this
+file [`supplements/library.py`](../../supplements/library.py) present in this
 repository. Library file format was firstly documented for Game Extractor's
-specifications of [*Archive_LIB*](https://www.watto.org/specs.html?specs=Archive_LIB)
+specifications of [Archive_LIB](https://www.watto.org/specs.html?specs=Archive_LIB)
 plugin. Keep in mind, this archive format is correct only for *Cultures:
 Discovery of Vinland*, *Cultures: The Revenge of the Rain God* and *Cultures
 Gold*. It is not correct for libraries present in *Cultures 2: The Gates of

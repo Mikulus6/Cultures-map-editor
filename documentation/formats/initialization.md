@@ -9,7 +9,7 @@ type of file, which is not exclusive to *Cultures* video games. However,
 syntax-related details are exclusive and vary from regular `*.ini` files
 outside the game's directories. This file type stores plain text and is
 bidirectionally interchangeable with `*.cif` file type. Using `Converters.exe`
-application provided in the [*releases section*](https://github.com/Mikulus6/Cultures-map-editor/releases)
+application provided in the [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
 one can freely encrypt `*.ini` files or decrypt `*.cif` files.
 
 ### Syntax
