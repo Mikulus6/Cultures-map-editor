@@ -3,9 +3,9 @@
 ## Introduction
 
 The following application is meant to be a tool for map-making process in
-video games  "[*Cultures: Discovery of Vinland*](https://en.wikipedia.org/wiki/Cultures_(video_game))",
-"[*Cultures: The Revenge of the Rain God*](https://www.mobygames.com/game/6100/cultures-die-rache-des-regengottes/)"
-and "[*Cultures Gold*](https://www.mobygames.com/game/37471/cultures-gold/)".
+video games [*Cultures: Discovery of Vinland*](https://en.wikipedia.org/wiki/Cultures_(video_game)),
+[*Cultures: The Revenge of the Rain God*](https://www.mobygames.com/game/6100/cultures-die-rache-des-regengottes/)
+and [*Cultures Gold*](https://www.mobygames.com/game/37471/cultures-gold/).
 It makes it possible to freely view and modify map-related files from 
 mentioned games. Available functionalities are implemented in a way which
 mimics editors present in other games from [*Cultures*](https://de.wikipedia.org/wiki/Cultures_(Computerspielreihe))
