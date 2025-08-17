@@ -323,6 +323,9 @@ def quick_conversions():
     sys_argv_copy.pop(0)
 
     if len(sys_argv_copy) > 0 and sys_argv_copy[0] == quick_conversions_param_name:
+
+        os.chdir(os.path.dirname(sys_executable))
+
         sys_argv_copy.pop(0)
         sys_argv_copy_len = len(sys_argv_copy)
         sys_argv_copy = iter(sys_argv_copy)
@@ -330,8 +333,8 @@ def quick_conversions():
         for _ in range(sys_argv_copy_len // 3):
 
             conv_cli_name = remove_quotation(next(sys_argv_copy))
-            conv_in_path  = os.path.join(os.path.dirname(sys_executable), remove_quotation(next(sys_argv_copy)))
-            conv_out_path = os.path.join(os.path.dirname(sys_executable), remove_quotation(next(sys_argv_copy)))
+            conv_in_path  = remove_quotation(next(sys_argv_copy))
+            conv_out_path = remove_quotation(next(sys_argv_copy))
 
             for opiton in options:
                 if opiton.cli_name.lower() == conv_cli_name.lower():
