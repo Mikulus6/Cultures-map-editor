@@ -62,10 +62,11 @@ relevant to the process of creating a map.
  - [`*.cdf` Cultures data file](formats/cultures_data.md)
  - [`*.cur` Cursor file](formats/cursor.md)
  - [`*.dat` Data file](formats/data.md)
+ - [`*.hpp` Header file](formats/header_file.md)
  - [`*.mp3` Moving picture audio layer](formats/moving_picture_3.md)
  - [`*.ogg` Ogging file](formats/ogging.md)
- - [`*.sav` Save file](formats/save.md)
  - [`*.sal`/`*.tab` Text table](formats/text_table.md)
+ - [`*.sav` Save file](formats/save.md)
  - [`*.wav` Waveform audio file](formats/waveform_audio.md)
 
 ### Mapping documentation
