@@ -242,8 +242,8 @@ def load_landscapes_catalogue():
         else: size = (entry_size[0] - 2 * icon_margin, entry_size[1] - 2 * icon_margin)
 
         entry.image.blit(pygame.transform.scale(image, size),
-                         ((entry_size[0] - 2 * icon_margin - size[0]) // 2,
-                          (entry_size[1] - 2 * icon_margin - size[1]) // 2))
+                         ((entry_size[0] - size[0]) // 2,
+                          (entry_size[1] - size[1]) // 2))
         entries.append(entry)
 
     return Catalogue(entries)
@@ -270,8 +270,8 @@ def load_landscapes_groups_catalogue():
         else: size = (entry_size[0] - 2 * icon_margin, entry_size[1] - 2 * icon_margin)
 
         entry.image.blit(pygame.transform.scale(image, size),
-                         ((entry_size[0] - 2 * icon_margin - size[0]) // 2,
-                          (entry_size[1] - 2 * icon_margin - size[1]) // 2))
+                         ((entry_size[0] - size[0]) // 2,
+                          (entry_size[1] - size[1]) // 2))
         entries.append(entry)
 
     return Catalogue(entries)
