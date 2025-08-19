@@ -136,3 +136,7 @@ landscapes_sorted = tuple(map(lambda x: x["Name"], merge_entries_to_dicts(filter
                                                    entries_duplicated=("BaseArea", "ExtendedArea", "SpecialArea",
                                                                        "AddNextLandscape", "FlagSet"),
                                                    merge_duplicates=False)))
+
+landscapes_sorted_lowercase = tuple(map(lambda x: x.lower(), landscapes_sorted))
+
+revert_landscape_capitalization = lambda name: landscapes_sorted[landscapes_sorted_lowercase.index(name.lower())]

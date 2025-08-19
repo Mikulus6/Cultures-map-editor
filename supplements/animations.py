@@ -9,7 +9,7 @@ from scripts.buffer import BufferGiver, BufferTaker
 from scripts.fallback import fallback_directories, load_with_fallback
 from scripts.report import Report
 from supplements.bitmaps import Bitmap
-from supplements.landscapedefs import landscapedefs, name_max_length
+from supplements.landscapedefs import landscapedefs, name_max_length, revert_landscape_capitalization
 from supplements.remaptables import remaptables
 
 
@@ -47,7 +47,7 @@ class LoadingVisuals:
         self.start_time = time.time()
 
     def step(self, value, landscape_name):
-        self.loading_text.set(f"Loaded landscape \"{landscape_name}\".")
+        self.loading_text.set(f"Loaded landscape \"{revert_landscape_capitalization(landscape_name)}\".")
 
         estimate = round((time.time() - self.start_time) * ((1 -  value) / value))
         estimate_text_value = "%02d:%02d:%02d" % (estimate // 3600, (estimate % 3600) // 60, estimate % 60)
@@ -168,7 +168,7 @@ class Animations(dict):
         loaded_num = 0
         for name in landscapedefs.keys():
             self[name] = load_animation(name)
-            report.report(f"Loaded landscape \"{name}\".")
+            report.report(f"Loaded landscape \"{revert_landscape_capitalization(name)}\".")
             loaded_num += 1
             loading_visuals.step(loaded_num/len(landscapedefs), name)
 

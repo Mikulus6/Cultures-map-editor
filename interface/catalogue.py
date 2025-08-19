@@ -6,7 +6,7 @@ from interface.projection import draw_projected_triangle
 from scripts.abs_path import abs_path
 from supplements.animations import animations
 from supplements.groups import landscapes_edit_group, pattern_edit_group
-from supplements.landscapedefs import landscapedefs
+from supplements.landscapedefs import landscapedefs, revert_landscape_capitalization
 from supplements.patterns import patterndefs_normal, road, patterndefs_normal_by_name
 from supplements.textures import patterndefs_textures
 from typing import Literal
@@ -231,7 +231,7 @@ def load_landscapes_catalogue():
     entries[0].image.fill(entry_background_color)
 
     for name, animation in animations.items():
-        entry = CatalogueEntry(name, identificator=landscapedefs[name],
+        entry = CatalogueEntry(revert_landscape_capitalization(name), identificator=landscapedefs[name],
                                image=pygame.Surface(entry_size, pygame.SRCALPHA))
         entry.image.fill(entry_background_color)
         temp_entry_surface.fill((0, 0, 0, 0))
