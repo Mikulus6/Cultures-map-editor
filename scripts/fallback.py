@@ -26,23 +26,27 @@ def quit_fallback():
 def fallback(function):
     def new_function(*args, **kwargs):
         global fallback_directories
-        try:
-            value = function(*args, **kwargs)
-        except FileNotFoundError:
-            top = tk.Tk()
-            top.withdraw()
-            top.attributes("-topmost", True)
 
-            if messagebox.askyesno("File not found",
-                                   "Some of game files cannot be found in current directory.\n" + \
-                                   "Would you like to specify fallback directory manually?",
-                                   icon="warning", parent=top):
-                top.quit()
-                top.destroy()
-                fallback_directories.append(filedialog.askdirectory())
+        fallback_active = True
+        while fallback_active:
+            try:
                 value = function(*args, **kwargs)
-            else:
-                quit_fallback()
+                fallback_active = False
+            except FileNotFoundError:
+                top = tk.Tk()
+                top.withdraw()
+                top.attributes("-topmost", True)
+
+                if messagebox.askyesno("File not found",
+                                       "Some of game files cannot be found in current directory.\n" + \
+                                       "Would you like to specify fallback directory manually?",
+                                       icon="warning", parent=top):
+                    top.quit()
+                    top.destroy()
+                    fallback_directories.append(filedialog.askdirectory())
+                else:
+                    fallback_active = False
+                    quit_fallback()
         return value  # noqa
     return new_function
 
