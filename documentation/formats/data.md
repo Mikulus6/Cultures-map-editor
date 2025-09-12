@@ -40,7 +40,7 @@ Merchants: The Shattered Kingdom*, *Knights and Merchants: The Peasants
 Rebellion* and *The Settlers II*. It has been confirmed that this file serves
 the exact same purpose in the *Knights and Merchants* games, as it does in the
 *Cultures* games. Considering that these games were created by the
-same people working at [Joymania Entertainment*](https://www.knightsandmerchants.net/information/joymania),
+same people working at [Joymania Entertainment](https://www.knightsandmerchants.net/information/joymania),
 it is speculated that the aforementioned games share a common part of source
 code.
 
@@ -53,4 +53,4 @@ the same only for *Cultures: Discovery of Vinland*, *Cultures: The Revenge of
 the Rain God* and *Cultures Gold*. There is another slightly different version
 of this file format used in *Knights and Merchants: The Shattered Kingdom*,
 *Knights and Merchants: The Peasants Rebellion*, *The Settlers II* and perhaps
-in other real-time strategy games connected to [Joymania Entertainment](https://www.knightsandmerchants.net/information/joymania)._
+in other real-time strategy games connected to [Joymania Entertainment](https://www.knightsandmerchants.net/information/joymania).
