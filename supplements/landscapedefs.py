@@ -1,9 +1,12 @@
+from math import ceil
 from scripts.buffer import BufferGiver, data_encoding
 from scripts.data_loader import load_ini_as_dict, load_ini_as_sections, filter_section_by_name, merge_entries_to_dicts
 from supplements.read import read
 
-name_max_length = 84
-group_name_max_length = 36
+sum_nested = lambda x: sum(sum_nested(i) if isinstance(i, list) else i for i in x)
+
+dummy_seedling_value = 0
+chars_per_byte = 4
 
 landscapedefs_cdf_path = "data_v\\ve_graphics\\landscape\\landscapedefs.cdf"
 landscapedefs_cif_path = "data_v\\ve_graphics\\landscape\\landscapedefs.cif"
@@ -23,6 +26,9 @@ class LandscapeDefs(dict):
         self.data_add_next_duplicates = dict()
         self.data_groups = dict()
 
+        self.name_max_length = ceil((max(map(len, self.keys())) + 1) / chars_per_byte) * chars_per_byte
+        # length of names is padded to multiple of four bytes containing at least one additional byte for termination.
+
         if load_cdf:
             self.load_cdf()
 
@@ -32,14 +38,67 @@ class LandscapeDefs(dict):
         landscapes = list()
         landscapes_add_next_data = dict()
 
+        group_names = dict()
+        remaptables_names = dict()
+        shadow_remaptables_names = dict()
+        sound_names = dict()
+
         for num_landscape in range(buffer.unsigned(4)):
-            name_raw = buffer.bytes(length=name_max_length)
+            name_raw = buffer.bytes(length=self.name_max_length)
             name_length = name_raw.find(0)
 
             if name_length == -1:
-                name_length = name_max_length
+                name_length = self.name_max_length
 
             name = str(name_raw[:name_length], encoding=data_encoding).lower()
+
+            # Meanings of following entries of constant size up to "Energy" value were obtained and provided by
+            # Benedikt Magnus on 01.10.2025.
+
+            assert buffer.unsigned(4) == 0
+            group_id = buffer.unsigned(2)
+            assert buffer.unsigned(2) == num_landscape
+            assert buffer.unsigned(1) == self[name].get("Mode", 0)
+            assert buffer.unsigned(1) == sum_nested(self[name].get("FlagSet", [0]))
+            assert buffer.signed(2) % (2 ** 16) == self[name].get("FirstBob", -1) % (2 ** 16)
+            assert (buffer.unsigned(2) == self[name].get("FirstShadowBob")) or\
+                   (self[name].get("FirstShadowBob", None) is None)
+            assert buffer.unsigned(2) == self[name].get("Elements", 0)
+            assert buffer.unsigned(1) == self[name].get("RemapDisable", 0)
+            assert buffer.unsigned(1) == 0
+            remaptable_id = buffer.signed(2)
+            shadow_remaptable_id = buffer.signed(2)
+            assert buffer.unsigned(2) == self[name].get("ShadingFactor", 128)
+            assert buffer.unsigned(1) == self[name].get("HighColorShadingMode", 0)
+            assert buffer.unsigned(5) == 0
+            sound_name_id = buffer.signed(2)
+
+            for value_id, names_dict, field_name in \
+                    ((group_id, group_names, "GroupName"),
+                     (remaptable_id, remaptables_names, "RemapName"),
+                     (shadow_remaptable_id, shadow_remaptables_names, "ShadowRemapName"),
+                     (sound_name_id, sound_names, "SoundName")):
+
+                if value_id == -1: continue
+                elif value_id in names_dict.keys(): assert names_dict[value_id] == self[name][field_name].lower()
+                else: names_dict[value_id] = self[name][field_name].lower()
+
+            assert buffer.unsigned(2) == len(self[name].get("AddNextLandscape", []))
+
+            for value_name in ("MotivateReligion",     "MotivateCulture",
+                               "WaterNecessity",       "WaterLimit",
+                               "NutritionalNecessity", "NutritionalLimit"):
+                assert buffer.unsigned(1) == (self[name].get(value_name, 0) if value_name != "MotivateCulture" else 0)
+
+            match buffer.unsigned(1) % 2:
+                case 0: assert self[name].get("Seedling", dummy_seedling_value) == dummy_seedling_value
+                case 1: assert self[name].get("Seedling", dummy_seedling_value) is None
+                case _: raise ArithmeticError
+
+            assert [buffer.unsigned(1) for _ in range(3)] == self[name].get("ReproduceData", [0, 0, 0])
+            assert buffer.unsigned(2) == self[name].get("Energy", 0)
+            assert buffer.unsigned(2) == 0
+            assert buffer.signed(4) == -1
 
             bob_libs_packed = ""
             bob_libs_masked = ""
@@ -113,13 +172,15 @@ class LandscapeDefs(dict):
                 self.data_add_next_duplicates[name] = duplicates
 
         for _ in range(buffer.unsigned(4)):
-            name_raw = buffer.bytes(length=group_name_max_length)
+            name_raw = buffer.bytes(length=self.name_max_length)
             name_length = name_raw.find(0)
 
             if name_length == -1:
-                name_length = group_name_max_length
+                name_length = self.name_max_length
 
             name = str(name_raw[:name_length], encoding=data_encoding)
+            assert buffer.unsigned(4) == 0
+
             values = []
             for _ in range(buffer.unsigned(2)):
                 values.append(value := landscapes[buffer.unsigned(2)])

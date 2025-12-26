@@ -9,7 +9,7 @@ from scripts.buffer import BufferGiver, BufferTaker
 from scripts.fallback import fallback_directories, load_with_fallback
 from scripts.report import Report
 from supplements.bitmaps import Bitmap
-from supplements.landscapedefs import landscapedefs, name_max_length, revert_landscape_capitalization
+from supplements.landscapedefs import landscapedefs, revert_landscape_capitalization
 from supplements.remaptables import remaptables
 
 
@@ -61,8 +61,8 @@ class LoadingVisuals:
         self.root.quit()
         self.root.destroy()
 
-loading_visuals = LoadingVisuals()
 
+loading_visuals = LoadingVisuals()
 animations_directory = "data_v\\ve_graphics\\bobmanager"
 
 
@@ -104,7 +104,7 @@ class Animations(dict):
     """Dictionary with animations of landscapes"""
     initialized = False
     cache_filepath = "cache.bin"
-    name_max_bytes = ceil(log2(name_max_length))
+    name_max_bytes = ceil(log2(landscapedefs.name_max_length) / 8)  # 8 = bits per byte
     pygame_converted = False
 
     @load_with_fallback
