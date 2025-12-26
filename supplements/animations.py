@@ -1,3 +1,4 @@
+import lzma
 import os
 from math import ceil, log2
 from sys import exit as sys_exit
@@ -98,6 +99,17 @@ def load_animation(landscape_name) -> Animation:
 
     animation_masked.paste(animation_packed)
     return animation_masked
+
+
+class Compressor:
+
+    @classmethod
+    def compress(cls, bytes_obj: bytes):
+        return lzma.compress(bytes_obj)
+
+    @classmethod
+    def decompress(cls, bytes_obj: bytes):
+        return lzma.decompress(bytes_obj)
 
 
 class Animations(dict):
@@ -203,12 +215,12 @@ class Animations(dict):
             buffer_taker.bytes(bytes(animation))
 
         with open(self.__class__.cache_filepath, "wb") as file:
-            file.write(bytes(buffer_taker))
+            file.write(Compressor.compress(bytes(buffer_taker)))
 
     def load_cache(self):
         self.clear()
         with open(self.__class__.cache_filepath, "rb") as file:
-            buffer = BufferGiver(file.read())
+            buffer = BufferGiver(Compressor.decompress(file.read()))
         for _ in range(buffer.unsigned(length=4)):
             name = buffer.string(length=buffer.unsigned(length=self.__class__.name_max_bytes))
             animation = Animation.from_bytes(buffer.bytes(buffer.unsigned(length=4)))
