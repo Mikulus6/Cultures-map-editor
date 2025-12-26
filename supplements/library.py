@@ -9,7 +9,7 @@ class Library(dict):
         super().__init__()
 
     def load(self, filename: str, *, cultures_1: bool):
-        assert filename.endswith(".lib")
+        assert filename.endswith(".lib") or (filename.endswith(".c2m") and not cultures_1)
 
         with open(filename, "rb") as file:
             bytes_obj = file.read()
@@ -18,7 +18,7 @@ class Library(dict):
         else:          self._extract_content_cultures_2(bytes_obj)
 
     def save(self, filename: str, *, cultures_1: bool):
-        assert filename.endswith(".lib")
+        assert filename.endswith(".lib") or (filename.endswith(".c2m") and not cultures_1)
 
         if cultures_1: bytes_obj = self._pack_content_cultures_1()
         else:          bytes_obj = self._pack_content_cultures_2()
