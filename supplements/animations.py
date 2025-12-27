@@ -102,14 +102,21 @@ def load_animation(landscape_name) -> Animation:
 
 
 class Compressor:
+    error_type = ValueError
 
     @classmethod
     def compress(cls, bytes_obj: bytes):
-        return lzma.compress(bytes_obj)
+        try:
+            return lzma.compress(bytes_obj)
+        except lzma.LZMAError:
+            raise cls.error_type
 
     @classmethod
     def decompress(cls, bytes_obj: bytes):
-        return lzma.decompress(bytes_obj)
+        try:
+            return lzma.decompress(bytes_obj)
+        except lzma.LZMAError:
+            raise cls.error_type
 
 
 class Animations(dict):
@@ -140,6 +147,7 @@ class Animations(dict):
 
         try:
             self.load_cache()
+
         except FileNotFoundError:
 
             top = tk.Tk()
@@ -166,6 +174,22 @@ class Animations(dict):
                 top.withdraw()
                 top.attributes("-topmost", True)
                 messagebox.showerror("File not found", "Editor cannot be launched without cache file being generated.",
+                                     icon="error", parent=top)
+                top.quit()
+                top.destroy()
+
+                sys_exit()
+
+        # Multiple exceptions are added due to unpredictability of potential cache file corruption type.
+        except (AssertionError, ValueError, IndexError, UnicodeDecodeError, Compressor.error_type):
+
+                top = tk.Tk()
+                top.withdraw()
+                messagebox.showerror("Corrupted cache file",
+                                     "Cache file is corrupted. Please delete the file \"" +\
+                                     self.__class__.cache_filepath + "\" manually and then launch the editor again. "+\
+                                     "This error might be caused by using a cache file created by an older version "+\
+                                     "of the editor.",
                                      icon="error", parent=top)
                 top.quit()
                 top.destroy()
