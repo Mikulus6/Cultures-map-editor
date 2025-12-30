@@ -83,6 +83,7 @@ relevant to the process of creating a map.
 
  - [Briefings keywords](briefings/text.md)
  - [Numerical limits](briefings/limits.md)
+ - [Publishing guidelines](./guidelines.md)
 
 ### External programs
 
