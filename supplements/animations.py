@@ -53,7 +53,7 @@ class LoadingVisuals:
         estimate = round((time.time() - self.start_time) * ((1 -  value) / value))
         estimate_text_value = "%02d:%02d:%02d" % (estimate // 3600, (estimate % 3600) // 60, estimate % 60)
 
-        self.estimate_text.set(f"Estimated time remaining {estimate_text_value}")
+        self.estimate_text.set(f"Estimated time remaining: {estimate_text_value}")
         if not self.closed:
             self.progress['value'] = value * 100
             self.root.update()
