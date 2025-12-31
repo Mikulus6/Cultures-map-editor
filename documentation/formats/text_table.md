@@ -1,10 +1,10 @@
 [← index](../index.md)
 
-## Text table (`*.sal` / `*.tab`)
+## Text table (`*.sal`, `*.tab`)
 
 ### Introduction
 
-Text table file (`*.sal` / `*.tab`) is a file format used by *Cultures*,
+Text table file (`*.sal`, `*.tab`) is a file format used by *Cultures*,
 meant for storing textual data. Content of this file format is protected by a
 cipher. Breaking it makes it possible to losslessly convert this type of file
 to plain text stored as a `*.txt` file. Applying this cipher to a decrypted

@@ -65,7 +65,7 @@ relevant to the process of creating a map.
  - [`*.hpp` Header file](formats/header_file.md)
  - [`*.mp3` Moving picture audio layer](formats/moving_picture_3.md)
  - [`*.ogg` Ogging file](formats/ogging.md)
- - [`*.sal`/`*.tab` Text table](formats/text_table.md)
+ - [`*.sal`, `*.tab` Text table](formats/text_table.md)
  - [`*.sav` Save file](formats/save.md)
  - [`*.wav` Waveform audio file](formats/waveform_audio.md)
 

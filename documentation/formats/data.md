@@ -23,7 +23,7 @@ aforementioned file can store up to `256` unique shades.
 Using `Converters.exe` application provided in the
 [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
 one can freely decode a `*.dat` file or encode it back. Modifying this file
-let the user change apparent brightness or color of shadows and light in the
+lets the user change apparent brightness or color of shadows and light in the
 game. The header of this file contains additional constant numbers which were
 used during the development process to derive those shades of colors. Keep in
 mind that while editing this file in [GIMP](https://www.gimp.org/) one must

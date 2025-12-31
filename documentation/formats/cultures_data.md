@@ -36,9 +36,9 @@ information about filenames and subdirectories.
 
 ### File format
 
-For the algorithms used to read these files, one can look into the Python
-module [`supplements.py`](../../supplements) present in this repository. Using
-`Converters.exe` application provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
+For the algorithms used to read these files, one can look into the directory
+of Python modules [`supplements`](../../supplements) present in this
+repository. Using `Converters.exe` application provided in [releases section](https://github.com/Mikulus6/Cultures-map-editor/releases)
 one can extract and pack back `remaptables.cdf`. One can additionally verify
 consistency between `*.cif` and `*.cdf` files by running appropriate scripts
 present in the aforementioned module.
