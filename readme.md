@@ -96,6 +96,7 @@ For official developers' website visit [Funatics](https://www.funatics.de/).
 [Mikulus](https://github.com/Mikulus6): Managed project and wrote most of Python code.  
 [Basssiiie](https://github.com/Basssiiie): Decompiled important parts of game's engine via Ghidra.  
 [Peti](https://retroachievements.org/user/LittlePetbob): Tested and documented part of textual scripts entries.  
+[Benedikt Magnus](https://github.com/BenediktMagnus): Helped with landscapes' data interpretation.  
 [Tyrannica](https://github.com/ARKAMENTOR): Helped with walk sectors' data visualization.  
 [Proszak](https://www.facebook.com/PigmentDesignStudio): Drew some of the graphics for user interface.
 
