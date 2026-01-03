@@ -12,8 +12,9 @@ triangle_b_shadow_filepath = "assets/shadows/triangle_down.png"
 
 
 hex_image = Image.open(abs_path(hexagon_shadow_filepath)).convert(mode="RGB")
-hex_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in hex_image.getdata()]).reshape(hex_image.size[1],
-                                                                                               hex_image.size[0])
+hex_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in
+                       hex_image.get_flattened_data()]).reshape(hex_image.size[1],
+                                                                hex_image.size[0])
 del hex_image
 vertical_cut = tuple(hex_shadow.transpose()[0]).index(1)
 
@@ -49,9 +50,11 @@ def expand_image_object_to_hexagons(image_object: Image.Image) -> Image.Image:
 triangle_a_image = Image.open(abs_path(triangle_a_shadow_filepath)).convert(mode="RGB")
 triangle_b_image = Image.open(abs_path(triangle_b_shadow_filepath)).convert(mode="RGB")
 triangle_a_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in
-                              triangle_a_image.getdata()]).reshape(triangle_a_image.size[1], triangle_a_image.size[0])
+                              triangle_a_image.get_flattened_data()]).reshape(triangle_a_image.size[1],
+                                                                              triangle_a_image.size[0])
 triangle_b_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in
-                              triangle_b_image.getdata()]).reshape(triangle_b_image.size[1], triangle_b_image.size[0])
+                              triangle_b_image.get_flattened_data()]).reshape(triangle_b_image.size[1],
+                                                                              triangle_b_image.size[0])
 del triangle_a_image
 del triangle_b_image
 assert triangle_a_shadow.shape == triangle_a_shadow.shape

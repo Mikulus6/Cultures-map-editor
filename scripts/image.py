@@ -69,7 +69,7 @@ def rgb_to_image(rgb_iterable: list | tuple, filename: str, width, expansion_mod
 
 def image_to_bytes(filename: str, get_width=False):
     image = Image.open(filename)
-    pixels = list(image.getdata())
+    pixels = list(image.get_flattened_data())
     if isinstance(pixels[0], tuple):
         pixels = [x[0] for x in pixels]
     return (bytes(pixels), image.width) if get_width else bytes(pixels)
@@ -77,18 +77,18 @@ def image_to_bytes(filename: str, get_width=False):
 
 def image_to_shorts(filename: str, colormap: ColorMap = None) -> bytes:
     if colormap is not None:
-        return remove_colormap_from_shorts(list(Image.open(filename).getdata()), colormap)
+        return remove_colormap_from_shorts(list(Image.open(filename).get_flattened_data()), colormap)
 
     shorts = []
-    for r, g, b in [x[:3] for x in Image.open(filename).getdata()]:
+    for r, g, b in [x[:3] for x in Image.open(filename).get_flattened_data()]:
         shorts += [r, g]
     return bytes(shorts)
 
 
 
 def image_to_bits(filename: str):
-    return ''.join(['1' if r == g == b == 255 else '0' for r, g, b in Image.open(filename).getdata()])
+    return ''.join(['1' if r == g == b == 255 else '0' for r, g, b in Image.open(filename).get_flattened_data()])
 
 
 def image_to_rgb(filename: str) -> tuple:
-    return tuple([x[:3] for x in Image.open(filename).getdata()])
+    return tuple([x[:3] for x in Image.open(filename).get_flattened_data()])
