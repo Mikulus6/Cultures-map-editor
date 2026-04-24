@@ -18,6 +18,7 @@ class LandscapesDrawParameters:
     consider_extended_area: bool = False
     tickrate: float = 10.0
     last_tick_time = time.time() - 1 / tickrate
+    usage_continuity: bool = False
 
 
 @dataclass
@@ -30,11 +31,18 @@ class HeightDrawParameters:
     total_smoothing: bool = True
     tickrate: float = 20.0
     last_tick_time = time.time() - 1 / tickrate
+    usage_continuity: bool = False
 
 
 landscapes_draw_parameters = LandscapesDrawParameters()
 height_draw_parameters = HeightDrawParameters()
 height_mode_options = ("absolute", "delta higher", "delta deeper", "random", "smoothing")
+
+
+def factor_correction(factor_ideal, frame_duration, tickrate, *, mode: Literal["density", "cumulative"]):
+    if   mode == "cumulative": return factor_ideal * frame_duration * tickrate
+    elif mode == "density":    return 1 - ((1 - factor_ideal) ** (frame_duration * tickrate))
+    else: raise ValueError
 
 
 class StatesMachine:
@@ -147,6 +155,10 @@ class StatesMachine:
         editor.ignore_singular_triangle = True
         editor.ignore_minor_vertices = False
         editor.landscapes_catalogue.update_and_draw(editor)
+
+        time_now = time.time()
+        duration_since_last_tick = time_now - landscapes_draw_parameters.last_tick_time
+
         if editor.cursor_vertex is not None:
             for pressed, selected_pattern in zip((editor.mouse_press_left, editor.mouse_press_right),
                                                  (editor.landscapes_catalogue.selected_index_left,
@@ -156,15 +168,21 @@ class StatesMachine:
                     name = editor.landscapes_catalogue.items[selected_pattern].identificator["Name"] \
                            if editor.landscapes_catalogue.items[selected_pattern].identificator is not None else None
 
-                    if time.time() - landscapes_draw_parameters.last_tick_time > \
-                                     1 / landscapes_draw_parameters.tickrate:
+                    if duration_since_last_tick > 1 / landscapes_draw_parameters.tickrate:
+
+                        density = landscapes_draw_parameters.density if not landscapes_draw_parameters.usage_continuity\
+                                  else factor_correction(factor_ideal=landscapes_draw_parameters.density,
+                                                         frame_duration=duration_since_last_tick,
+                                                         tickrate=landscapes_draw_parameters.tickrate,
+                                                         mode="density")
+
                         if editor.scroll_radius != 0:
                             for point in Brush.get_points_and_edge_points(editor.map,
                                                                           editor.cursor_vertex,
                                                                           editor.scroll_radius,
                                                                           ignore_minor_vertices=False)[0]:
-                                if (landscapes_draw_parameters.density != 1 and random() >
-                                    landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
+                                if (landscapes_draw_parameters.density != 1 and random() > density) or \
+                                    landscapes_draw_parameters.density == 0:
                                     continue
                                 if (landscapes_draw_parameters.consider_base_area and
                                     editor.base_area.check_overlap(name, point, editor.map)) or \
@@ -182,8 +200,12 @@ class StatesMachine:
                                 break
 
                             editor.update_landscape(editor.cursor_vertex, name)
-                        landscapes_draw_parameters.last_tick_time = time.time()
+                        landscapes_draw_parameters.last_tick_time = time_now
+                        landscapes_draw_parameters.usage_continuity = True
                     break
+
+        if landscapes_draw_parameters.last_tick_time != time_now:
+            landscapes_draw_parameters.usage_continuity = False
 
         editor.base_area.update_after_landscapes_changes(editor.map)
         editor.extended_area.update_after_landscapes_changes(editor.map)
@@ -193,6 +215,10 @@ class StatesMachine:
         editor.ignore_singular_triangle = True
         editor.ignore_minor_vertices = False
         editor.landscapes_group_catalogue.update_and_draw(editor)
+
+        time_now = time.time()
+        duration_since_last_tick = time_now - landscapes_draw_parameters.last_tick_time
+
         if editor.cursor_vertex is not None:
             for pressed, selected_pattern in zip((editor.mouse_press_left, editor.mouse_press_right),
                                                  (editor.landscapes_group_catalogue.selected_index_left,
@@ -203,8 +229,14 @@ class StatesMachine:
                             if editor.landscapes_group_catalogue.items[selected_pattern].identificator is not None \
                             else None
 
-                    if time.time() - landscapes_draw_parameters.last_tick_time > \
-                                     1 / landscapes_draw_parameters.tickrate:
+                    if duration_since_last_tick > 1 / landscapes_draw_parameters.tickrate:
+
+                        density = landscapes_draw_parameters.density if not landscapes_draw_parameters.usage_continuity\
+                                  else factor_correction(factor_ideal=landscapes_draw_parameters.density,
+                                                         frame_duration=duration_since_last_tick,
+                                                         tickrate=landscapes_draw_parameters.tickrate,
+                                                         mode="density")
+
                         if editor.scroll_radius != 0:
                             for point in Brush.get_points_and_edge_points(editor.map,
                                                                           editor.cursor_vertex,
@@ -215,8 +247,8 @@ class StatesMachine:
                                                legacy_randomness=landscapes_draw_parameters.legacy_randomness).lower() \
                                                if group is not None else None
 
-                                if (landscapes_draw_parameters.density != 1 and random() >
-                                    landscapes_draw_parameters.density) or landscapes_draw_parameters.density == 0:
+                                if (landscapes_draw_parameters.density != 1 and random() > density) or \
+                                    landscapes_draw_parameters.density == 0:
                                     continue
                                 if (landscapes_draw_parameters.consider_base_area and
                                     editor.base_area.check_overlap(name, point, editor.map)) or \
@@ -238,8 +270,12 @@ class StatesMachine:
                                 break
 
                             editor.update_landscape(editor.cursor_vertex, name)
-                        landscapes_draw_parameters.last_tick_time = time.time()
+                        landscapes_draw_parameters.last_tick_time = time_now
+                        landscapes_draw_parameters.usage_continuity = True
                     break
+
+        if landscapes_draw_parameters.last_tick_time != time_now:
+            landscapes_draw_parameters.usage_continuity = False
 
         editor.base_area.update_after_landscapes_changes(editor.map)
         editor.extended_area.update_after_landscapes_changes(editor.map)
@@ -302,12 +338,20 @@ class StatesMachine:
                                             font_color if height_draw_parameters.mode == "smoothing"
                                             else font_color_out_of_focus), text_position)
 
+        time_now = time.time()
+        duration_since_last_tick = time_now - height_draw_parameters.last_tick_time
+
         if editor.cursor_vertex is not None:
 
             for pressed, factor in zip((editor.mouse_press_left, editor.mouse_press_right), (1, -1)):
 
-                if pressed and time.time() - height_draw_parameters.last_tick_time > \
-                                             1 / height_draw_parameters.tickrate:
+                if pressed and duration_since_last_tick > 1 / height_draw_parameters.tickrate:
+
+                    factor_fixed = factor if not pressed or not height_draw_parameters.usage_continuity \
+                                          else factor_correction(factor_ideal=factor,
+                                                                 frame_duration=duration_since_last_tick,
+                                                                 tickrate=height_draw_parameters.tickrate,
+                                                                 mode="cumulative")
                     if editor.scroll_radius > 0:
                         points = Brush.get_points_and_edge_points(editor.map, editor.cursor_vertex,
                                                                   editor.scroll_radius, ignore_minor_vertices=True)[0]
@@ -331,14 +375,14 @@ class StatesMachine:
                                 editor.update_height(point, height_draw_parameters.value_absolute,
                                                      as_delta=False)
                             case "delta higher":
-                                editor.update_height(point, height_draw_parameters.value_delta * factor,
+                                editor.update_height(point, height_draw_parameters.value_delta * factor_fixed,
                                                      as_delta=True)
                             case "delta deeper":
-                                editor.update_height(point, - height_draw_parameters.value_delta * factor,
+                                editor.update_height(point, -height_draw_parameters.value_delta * factor_fixed,
                                                      as_delta=True)
                             case "random":
                                 editor.update_height(point,
-                                                     height_draw_parameters.value_random * factor * random(),
+                                                     height_draw_parameters.value_random * factor_fixed * random(),
                                                      as_delta=True)
                             case "smoothing":
                                 value = editor.map.mhei[point[1] * editor.map.map_width // 2 + point[0]]
@@ -369,15 +413,19 @@ class StatesMachine:
                                 if abs(value - local_average_height) < height_draw_parameters.value_delta:
                                     editor.update_height(point, local_average_height, as_delta=False)
                                 elif value > local_average_height + height_draw_parameters.threshold_smoothing:
-                                    editor.update_height(point, - height_draw_parameters.value_delta * factor,
+                                    editor.update_height(point, - height_draw_parameters.value_delta * factor_fixed,
                                                          as_delta=True)
                                 elif value < local_average_height - height_draw_parameters.threshold_smoothing:
-                                    editor.update_height(point, height_draw_parameters.value_delta * factor,
+                                    editor.update_height(point, height_draw_parameters.value_delta * factor_fixed,
                                                          as_delta=True)
 
                     if editor.cursor_vertex is not None:
                         editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 4)
-                        height_draw_parameters.last_tick_time = time.time()
+                        height_draw_parameters.last_tick_time = time_now
+                        height_draw_parameters.usage_continuity = True
                     break
+
+        if height_draw_parameters.last_tick_time != time_now:
+            height_draw_parameters.usage_continuity = False
 
 states_machine = StatesMachine()
