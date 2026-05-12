@@ -92,8 +92,7 @@ class RemapTables:
 
     def load(self, cdf_path: str = remaptables_cdf_path):
 
-        if os.path.isfile(cdf_path):
-
+        try:
             buffer = BufferGiver(read(cdf_path, mode="rb"))
 
             for _ in range(buffer.unsigned(4)):
@@ -117,6 +116,9 @@ class RemapTables:
 
                 # RemapTable16 data stored in *.cdf file is redundant to RemapTable data stored in the same file and
                 # additional metadata stored in *.cif file. It is suggested to not keep this data separately in memory.
+
+        except FileNotFoundError:
+            pass
 
         if not self.is_loaded:
             # This is backup loading procedure in case not all remaptables are in *.cdf file.
