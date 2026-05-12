@@ -1,4 +1,4 @@
-[← index](./index.md)
+[← index](../index.md)
 
 ## Publishing guidelines
 
@@ -51,8 +51,8 @@ and modify its content rather than using an existing one. To enforce this
 condition with other maps made in the editor that are not present by default
 in the game, check existing maps online within the scope of possibilities
 before publishing your own map. Consequently, due to this rule, a map should
-not contain any [`*.ini`](./formats/initialization.md) files. They should be
-replaced with appropriate [`*.cif`](./formats/cultures_initialization.md)
+not contain any [`*.ini`](../formats/initialization.md) files. They should be
+replaced with appropriate [`*.cif`](../formats/cultures_initialization.md)
 files.
 
 #### Version compatibility

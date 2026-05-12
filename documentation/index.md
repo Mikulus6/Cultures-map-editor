@@ -81,9 +81,10 @@ relevant to the process of creating a map.
 
 #### Miscellaneous
 
- - [Briefings keywords](briefings/text.md)
- - [Numerical limits](briefings/limits.md)
- - [Publishing guidelines](./guidelines.md)
+ - [Briefings keywords](misc/text.md)
+ - [Hardcoded exceptions](misc/exceptions.md)
+ - [Numerical limits](misc/limits.md)
+ - [Publishing guidelines](misc/guidelines.md)
 
 ### External programs
 

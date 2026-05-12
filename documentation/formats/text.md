@@ -16,7 +16,7 @@ commonly known as yellowed papers usually containing a part of story relevant
 to the gameplay. It is possible to include in such texts custom images, fonts
 and other parameters typical of text formatting tools. For this purpose, text
 files use keyword-value pairs denoted as `<keyword:value>`. All possible
-keywords are available in the [briefings keywords](../briefings/text.md)
+keywords are available in the [briefings keywords](../misc/text.md)
 documentation. There is no special syntax for values, as they are just text.
 However, it is common for integers to be separated by commas. Additionally,
 new lines can be denoted as `\n`.
