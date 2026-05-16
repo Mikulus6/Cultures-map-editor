@@ -354,6 +354,8 @@ root.title("Converters")
 root.geometry("235x160")
 root.resizable(False, False)
 root.iconbitmap(abs_path("assets/icon_converters.ico"))
+root.report_callback_exception = lambda exc_type, value, obj: messagebox.showerror("Error", str(exc_type.__name__) + \
+                                                              (":\n" if len(str(value)) != 0 else "") + str(value))
 
 input_path = None
 
