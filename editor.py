@@ -24,6 +24,7 @@ from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
                                ask_brush_parameters, ask_enforce_height, ask_area_mark, warning_too_many_area_marks ,\
                                ask_save_changes
+from interface.fencepale import handle_drawing_fencepale
 from interface.horizont import enforce_horizonless_heightmap
 from interface.interpolation import get_data_interpolated
 from interface.invisible import transparent_landscapes_color_match, color_circle_radius, render_legend
@@ -616,6 +617,7 @@ class Editor:
 
 
             elif landscape_name is not None:
+                handle_drawing_fencepale(self.root, self.map, self.camera, coordinates)
                 animation = animations[landscape_name.lower()]
                 frame = floor(time.time() * animation_frames_per_second) % len(animation.images)
                 if check_remap_disability(landscape_name):
