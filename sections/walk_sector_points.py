@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image, ImageDraw
 from sections.continents2 import void_marker, land_marker
+from sections.mesh_points import get_neighbouring_vertices
 from scripts.expansions import expand_image
 from scripts.flags import sequence_to_flags, flag_to_bool_ndarray
 from scripts.image import get_rgb_hue_tuple
@@ -103,8 +104,7 @@ def search_valid_coordinates(validity_subarray):
 
 
 def get_tile_in_direction(x, y, direction):
-    if y % 2 == 0: return [(x + 1, y), (x, y + 1), (x - 1, y + 1), (x - 1, y), (x - 1, y - 1), (x, y - 1)][direction]
-    else:          return [(x + 1, y), (x + 1, y + 1), (x, y + 1), (x - 1, y), (x, y - 1), (x + 1, y - 1)][direction]
+    return get_neighbouring_vertices((x, y))[direction]
 
 
 def check_connection(mgfs_ndarrays, coordinates_start, coordinates_end):
@@ -269,13 +269,13 @@ def draw_sectors_connections(mco2: bytes, sectors: list, map_width: int, map_hei
         sector_x, sector_y = index_value % sectors_width, index_value // sectors_width
 
         neighbours = [[sector_x + 1, sector_y - 1],
-                      [sector_x, sector_y - 1],
+                      [sector_x,     sector_y - 1],
                       [sector_x - 1, sector_y - 1],
-                      [sector_x - 1, sector_y],
+                      [sector_x - 1, sector_y    ],
                       [sector_x - 1, sector_y + 1],
-                      [sector_x, sector_y + 1],
+                      [sector_x,     sector_y + 1],
                       [sector_x + 1, sector_y + 1],
-                      [sector_x + 1, sector_y]]
+                      [sector_x + 1, sector_y    ]]
 
         for neighbour_relative_index, neighbour in enumerate(neighbours):
             neighbour_sector_index = neighbour[1] * sectors_width + neighbour[0]

@@ -6,6 +6,7 @@ from interface.border import is_triangle_in_border, is_major_vertex_in_border
 from interface.brushes import generate_major_triangles, Brush
 from interface.const import font_color, font_color_out_of_focus, font_antialias, font_row_vertical_pos_diff
 from interface.triangle_transitions import update_triangles
+from sections.mesh_points import get_neighbouring_vertices
 from supplements.groups import get_random_group_entry
 from supplements.patterns import patterndefs_normal_by_name
 
@@ -393,15 +394,7 @@ class StatesMachine:
                                     local_average_height = 0
                                     valid_neighbours_num = 0
 
-                                    if point[1] % 2 == 0:
-                                        neighbours = [(point[0] + 1, point[1]), (point[0], point[1] + 1),
-                                                      (point[0] - 1, point[1]), (point[0], point[1] - 1),
-                                                      (point[0] - 1, point[1] + 1), (point[0] - 1, point[1] - 1)]
-                                    else:
-                                        neighbours = [(point[0] + 1, point[1]), (point[0], point[1] + 1),
-                                                      (point[0] - 1, point[1]), (point[0], point[1] - 1),
-                                                      (point[0] + 1, point[1] + 1), (point[0] + 1, point[1] - 1)]
-                                    for neighbour in neighbours:
+                                    for neighbour in get_neighbouring_vertices(points):
                                         if 0 <= neighbour[0] < editor.map.map_width // 2 and\
                                            0 <= neighbour[1] < editor.map.map_height // 2:
                                             local_average_height += \

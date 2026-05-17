@@ -1,6 +1,7 @@
 from typing import Literal
 import numpy as np
 from scripts.flags import sequence_to_flags, flags_to_sequence
+from sections.mesh_points import get_neighbouring_vertices
 from supplements.patterns import patterndefs_normal
 
 structural_bonus_value = 10
@@ -31,16 +32,9 @@ def derive_biome_parameter_ndarray(mepa, mepb, map_width, map_height, *,
             base_value = patterndefs_normal[mepa_ndarray[y, x]].get(parameter, 0) + \
                          patterndefs_normal[mepb_ndarray[y, x]].get(parameter, 0)
 
-            if y % 2 == 0:
-                neighbours = [(x + 1, y), (x, y + 1), (x - 1, y),
-                              (x, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
-            else:
-                neighbours = [(x + 1, y), (x, y + 1), (x - 1, y),
-                              (x, y - 1), (x + 1, y + 1), (x + 1, y - 1)]
-
             neighbours_bonus = 0
 
-            for coordinates in neighbours:
+            for coordinates in get_neighbouring_vertices((x, y)):
                 coordinates = (coordinates[0] % (map_width // 2), coordinates[1] % (map_height // 2))
 
                 neighbours_bonus += patterndefs_normal[mepa_ndarray[*coordinates[::-1]]].get(parameter, 0)

@@ -19,6 +19,13 @@ def split_mep(mep):
     return mepa, mepb
 
 
+def get_neighbouring_vertices(coordinates):
+    x, y = coordinates
+    # Order of elements in lists is important here due to directions being ordered in some rare cases.
+    if y % 2 == 0: return [(x + 1, y), (x, y + 1), (x - 1, y + 1), (x - 1, y), (x - 1, y - 1), (x, y - 1)]
+    else:          return [(x + 1, y), (x + 1, y + 1), (x, y + 1), (x - 1, y), (x, y - 1), (x + 1, y - 1)]
+
+
 def get_adjacent_mep_coordinates(coordinates, *, ignore_minor_vertices=False):
     # 'ignore_minor_vertices' should always be set to False, except for recursive case in function definitnion.
     x, y = coordinates
@@ -30,13 +37,11 @@ def get_adjacent_mep_coordinates(coordinates, *, ignore_minor_vertices=False):
         mepa_coordinates = [(x//2, y//2), (x//2, y//2 - 1), (x//2 + 1, y//2 - 1)]
         mepb_coordinates = [(x//2, y//2), (x//2, y//2 - 1), (x//2 - 1, y//2)]
     elif not ignore_minor_vertices:  # minor vertex
-        if y % 2 == 0: neighbours = [(x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1), (x - 1, y + 1), (x - 1, y - 1)]
-        else:          neighbours = [(x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1), (x + 1, y + 1), (x + 1, y - 1)]
 
         mepa_coordinates_collection = []
         mepb_coordinates_collection = []
 
-        for neighbour in neighbours:
+        for neighbour in get_neighbouring_vertices(coordinates):
             mepa_coordinates_temp, mepb_coordinates_temp = get_adjacent_mep_coordinates(neighbour,
                                                                                         ignore_minor_vertices=True)
             if len(mepa_coordinates_temp) + len(mepb_coordinates_temp) != 0:  # major vertex

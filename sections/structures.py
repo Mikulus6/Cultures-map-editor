@@ -1,4 +1,5 @@
 import numpy as np
+from sections.mesh_points import get_neighbouring_vertices
 from scripts.colormap import ColorMap
 
 mstr_colormap = ColorMap({0 : (128, 128, 128),
@@ -13,23 +14,7 @@ def coordinates_in_radius(start_position, radius):
 
     for _ in range(radius):
         for coordinates in coordinates_set:
-            if coordinates[1] % 2 == 0:
-
-                neighbours = [(coordinates[0] + 1, coordinates[1]),
-                              (coordinates[0], coordinates[1] + 1),
-                              (coordinates[0] - 1, coordinates[1]),
-                              (coordinates[0], coordinates[1] - 1),
-                              (coordinates[0] - 1, coordinates[1] + 1),
-                              (coordinates[0] - 1, coordinates[1] - 1)]
-            else:
-                neighbours = [(coordinates[0] + 1, coordinates[1]),
-                              (coordinates[0], coordinates[1] + 1),
-                              (coordinates[0] - 1, coordinates[1]),
-                              (coordinates[0], coordinates[1] - 1),
-                              (coordinates[0] + 1, coordinates[1] + 1),
-                              (coordinates[0] + 1, coordinates[1] - 1)]
-
-            coordinates_set_new.update(neighbours)
+            coordinates_set_new.update(get_neighbouring_vertices(coordinates))
             coordinates_set_new -= coordinates_set
             coordinates_set_new -= coordinates_set_old
 

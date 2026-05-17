@@ -1,4 +1,5 @@
 import numpy as np
+from sections.mesh_points import get_neighbouring_vertices
 from sections.terrain_full_ids import void_full_ids, water_full_ids
 
 land_marker = 0
@@ -38,23 +39,7 @@ def flood_fill_continents(area_types_ndarray: np.ndarray, *, minimum_area_size=m
             while coordinates_to_iterate:
                 coordinates = coordinates_to_iterate.pop(0)
 
-                if coordinates[1] % 2 == 0:
-
-                    neighbours = [(coordinates[0] + 1, coordinates[1]),
-                                  (coordinates[0], coordinates[1] + 1),
-                                  (coordinates[0] - 1, coordinates[1]),
-                                  (coordinates[0], coordinates[1] - 1),
-                                  (coordinates[0] - 1, coordinates[1] + 1),
-                                  (coordinates[0] - 1, coordinates[1] - 1)]
-                else:
-                    neighbours = [(coordinates[0] + 1, coordinates[1]),
-                                  (coordinates[0], coordinates[1] + 1),
-                                  (coordinates[0] - 1, coordinates[1]),
-                                  (coordinates[0], coordinates[1] - 1),
-                                  (coordinates[0] + 1, coordinates[1] + 1),
-                                  (coordinates[0] + 1, coordinates[1] - 1)]
-
-                for neighbour in neighbours:
+                for neighbour in get_neighbouring_vertices(coordinates):
                     coordinates = (coordinates[0] % map_width, coordinates[1] % map_height)
                     neighbour = (neighbour[0] % map_width, neighbour[1] % map_height)
                     if not is_filled[*neighbour[::-1]] and area_types_ndarray[*neighbour[::-1]] == value:
