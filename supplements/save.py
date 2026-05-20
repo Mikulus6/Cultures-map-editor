@@ -15,6 +15,14 @@ save_section_names_bytes = tuple(map(lambda name: bytes(name[::-1], encoding=dat
 def save_to_map(save_filepath: str, new_map_filepath: str):
     # Refines bigger *.sav file to the form of smaller clean *.map file.
 
+    # This is a general heuristic, not an exact algorithm. It might be possible to find a save file for which it does
+    # not work, but this would be extremely rare to occur by accident. Here sections are not being searched for using
+    # some exact algorithm that would read and interpret all bytes of a file in a predefined sequence, but instead the
+    # algorithm tries to find section names without reading their content. If by accident something within some of the
+    # sections would have a binary structure homogeneous to entire save file, it might get interpreted as an actual
+    # save file instead, and the algorithm will not work correctly. However, this is theorized to have an astronomically
+    # small probability of occurring in practice.
+
     with open(save_filepath, "rb") as file:
         bytes_obj = file.read()
 

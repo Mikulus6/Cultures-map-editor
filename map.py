@@ -16,7 +16,7 @@ from sections.continents2 import derive_continents
 from sections.inland_vertices import inland_vertices_flag
 from sections.landscapes import load_landscapes_from_llan, load_llan_from_landscapes
 from sections.landscapes_area import landscapes_area_flag
-from sections.light import derive_light_map
+from sections.light import default_light_value, derive_light_map
 from sections.mesh_points import combine_mep, split_mep
 from sections.pathfinder_blockers import draw_pathfinder_blockers
 from sections.run_length import run_length_decryption, run_length_encryption
@@ -540,7 +540,7 @@ class Map:
                      if 0 <= key[0] + deltas[2] < self.map_width and 0 <= key[1] + deltas[0] < self.map_height}
 
         mhei_ndarray_new = np.zeros((self.map_height // 2, self.map_width // 2), dtype=np.ubyte)
-        mlig_ndarray_new = np.ones((self.map_height // 2, self.map_width // 2), dtype=np.ubyte) * 127
+        mlig_ndarray_new = np.ones((self.map_height // 2, self.map_width // 2), dtype=np.ubyte) * default_light_value
         mepa_ndarray_new = np.ones((self.map_height // 2, self.map_width // 2), dtype=np.ushort) * \
                                                                                               Map.new_map_default_mep_id
         mepb_ndarray_new = np.ones((self.map_height // 2, self.map_width // 2), dtype=np.ushort) * \
@@ -639,8 +639,7 @@ class MapVersion6(Map):
 
         with open(os.path.join(directory, "header.csv"), "r") as file:
             self.map_version, self.map_width, self.map_height = map(int, file.read().strip("\n").split(","))
-            print(self.map_width, self.map_height)
-            self.map_width *= 2
+            self.map_width  *= 2
             self.map_height *= 2
 
         self.mhei = image_to_bytes(os.path.join(directory, "mhei.png"))

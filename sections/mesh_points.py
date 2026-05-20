@@ -26,6 +26,23 @@ def get_neighbouring_vertices(coordinates):
     else:          return [(x + 1, y), (x + 1, y + 1), (x, y + 1), (x - 1, y), (x, y - 1), (x + 1, y - 1)]
 
 
+def get_mep_divided_coordinates(coordinates):
+    x, y = coordinates
+
+    if y % 2 == 0:
+        mepa_coordinates = [(2*x, 2*y), (2*x, 2*y+1), (2*x+1, 2*y+2),
+                            (2*x, 2*y+2), (2*x-1, 2*y+2), (2*x-1, 2*y+1)]
+        mepb_coordinates = [(2*x, 2*y), (2*x+1, 2*y), (2*x+2, 2*y),
+                            (2*x+1, 2*y+1), (2*x+1, 2*y+2), (2*x, 2*y+1)]
+    else:
+        mepa_coordinates = [(2*x+1, 2*y), (2*x+1, 2*y+1), (2*x+2, 2*y+2),
+                            (2*x+1, 2*y+2), (2*x, 2*y+2), (2*x, 2*y+1)]
+        mepb_coordinates = [(2*x+1, 2*y), (2*x+2, 2*y), (2*x+3, 2*y),
+                            (2*x+2, 2*y+1), (2*x+2, 2*y+2), (2*x+1, 2*y+1)]
+
+    return mepa_coordinates, mepb_coordinates
+
+
 def get_adjacent_mep_coordinates(coordinates, *, ignore_minor_vertices=False):
     # 'ignore_minor_vertices' should always be set to False, except for recursive case in function definitnion.
     x, y = coordinates

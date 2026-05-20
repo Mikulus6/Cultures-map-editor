@@ -1,5 +1,6 @@
 from map import Map
 from interface.undo_redo import undo_redo_memory
+from sections.mesh_points import get_neighbouring_vertices
 from supplements.textures import patterndefs_textures
 from supplements.patterns import road
 from typing import Literal
@@ -67,12 +68,10 @@ def update_structures(map_object: Map, coordinates, structure_type: Literal[None
                       ignore_undo: bool = False):
     x, y = coordinates
 
-    if y % 2 == 0:
-        parallelograms = (x-1, y-1), (x, y-1), (x-1, y), (x, y)
-        surroundings = (x, y), (x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1), (x - 1, y + 1), (x - 1, y - 1)
-    else:
-        parallelograms = (x, y-1), (x+1, y-1), (x-1, y), (x, y)
-        surroundings = (x, y), (x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1), (x + 1, y + 1), (x + 1, y - 1)
+    if y % 2 == 0: parallelograms = (x-1, y-1), (x, y-1), (x-1, y), (x, y)
+    else:          parallelograms = (x, y-1), (x+1, y-1), (x-1, y), (x, y)
+
+    surroundings = ((x, y), *get_neighbouring_vertices((x, y)))
 
     remove_structure = False
     if structure_type is None:

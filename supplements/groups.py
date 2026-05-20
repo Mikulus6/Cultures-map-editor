@@ -1,7 +1,7 @@
 from random import randint
 from scripts.data_loader import load_ini_as_dict
 
-rand_max = 2147483647
+rand_max = 2 ** 32
 
 landscapes_edit_group_path = "data_v\\ve_edit\\landscapeeditgroups.cif"
 landscapes_edit_group = load_ini_as_dict(landscapes_edit_group_path,

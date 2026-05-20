@@ -132,9 +132,9 @@ def point_coordinates(coordinates, map_object: Map):
 
     if (x % 2 == 0 and y % 4 == 0) or (x % 2 == 1 and y % 4 == 2):
         x = coordinates[0] * triangle_width + (coordinates[1] % 2) * floor(0.5 * triangle_width)
-        y = coordinates[1] * triangle_height - height_factor * \
+        y = floor(coordinates[1] * triangle_height - height_factor * \
             map_object.mhei[(coordinates[1] % map_object.map_height) * map_object.map_width // 4 +
-                            (coordinates[0] % map_object.map_width) // 2]
+                            (coordinates[0] % map_object.map_width) // 2])
         return x, y
 
     elif (x % 2 == 1 and y % 4 == 0) or (x % 2 == 0 and y % 4 == 2):

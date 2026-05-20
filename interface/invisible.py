@@ -14,8 +14,6 @@ for name, animation in animations.items():
     if all(image.size == (1, 1) and image.getpixel((0, 0))[3] == 0 for image in animation.images):
         transparent_landscapes_list.append(name)
 
-
-
 colors_primary = map(lambda x: get_rgb_hue_tuple(x),
                      tuple(np.linspace(0, 1, len(transparent_landscapes_list) - len(predefined_colors) + 1)[:-1]))
 

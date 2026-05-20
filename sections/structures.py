@@ -94,9 +94,9 @@ def validate_structures_continuity(mstr, map_width, map_height):
 
                         match triangles:
                             case "ab": assert value_a == value_a_temp and value_b == value_b_temp
-                            case "a": assert value_a == value_a_temp
-                            case "b": assert value_b == value_b_temp
-                            case _: raise ValueError
+                            case "a":  assert value_a == value_a_temp
+                            case "b":  assert value_b == value_b_temp
+                            case _:    raise ValueError
 
     except AssertionError:
         return False

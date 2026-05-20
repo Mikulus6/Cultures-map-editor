@@ -11,6 +11,8 @@ chars_per_byte = 4
 landscapedefs_cdf_path = "data_v\\ve_graphics\\landscape\\landscapedefs.cdf"
 landscapedefs_cif_path = "data_v\\ve_graphics\\landscape\\landscapedefs.cif"
 
+default_shading_factor = 128
+
 
 class LandscapeDefs(dict):
     def __init__(self, cif_path: str = landscapedefs_cif_path, *, load_cdf: bool = False):
@@ -60,7 +62,7 @@ class LandscapeDefs(dict):
             assert buffer.unsigned(2) == num_landscape
             assert buffer.unsigned(1) == self[name].get("Mode", 0)
             assert buffer.unsigned(1) == sum_nested(self[name].get("FlagSet", [0]))
-            assert buffer.signed(2) % (2 ** 16) == self[name].get("FirstBob", -1) % (2 ** 16)
+            assert buffer.unsigned(2) == self[name].get("FirstBob", -1) % (2 ** 16)
             assert (buffer.unsigned(2) == self[name].get("FirstShadowBob")) or\
                    (self[name].get("FirstShadowBob", None) is None)
             assert buffer.unsigned(2) == self[name].get("Elements", 0)
@@ -68,7 +70,7 @@ class LandscapeDefs(dict):
             assert buffer.unsigned(1) == 0
             remaptable_id = buffer.signed(2)
             shadow_remaptable_id = buffer.signed(2)
-            assert buffer.unsigned(2) == self[name].get("ShadingFactor", 128)
+            assert buffer.unsigned(2) == self[name].get("ShadingFactor", default_shading_factor)
             assert buffer.unsigned(1) == self[name].get("HighColorShadingMode", 0)
             assert buffer.unsigned(5) == 0
             sound_name_id = buffer.signed(2)

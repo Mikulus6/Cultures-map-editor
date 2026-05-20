@@ -1,6 +1,7 @@
 from math import floor
 from map import Map
-from sections.light import shadow_kernel, shadow_kernel_center, min_value, inversed_slope, intercept, round_fix
+from sections.light import shadow_kernel, shadow_kernel_center, min_value, inversed_slope, intercept, round_fix,\
+                           default_light_value
 from sections.terrain_full_ids import border_full_ids
 
 kernel_height, kernel_width = shadow_kernel.shape
@@ -35,7 +36,7 @@ def update_light_local(map_object: Map, x_range_start: int = None, x_range_stop:
 
                     conv_item += kernel_item * map_object.mhei[index_shifted]
 
-            conv_item = min(max(int(conv_item) + 127, 0), 255)
+            conv_item = min(max(int(conv_item) + default_light_value, 0), 255)
 
             if conv_item >= min_value:
                 conv_item = floor(conv_item / inversed_slope + intercept + round_fix)

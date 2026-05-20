@@ -13,6 +13,8 @@ inversed_slope = 6
 intercept = 150
 round_fix = 0.001
 
+# miscellaneous factor used in multiple ways
+default_light_value = 127
 
 def convolve_hexagonal_2d(input_array, kernel_array, kernel_center=(0, 0), dtype=np.int32):
     input_height, input_width = input_array.shape
@@ -48,8 +50,7 @@ def derive_light_map(mhei: bytes, mepa: bytes, mepb: bytes, map_width: int, map_
     mepa_ndarray = np.frombuffer(mepa, dtype=np.ushort).reshape((map_height//2, map_width//2))
     mepb_ndarray = np.frombuffer(mepb, dtype=np.ushort).reshape((map_height//2, map_width//2))
 
-    mlig = convolve_hexagonal_2d(mhei_ndarray, shadow_kernel, kernel_center=shadow_kernel_center)
-    mlig += 127
+    mlig = convolve_hexagonal_2d(mhei_ndarray, shadow_kernel, kernel_center=shadow_kernel_center) + default_light_value
     mlig = mlig.clip(0, 255)
 
     for y in range(0, mlig.shape[0]):

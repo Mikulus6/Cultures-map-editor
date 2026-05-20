@@ -7,20 +7,13 @@ from sections.mesh_points import get_adjacent_mep_coordinates
 from sections.terrain_full_ids import land_full_ids
 
 maximum_allowed_steepness = 30
-
-
-def get_shift_vector(flag_index):
-    match flag_index:
-        case 0: return -1, 1
-        case 1: return 0, 1
-        case 2: return 1, 0
-        case _: raise ValueError
+shift_vectors = ((-1, 1), (0, 1), (1, 0))
 
 
 def pathfinder_blockers_area_shifted(mgfs_7th_flag, mepa, mepb, mhei, map_width, map_height, *,
                                      flag_index=Literal[0, 1, 2]):
 
-    shift_vector = get_shift_vector(flag_index)
+    shift_vector = shift_vectors[flag_index]
     mepa_ndarray = np.frombuffer(mepa, dtype=np.ushort).reshape((map_height//2, map_width//2))
     mepb_ndarray = np.frombuffer(mepb, dtype=np.ushort).reshape((map_height//2, map_width//2))
     mgfs_7_ndarray = flag_to_bool_ndarray(mgfs_7th_flag, map_width=map_width)
@@ -141,7 +134,7 @@ def draw_pathfinder_blockers(mgfs, map_width: int, map_height: int, color_connec
 
                 if mgfs_ndarrays[flag_index][y, x]:
 
-                    shift_vector = get_shift_vector(flag_index)
+                    shift_vector = shift_vectors[flag_index]
 
                     if y % 2 == shift_vector[1] % 2 == 1: local_shift_vector = shift_vector[0] + 1, shift_vector[1]
                     else:                                 local_shift_vector = shift_vector

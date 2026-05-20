@@ -1,6 +1,7 @@
 import pygame
 from functools import lru_cache
 from interface.const import lru_cache_landscapes_light_maxsize
+from sections.light import default_light_value
 from supplements.landscapedefs import landscapedefs
 from supplements.gouraud import gouraud
 import numpy as np
@@ -18,7 +19,7 @@ def adjust_opaque_pixels(surface: pygame.Surface, factor: int):
     pixel_array = pygame.surfarray.pixels3d(surface)
 
     brightened_pixels = pixel_array.astype(np.int16)
-    brightened_pixels[::] += round((factor - 127) * gouraud.shading_factor)
+    brightened_pixels[::] += round((factor - default_light_value) * gouraud.shading_factor)
     brightened_pixels = np.clip(brightened_pixels, 0, 255).astype(np.uint8)
 
     pixel_array[::] = brightened_pixels[::]

@@ -66,7 +66,7 @@ def get_corner_type(map_object: Map, major_coordinates):
     # For deeper intuition look at textures of trinagles with names: "0" "1" "2" "x0" "x1" "x2".
     if y % 2 == 0:
         mepa_coordinates = (x - 1, y - 1), (x, y - 1), (x, y)
-        mepb_coordinates = (x - 1, y), (x - 1, y - 1), (x, y)  #
+        mepb_coordinates = (x - 1, y), (x - 1, y - 1), (x, y)
     elif y % 2 == 1:
         mepa_coordinates = (x, y - 1), (x + 1, y - 1), (x, y)
         mepb_coordinates = (x - 1, y), (x, y - 1),  (x, y)

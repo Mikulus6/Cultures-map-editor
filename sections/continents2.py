@@ -1,5 +1,5 @@
 import numpy as np
-from sections.mesh_points import get_neighbouring_vertices
+from sections.mesh_points import get_neighbouring_vertices, get_mep_divided_coordinates
 from sections.terrain_full_ids import void_full_ids, water_full_ids
 
 land_marker = 0
@@ -82,16 +82,7 @@ def area_types_marker(mepa: bytes, mepb: bytes, map_width: int, map_height: int,
     for y in range(map_height//2):
         for x in range(map_width//2):
 
-            if y % 2 == 0:
-                mepa_coordinates = [(2*x, 2*y), (2*x, 2*y+1), (2*x+1, 2*y+2),
-                                    (2*x, 2*y+2), (2*x-1, 2*y+2), (2*x-1, 2*y+1)]
-                mepb_coordinates = [(2*x, 2*y), (2*x+1, 2*y), (2*x+2, 2*y),
-                                    (2*x+1, 2*y+1), (2*x+1, 2*y+2), (2*x, 2*y+1)]
-            else:
-                mepa_coordinates = [(2*x+1, 2*y), (2*x+1, 2*y+1), (2*x+2, 2*y+2),
-                                    (2*x+1, 2*y+2), (2*x, 2*y+2), (2*x, 2*y+1)]
-                mepb_coordinates = [(2*x+1, 2*y), (2*x+2, 2*y), (2*x+3, 2*y),
-                                    (2*x+2, 2*y+1), (2*x+2, 2*y+2), (2*x+1, 2*y+1)]
+            mepa_coordinates, mepb_coordinates = get_mep_divided_coordinates((x, y))
 
             mepa_full_id = int(mepa_ndarray[y, x])
             mepb_full_id = int(mepb_ndarray[y, x])

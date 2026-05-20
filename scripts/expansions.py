@@ -8,8 +8,8 @@ hexagon_shadow_filepath = "assets/shadows/hexagon.png"
 triangle_a_shadow_filepath = "assets/shadows/triangle_up.png"
 triangle_b_shadow_filepath = "assets/shadows/triangle_down.png"
 
-# === hexagonal expansion ===
 
+# === hexagonal expansion ===
 
 hex_image = Image.open(abs_path(hexagon_shadow_filepath)).convert(mode="RGB")
 hex_shadow = np.array([1 if x == (255, 255, 255) else 0 for x in
@@ -97,8 +97,8 @@ def expand_image_object_to_triangles(image_object: Image.Image,
 def expand_image(image: Image.Image, expansion_mode: Literal[None, "hexagon", "triangle", "parallelogram"]=None):
 
     match expansion_mode:
-        case None: return image
-        case "hexagon": return expand_image_object_to_hexagons(image)
-        case "triangle": return expand_image_object_to_triangles(image)
+        case None:            return image
+        case "hexagon":       return expand_image_object_to_hexagons(image)
+        case "triangle":      return expand_image_object_to_triangles(image)
         case "parallelogram": return expand_image_object_to_triangles(image, parallelogramic_collumn_duplication=True)
         case _: raise ValueError

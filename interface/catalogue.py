@@ -52,10 +52,10 @@ class CatalogueEntry:
         image = self.image if highlight_type is None else temp_entry_surface
 
         match highlight_type:
-            case "left": highlight_text = "L"
+            case "left":  highlight_text = "L"
             case "right": highlight_text = "R"
-            case "both": highlight_text = "L+R"
-            case _: highlight_text = None
+            case "both":  highlight_text = "L+R"
+            case _:       highlight_text = None
 
 
         if highlight_type is not None:
@@ -102,7 +102,6 @@ class Catalogue:
             editor.cursor_triangle = None
         else:
             self.slider_pressed = False
-
 
         if self.scroll_value < 0: self.scroll_value = 0
         if self.scroll_value > self.max_scroll_value: self.scroll_value = self.max_scroll_value

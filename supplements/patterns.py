@@ -5,8 +5,8 @@ from supplements.read import read
 
 patterndefs_cdf_path = "data_v\\ve_graphics\\pattern1\\patterndefs_normal.cdf"
 patterndefs_cif_path = "data_v\\ve_graphics\\pattern1\\patterndefs_normal.cif"
-triangles_path   = "data_v\\ve_edit\\triangletransition.cif"
-road_path        = "data_v\\ve_graphics\\roads\\road.cif"
+triangles_path       = "data_v\\ve_edit\\triangletransition.cif"
+road_path            = "data_v\\ve_graphics\\roads\\road.cif"
 
 
 class PatternDefs(dict):
