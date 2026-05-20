@@ -44,6 +44,7 @@ class Map:
         self.mgfs = b""
         self.mstr = b""
         self.mbio = b""
+        self.mcon = b""  # present only in shepherd and test macromaps
         self.mco2 = b""
         self.mexp = b""
 
@@ -362,7 +363,7 @@ class Map:
 
     # ============================= debug load & debug save =============================
 
-    def _load_from_raw_data(self, directory: str, interprete_structures=False):
+    def _load_from_raw_data(self, directory: str, interpret_structures=False):
 
         with open(os.path.join(directory, "header.csv"), "r") as file:
             self.map_version, self.map_width, self.map_height = map(int, file.read().strip("\n").split(","))
@@ -374,8 +375,9 @@ class Map:
         flags = []
         for counter in range(8):
             flags.append(image_to_bits(os.path.join(directory, f"mgfs_{counter}.png")))
+        self.mgfs = flags_to_sequence(flags)
 
-        if interprete_structures:
+        if interpret_structures:
             self.mstr = rgb_to_structures(image_to_rgb(os.path.join(directory, "mstr.png")),
                                           self.mco2, self.xcot, self.map_width, self.map_height)
         else:
@@ -387,7 +389,11 @@ class Map:
         self.mbio = flags_to_sequence([*sequence_to_flags(image_to_bytes(os.path.join(directory, "mbio_1.png")))[:4],
                                        *sequence_to_flags(image_to_bytes(os.path.join(directory, "mbio_2.png")))[:4]])
 
-        self.mco2 = image_to_bytes(os.path.join(directory, "mco2.png"))
+        try:
+            self.mco2 = image_to_bytes(os.path.join(directory, "mco2.png"))
+            self.mexp = image_to_shorts(os.path.join(directory, "mexp.png"))
+        except FileNotFoundError:
+            self.mcon = image_to_bytes(os.path.join(directory, "mcon.png"))
 
         self.llan = dict()
         with open(os.path.join(directory, "llan.csv"), "r") as file:
@@ -414,7 +420,7 @@ class Map:
             for line in file.readlines():
                 self.smmw.append(int(line.rstrip("\n")))
 
-    def _extract_to_raw_data(self, directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
+    def _extract_to_raw_data(self, directory: str, interpret_structures=False, interpret_sectors=False, expand=False):
 
         # Setting 'expand' to True makes this conversion one-directional.
 
@@ -443,7 +449,7 @@ class Map:
 
         mstr_flags = sequence_to_flags(self.mstr, bytes_per_entry=2)
 
-        if interprete_structures:
+        if interpret_structures:
             rgb_to_image(structures_to_rgb(self.mstr, self.map_width, self.map_height),
                          os.path.join(directory, "mstr.png"), width=self.map_width,
                          expansion_mode="hexagon" if expand else None)
@@ -466,10 +472,15 @@ class Map:
         bytes_to_image(flags_to_sequence(mbio_2), os.path.join(directory, "mbio_2.png"),
                        width=self.map_width//2, expansion_mode="hexagon" if expand else None)
 
-        bytes_to_image(self.mco2, os.path.join(directory, "mco2.png"), width=self.map_width,
-                       expansion_mode="hexagon" if expand else None)
-        shorts_to_image(self.mexp, os.path.join(directory, "mexp.png"), width=self.map_width//2,
-                        expansion_mode="hexagon" if expand else None)
+        if self.mcon == b"":
+            bytes_to_image(self.mco2, os.path.join(directory, "mco2.png"), width=self.map_width,
+                           expansion_mode="hexagon" if expand else None)
+            shorts_to_image(self.mexp, os.path.join(directory, "mexp.png"), width=self.map_width//2,
+                            expansion_mode="hexagon" if expand else None)
+
+        else: # rare exception for macromaps
+            bytes_to_image(self.mcon, os.path.join(directory, "mcon.png"),
+                           width=self.map_width//2, expansion_mode="hexagon" if expand else None)
 
         with open(os.path.join(directory, "llan.csv"), "w") as file:
             for coordinates, landscape in self.llan.items():
@@ -487,7 +498,7 @@ class Map:
         with open(os.path.join(directory, "smmw.csv"), "w") as file:
             file.write("\n".join(map(str, self.smmw)))
 
-        if interprete_sectors:
+        if interpret_sectors:
             draw_sectors_connections(self.mco2, self.xsec, self.map_width, self.map_height,
                                      expansion_mode="hexagon" if expand else None).save(os.path.join(directory,
                                                                                                      "xsec.png"))
@@ -633,8 +644,8 @@ class MapVersion6(Map):
         self.map_version = self.__class__._version_number
         self.m_unknown = b"\x00" * (self.map_width * self.map_height * 3 // 4)
 
-    def _load_from_raw_data(self, directory: str, interprete_structures=False):
-        if interprete_structures:
+    def _load_from_raw_data(self, directory: str, interpret_structures=False):
+        if interpret_structures:
             raise AttributeError(f"Maps from version {self.__class__._version_number} do not contain structures")
 
         with open(os.path.join(directory, "header.csv"), "r") as file:
@@ -647,11 +658,11 @@ class MapVersion6(Map):
         self.mepa, self.mepb = split_mep(image_to_shorts(os.path.join(directory, "mep.png")))
         self.m_unknown = bytes([value for rgb in image_to_rgb(os.path.join(directory, "unknown.png")) for value in rgb])
 
-    def _extract_to_raw_data(self,directory: str, interprete_structures=False, interprete_sectors=False, expand=False):
+    def _extract_to_raw_data(self,directory: str, interpret_structures=False, interpret_sectors=False, expand=False):
 
         # Setting 'expand' to True makes this conversion one-directional.
 
-        if interprete_structures or interprete_sectors:
+        if interpret_structures or interpret_sectors:
             raise AttributeError(f"Maps from version {self.__class__._version_number} " + \
                                   "do not contain structures or sectors")
 

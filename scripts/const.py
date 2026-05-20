@@ -8,6 +8,7 @@ map_const = \
      "mstr": (2, False, 6),
      "mbio": (1, True,  8),
      "mco2": (1, False, 8),
+     "mcon": (1, True,  8),  # present only in shepherd and test macromaps
      "mexp": (2, True,  6)}
 
 section_names = \
