@@ -12,6 +12,11 @@ from supplements.patterns import patterndefs_normal_by_name
 
 
 @dataclass
+class GeneralDrawParameters:
+    middle_mouse_button_mode: Literal["camera", "picker", "unused"] = "camera"
+
+
+@dataclass
 class LandscapesDrawParameters:
     density: float = 0.1
     legacy_randomness: bool = False
@@ -34,9 +39,11 @@ class HeightDrawParameters:
     last_tick_time = time.time() - 1 / tickrate
     usage_continuity: bool = False
 
-
+general_draw_parameters = GeneralDrawParameters()
 landscapes_draw_parameters = LandscapesDrawParameters()
 height_draw_parameters = HeightDrawParameters()
+
+middle_mouse_button_options = ("camera", "picker", "unused")
 height_mode_options = ("absolute", "delta higher", "delta deeper", "random", "smoothing")
 
 

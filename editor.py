@@ -20,7 +20,7 @@ from interface.catalogue import load_patterns_catalogue, load_landscapes_catalog
                                 load_landscapes_groups_catalogue, load_patterns_groups_catalogue
 from interface.const import *
 from interface.cursor import get_closest_vertex, get_touching_triange, is_vertex_major, cursor_sizeall_image, \
-                             cursor_sizeall_blit_offset
+                             cursor_sizeall_blit_offset, cursor_picker_image, cursor_picker_blit_offset
 from interface.external import askopenfilename, asksaveasfilename, ask_new_map, askdirectory, ask_resize_map, \
                                ask_brush_parameters, ask_enforce_height, ask_area_mark, warning_too_many_area_marks ,\
                                ask_save_changes
@@ -33,8 +33,9 @@ from interface.landscapes_light import adjust_opaque_pixels, check_remap_disabil
 from interface.light import update_light_local
 from interface.message import message, set_font_text, one_frame_popup
 from interface.minimap import Minimap
+from interface.picker import handle_picking, unused_picking_states, draw_picker_text
 from interface.projection import draw_projected_triangle, projection_report
-from interface.states import states_machine
+from interface.states import states_machine, general_draw_parameters
 from interface.structures import get_structure, update_structures
 from interface.timeout import timeout_handler
 from interface.template import render_map_template
@@ -119,6 +120,7 @@ class Editor:
         self.scroll_radius = 0
         self.relative_mouse_movement = (0, 0)
         self.move_by_middle = False
+        self.pick_by_middle = False
         self.hover_any_button = False
 
         self.clock = pygame.time.Clock()
@@ -143,6 +145,7 @@ class Editor:
                 if event.type == pygame.QUIT:
                     if self.progress_saved or ask_save_changes(self, on_quit=True):
                         running = False
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and not button_left_detected:
                        self.mouse_press_left = True
@@ -169,30 +172,32 @@ class Editor:
                     scroll_detected = True
                     self.scroll_delta = event.y
 
-            if self.mouse_press_middle and not self.mouse_press_middle_old:
-                self.relative_mouse_movement = (0, 0)
-                pygame.mouse.get_rel()
-            else:
-                self.relative_mouse_movement = pygame.mouse.get_rel()
-
-            if self.mouse_press_middle and not self.mouse_press_middle_old and\
-                self.camera.position_in_canvas_rect(self.mouse_pos):
-                pygame.mouse.set_visible(False)
-                self.move_by_middle = True
-            if (not self.mouse_press_middle and self.mouse_press_middle_old) or \
-               not self.camera.position_in_canvas_rect(self.mouse_pos) and not self.hover_any_button:
-                pygame.mouse.set_visible(True)
-                self.move_by_middle = False
-
             mouse_state = pygame.mouse.get_pressed(3)
-            if not button_left_detected:
-                self.mouse_press_left = mouse_state[0]
-            if not self.mouse_press_middle:
-                self.mouse_press_middle = mouse_state[1]
-            if not button_right_detected:
-                self.mouse_press_right = mouse_state[2]
-            if not scroll_detected:
-                self.scroll_delta = 0
+            if not button_left_detected:   self.mouse_press_left   = mouse_state[0]
+            if not button_middle_detected: self.mouse_press_middle = mouse_state[1]
+            if not button_right_detected:  self.mouse_press_right  = mouse_state[2]
+            if not scroll_detected:        self.scroll_delta = 0
+
+            if general_draw_parameters.middle_mouse_button_mode == "camera":
+                if self.mouse_press_middle and not self.mouse_press_middle_old:
+                    self.relative_mouse_movement = (0, 0)
+                else:
+                    self.relative_mouse_movement = pygame.mouse.get_rel()
+
+            if self.mouse_press_middle \
+               and self.camera.position_in_canvas_rect(self.mouse_pos) \
+               and (not self.mouse_press_middle_old or general_draw_parameters.middle_mouse_button_mode != "camera") \
+               and general_draw_parameters.middle_mouse_button_mode != "unused" \
+               and (general_draw_parameters.middle_mouse_button_mode != "picker" or
+                    states_machine.state not in unused_picking_states):
+
+                    self.move_by_middle = (general_draw_parameters.middle_mouse_button_mode == "camera")
+                    self.pick_by_middle = (general_draw_parameters.middle_mouse_button_mode == "picker")
+
+            if (not self.mouse_press_middle and self.mouse_press_middle_old) or \
+               (not self.camera.position_in_canvas_rect(self.mouse_pos) and not self.hover_any_button):
+                self.move_by_middle = False
+                self.pick_by_middle = False
 
             message.reset_grey_out()
 
@@ -228,7 +233,11 @@ class Editor:
             clear_point_coordinates_cache()
             projection_report.draw_loading_bar(self.root)
 
+            handle_picking(self)
             states_machine.run_current_state(self)
+
+            if self.is_picker_tool_text_displayable:
+                draw_picker_text(self)
 
             any_button_hover = False
             for button in self.buttons_list:
@@ -274,18 +283,32 @@ class Editor:
 
             # keyboard shortcuts - end
 
-            if any_button_hover and not self.move_by_middle and not self.hover_any_button:
+            middle_special_usage = self.move_by_middle or self.pick_by_middle
+
+            if any_button_hover and not middle_special_usage and not self.hover_any_button:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                 self.hover_any_button = True
-            if not any_button_hover and not self.move_by_middle and self.hover_any_button:
+            if not any_button_hover and not middle_special_usage and self.hover_any_button:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 self.hover_any_button = False
 
             self.draw_message()
 
             if self.move_by_middle:
-                self.root.blit(cursor_sizeall_image, (self.mouse_pos[0] - cursor_sizeall_blit_offset[0],
-                                                      self.mouse_pos[1] - cursor_sizeall_blit_offset[1]))
+                cursor_image, cursor_blit_offset = cursor_sizeall_image, cursor_sizeall_blit_offset
+            elif self.pick_by_middle:
+                cursor_image, cursor_blit_offset = cursor_picker_image, cursor_picker_blit_offset
+            else:
+                assert not middle_special_usage
+
+            if middle_special_usage:
+                if pygame.mouse.get_visible():
+                    pygame.mouse.set_visible(False)
+                self.root.blit(cursor_image, (self.mouse_pos[0] + cursor_blit_offset[0],   # noqa
+                                              self.mouse_pos[1] + cursor_blit_offset[1]))  # noqa
+            elif not pygame.mouse.get_visible():
+                pygame.mouse.set_visible(True)
+
 
             if not (self.mouse_press_left or self.mouse_press_right) and\
                    (self.mouse_press_left_old or self.mouse_press_right_old):
@@ -795,6 +818,11 @@ class Editor:
             self.font_text = font_default_text
         self.root.blit(self.font.render(self.font_text, antialias=font_antialias, color=font_color),
                        (10, resolution[1] - 40))
+
+    @property
+    def is_picker_tool_text_displayable(self):
+        return general_draw_parameters.middle_mouse_button_mode == "picker" and \
+               states_machine.state in unused_picking_states
 
     # ====================================  updates  ====================================
 

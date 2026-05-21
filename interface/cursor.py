@@ -1,13 +1,16 @@
 import pygame
 from interface.camera import Camera
-from interface.const import triangle_width, triangle_height, map_canvas_rect
+from interface.const import triangle_width, triangle_height, map_canvas_rect, picker_texture_margin
 from interface.triangles import get_major_triangle_corner_vertices
 from itertools import product
 from scripts.abs_path import abs_path
 from map import Map
 
 cursor_sizeall_image = pygame.image.load(abs_path("assets\\images\\cursor_sizeall.png"))
-cursor_sizeall_blit_offset = (cursor_sizeall_image.width // 2, cursor_sizeall_image.height // 2)
+cursor_sizeall_blit_offset = (-cursor_sizeall_image.width // 2, -cursor_sizeall_image.height // 2)
+
+cursor_picker_image = pygame.image.load(abs_path("assets\\images\\cursor_picker.png"))
+cursor_picker_blit_offset = (-picker_texture_margin, -cursor_picker_image.height + picker_texture_margin)
 
 def area_of_triangle(corners):
     return abs(corners[0][0] * (corners[1][1] - corners[2][1]) +

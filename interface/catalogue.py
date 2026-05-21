@@ -23,12 +23,14 @@ highlight_text_offset = 5, 5
 margin = 1
 icon_margin = 5
 
-catalogue_background_path = "assets\\images\\catalogue_background.png"
+catalogue_background_path        = "assets\\images\\catalogue_background.png"
 catalogue_slider_background_path = "assets\\images\\catalogue_slider_background.png"
-catalogue_slider_hand_path = "assets\\images\\catalogue_slider_hand.png"
-catalogue_background = pygame.image.load(abs_path(catalogue_background_path))
+catalogue_slider_hand_path       = "assets\\images\\catalogue_slider_hand.png"
+
+catalogue_background        = pygame.image.load(abs_path(catalogue_background_path))
 catalogue_slider_background = pygame.image.load(abs_path(catalogue_slider_background_path))
-catalogue_slider_hand = pygame.image.load(abs_path(catalogue_slider_hand_path))
+catalogue_slider_hand       = pygame.image.load(abs_path(catalogue_slider_hand_path))
+
 assert catalogue_background.size == catalogue_rect[2:]
 assert catalogue_slider_background.size == catalogue_slider_rect[2:]
 assert catalogue_slider_hand.size == catalogue_slider_hand_size
@@ -89,6 +91,9 @@ class Catalogue:
         return max(len(self.items) // entries_per_row - entries_per_row + 1, 0)
 
     def update_and_draw(self, editor):
+
+        assert not editor.is_picker_tool_text_displayable
+        # Picker text tells user to open any catalogue. If some catalogue is opened, picker message should not be shown.
 
         if self.check_hover(editor):
             self.scroll_value -= editor.scroll_delta / 3
@@ -180,6 +185,22 @@ class Catalogue:
         return range(floor(self.scroll_value) * entries_per_row,
                      floor(self.scroll_value + catalogue_rect[3]/entry_size[1] + 1) * entries_per_row)
 
+    def get_entry_index_by_identificator(self, identificator: str | int):
+        for index_value, entry in enumerate(self.items):
+            if entry.identificator == identificator:
+                return index_value
+        else:
+            return 0
+
+    def set_entry_and_jump_scroll(self, identificator, side: Literal["left", "right"] = "left"):
+        entry_index = self.get_entry_index_by_identificator(identificator)
+        self.scroll_value = entry_index // entries_per_row
+
+        match side:
+            case "left":  self.selected_index_left  = entry_index
+            case "right": self.selected_index_right = entry_index
+            case _: raise ValueError
+
 
 def load_patterns_catalogue():
     assert patterndefs_textures.pygame_converted
@@ -255,7 +276,6 @@ def load_landscapes_groups_catalogue():
     entries[0].image.fill(entry_background_color)
 
     for name, landscape_group in landscapes_edit_group.items():
-
 
         entry = CatalogueEntry(name, identificator=landscape_group["Landscape"],
                                image=pygame.Surface(entry_size, pygame.SRCALPHA))
