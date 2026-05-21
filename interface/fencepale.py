@@ -41,7 +41,9 @@ def check_draw_fencepale(map_object: Map, coordinates_1, coordinates_2):
 
     if None in (landscape_1, landscape_2):
         return False
-    elif landscapedefs[landscape_1]["Mode"] == landscapedefs[landscape_2]["Mode"] == fencepale_landscape_mode:
+    elif landscapedefs[landscape_1.lower()]["Mode"] == \
+         landscapedefs[landscape_2.lower()]["Mode"] == \
+         fencepale_landscape_mode:
         return True
     else:
         return False
