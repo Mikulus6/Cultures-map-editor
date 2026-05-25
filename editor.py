@@ -93,7 +93,7 @@ class Editor:
 
         self.map_filepath: str = None
 
-        self.camera = Camera(position=[0.0, 0.0])
+        self.camera = Camera(position=[0.0, 0.0], position_before_shift_change=[0.0, 0.0])
         self.camera.set_to_center(self.map)
         self.hexagonal_area_marks = set()
 
@@ -184,6 +184,8 @@ class Editor:
                 else:
                     self.relative_mouse_movement = pygame.mouse.get_rel()
 
+            self.camera.update_time()
+
             if self.mouse_press_middle \
                and self.camera.position_in_canvas_rect(self.mouse_pos) \
                and (not self.mouse_press_middle_old or general_draw_parameters.middle_mouse_button_mode != "camera") \
@@ -205,6 +207,8 @@ class Editor:
                                        self.mouse_pos, self.mouse_press_left,
                                        self.mouse_press_left_old)
             self.camera.move(self.pressed_state, self.map, self.move_by_middle, self.relative_mouse_movement)
+            self.camera.handle_shift_perspective(self, forbid_new_shift=(general_draw_parameters.scroll_delta_mode !=
+                                                                         "camera"))
 
             self.update_input()
 
@@ -337,20 +341,21 @@ class Editor:
                                                     ignore_minor_vertices=self.ignore_minor_vertices)
             self.cursor_triangle = get_touching_triange(self.mouse_pos, self.camera, self.map)
 
-        old_scroll_radius = self.scroll_radius
-        if self.ignore_minor_vertices and self.scroll_delta % 2 != 0:
-            if self.scroll_radius % 2 != 0:
-                self.scroll_radius = (self.scroll_radius // 2) * 2
-            self.scroll_delta *= 2
+        if general_draw_parameters.scroll_delta_mode == "radius":
+            old_scroll_radius = self.scroll_radius
+            if self.ignore_minor_vertices and self.scroll_delta % 2 != 0:
+                if self.scroll_radius % 2 != 0:
+                    self.scroll_radius = (self.scroll_radius // 2) * 2
+                self.scroll_delta *= 2
 
-        if self.cursor_vertex is not None and self.scroll_delta != 0:
-            self.scroll_radius = min(max(self.scroll_radius - self.scroll_delta, 0), max_scroll_radius)
+            if self.cursor_vertex is not None and self.scroll_delta != 0:
+                self.scroll_radius = min(max(self.scroll_radius - self.scroll_delta, 0), max_scroll_radius)
 
-        if old_scroll_radius != self.scroll_radius:
-            if self.ignore_minor_vertices:
-                message.set_message(f"macro brush radius: {self.scroll_radius // 2}")
-            else:
-                message.set_message(f"micro brush radius: {self.scroll_radius}")
+            if old_scroll_radius != self.scroll_radius:
+                if self.ignore_minor_vertices:
+                    message.set_message(f"macro brush radius: {self.scroll_radius // 2}")
+                else:
+                    message.set_message(f"micro brush radius: {self.scroll_radius}")
 
     # ================================  functionalities  ================================
 
@@ -526,8 +531,9 @@ class Editor:
                 update_map_border(self)
                 self.map.update_light()
                 self._update()
-                self.camera.position = [camera_old_pos[0] + deltas[2] * triangle_width,
-                                        camera_old_pos[1] + deltas[0] * triangle_height]
+                current_triangle_width, current_triangle_height, _ = self.camera.get_current_perspective_parameters()
+                self.camera.position = [camera_old_pos[0] + deltas[2] * current_triangle_width,
+                                        camera_old_pos[1] + deltas[0] * current_triangle_height]
                 self.hexagonal_area_marks = set((x + deltas[2], y + deltas[0], radius)
                                                 for x, y, radius in self.hexagonal_area_marks)
 
@@ -615,7 +621,7 @@ class Editor:
     def _update(self):
         """Update editor data according to external change in map object."""
         self.map.to_bytearrays()
-        self.camera = Camera(position=[0.0, 0.0])
+        self.camera = Camera(position=[0.0, 0.0], position_before_shift_change=[0.0, 0.0])
         self.camera.set_to_center(self.map)
         self.minimap = Minimap(minimap_rect, self.map)
         self.minimap.update_image(self.map)
@@ -678,7 +684,8 @@ class Editor:
                     texture = get_major_triangle_texture(coordinates_major, triangle_type, self.map)
                     light_values = get_major_triangle_light_values(coordinates_major, triangle_type, self.map)
                     draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
-                                            suspend_loading_textures=self.terrian_textures_suspension)
+                                            suspend_loading_textures=self.terrian_textures_suspension or
+                                                                     self.camera.is_perspective_mid_change)
                     triangles_on_screen += 1
 
                     for transition_texture, transition_key in transitions_gen(coordinates_major,
@@ -687,7 +694,8 @@ class Editor:
                         transition_light_values = permutate_corners(light_values, transition_key)
                         draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
                                                 transition_light_values,
-                                                suspend_loading_textures=self.terrian_textures_suspension)
+                                                suspend_loading_textures=self.terrian_textures_suspension or
+                                                                         self.camera.is_perspective_mid_change)
                         triangles_on_screen += 1
 
             for triangle_type, texture in get_structure(coordinates, self.map).items():
@@ -697,7 +705,8 @@ class Editor:
                                 self.camera.draw_coordinates(corners[2], self.map))
                 light_values = get_minor_triangle_light_values(coordinates, triangle_type, self.map)
                 draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
-                                        suspend_loading_textures = self.terrian_textures_suspension)
+                                        suspend_loading_textures = self.terrian_textures_suspension or
+                                                                   self.camera.is_perspective_mid_change)
                 triangles_on_screen += 1
 
         try:
@@ -708,6 +717,9 @@ class Editor:
 
         if triangles_on_screen > lru_cache_triangles_maxsize:
             self.terrain_loaded = True
+
+        if self.camera.is_perspective_mid_change:
+            self.terrain_loaded = False
 
     def draw_invisible_blocks(self):
 

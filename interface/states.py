@@ -14,6 +14,7 @@ from supplements.patterns import patterndefs_normal_by_name
 @dataclass
 class GeneralDrawParameters:
     middle_mouse_button_mode: Literal["camera", "picker", "unused"] = "camera"
+    scroll_delta_mode: Literal["camera", "radius", "unused"] = "radius"
 
 
 @dataclass
@@ -44,6 +45,7 @@ landscapes_draw_parameters = LandscapesDrawParameters()
 height_draw_parameters = HeightDrawParameters()
 
 middle_mouse_button_options = ("camera", "picker", "unused")
+scroll_delta_button_options = ("camera", "radius", "unused")
 height_mode_options = ("absolute", "delta higher", "delta deeper", "random", "smoothing")
 
 
@@ -101,7 +103,7 @@ class StatesMachine:
                         editor.update_triange(*triangle, mep_id)
 
                 if editor.cursor_vertex is not None:
-                    editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
+                    editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 4)
                 break
 
     @staticmethod
@@ -132,7 +134,7 @@ class StatesMachine:
                         editor.update_triange(*triangle, pattern["Id"] + pattern["SetId"] * 256)
 
                 if editor.cursor_vertex is not None:
-                    editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 2)
+                    editor.update_local_secondary_data(editor.cursor_vertex, margin=editor.scroll_radius + 4)
 
     @staticmethod
     def triangle_transition(editor):

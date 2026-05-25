@@ -1,6 +1,6 @@
 import pygame
 from interface.camera import Camera
-from interface.const import triangle_width, triangle_height, map_canvas_rect, picker_texture_margin
+from interface.const import map_canvas_rect, picker_texture_margin
 from interface.triangles import get_major_triangle_corner_vertices
 from itertools import product
 from scripts.abs_path import abs_path
@@ -18,10 +18,11 @@ def area_of_triangle(corners):
                corners[2][0] * (corners[0][1] - corners[1][1])) // 2
 
 def coordinates_prediction(cursor_coordinates, camera: Camera):
+    current_triangle_width, current_triangle_height, current_height_factor = camera.get_current_perspective_parameters()
     return round((cursor_coordinates[0] - map_canvas_rect[0] - map_canvas_rect[2] // 2 +
-                  camera.position[0]) // triangle_width),\
+                  camera.position[0]) // current_triangle_width),\
            round((cursor_coordinates[1] - map_canvas_rect[1] - map_canvas_rect[3] // 2 +
-                  camera.position[1]) // triangle_height)
+                  camera.position[1]) // current_triangle_height)
 
 def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map, ignore_minor_vertices: bool = False):
 
@@ -50,7 +51,8 @@ def get_closest_vertex(cursor_coordinates, camera: Camera, map_object: Map, igno
             closest_distance_squared = distance_squared
             closest_vertex = (x, y)
 
-    if closest_distance_squared > 2 * (triangle_width ** 2 + triangle_height ** 2):
+    current_triangle_width, current_triangle_height, _ = camera.get_current_perspective_parameters()
+    if closest_distance_squared > 4 * (current_triangle_width ** 2 + current_triangle_height ** 2):
         return None
 
     if ignore_minor_vertices:

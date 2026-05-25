@@ -5,7 +5,7 @@ from tkinter import messagebox
 from tkinter import ttk
 from interface.message import message, one_frame_grey_out
 from interface.states import landscapes_draw_parameters, height_draw_parameters, height_mode_options, \
-                             general_draw_parameters, middle_mouse_button_options
+                             general_draw_parameters, middle_mouse_button_options, scroll_delta_button_options
 from sections.walk_sector_points import sector_width
 
 
@@ -289,6 +289,10 @@ def ask_brush_parameters(editor):
                 mouse_mode_entry.delete(0, tk.END)
                 mouse_mode_entry.insert(0, str(middle_mouse_button_options[0]))
 
+            if scroll_mode_entry.get() not in scroll_delta_button_options:
+                scroll_mode_entry.delete(0, tk.END)
+                scroll_mode_entry.insert(0, str(scroll_delta_button_options[0]))
+
             ok_button.config(state=tk.NORMAL)
         except ValueError:
             ok_button.config(state=tk.DISABLED)
@@ -317,6 +321,11 @@ def ask_brush_parameters(editor):
             messagebox.showwarning("Warning", f"Invalid middle mouse button mode.")
             return
 
+        scroll_mode = str(scroll_mode_entry.get())
+        if scroll_mode not in scroll_delta_button_options:
+            messagebox.showwarning("Warning", f"Invalid mouse scroll mode.")
+            return
+
         if min(absoulte_val, delta_val, random_val, smoothing_val) < 0 or\
            max(absoulte_val, delta_val, random_val, smoothing_val) > 255:
             messagebox.showwarning("Warning", f"Height brushes parameters must be between 0 and 255.")
@@ -329,6 +338,7 @@ def ask_brush_parameters(editor):
             return
 
         general_draw_parameters.middle_mouse_button_mode = mouse_mode
+        general_draw_parameters.scroll_delta_mode = scroll_mode
         landscapes_draw_parameters.density = density_val
         landscapes_draw_parameters.tickrate = tickrate_landscapes_val
         landscapes_draw_parameters.legacy_randomness = legacy_randomness_var.get()
@@ -361,7 +371,7 @@ def ask_brush_parameters(editor):
     frame.pack(expand=True)
     frame.grid_columnconfigure(1, weight=1)
 
-    vertical_offset = 3
+    vertical_offset = 2.25
 
     separator_general = tk.Frame(frame)
     separator_general.grid(row=0, column=0, columnspan=2, pady=2*vertical_offset, sticky="ew")
@@ -377,94 +387,102 @@ def ask_brush_parameters(editor):
     mouse_mode_entry.grid(row=1, column=1, padx=5, pady=vertical_offset, sticky='new')
     mouse_mode_entry.bind("<FocusOut>", lambda event: validate_entries())
 
+    tk.Label(frame, text="Mouse scroll function:").grid(row=2, column=0, padx=5, pady=vertical_offset, sticky='w')
+    scroll_mode_value = tk.StringVar()
+    scroll_mode_value.set(f"{general_draw_parameters.scroll_delta_mode}")
+    scroll_mode_entry = ttk.Combobox(frame, textvariable=scroll_mode_value, values=scroll_delta_button_options,
+                                     width=0, height=0)
+    scroll_mode_entry.grid(row=2, column=1, padx=5, pady=vertical_offset, sticky='new')
+    scroll_mode_entry.bind("<FocusOut>", lambda event: validate_entries())
+
     separator_height = tk.Frame(frame)
-    separator_height.grid(row=2, column=0, columnspan=2, pady=2*vertical_offset, sticky="ew")
+    separator_height.grid(row=3, column=0, columnspan=2, pady=2*vertical_offset, sticky="ew")
     ttk.Separator(separator_height, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
     tk.Label(separator_height, text="Height").pack(side="left", padx=5)
     ttk.Separator(separator_height, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
-    tk.Label(frame, text="Active mode:").grid(row=3, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Active mode:").grid(row=4, column=0, padx=5, pady=vertical_offset, sticky='w')
     height_mode_value = tk.StringVar()
     height_mode_value.set(f"{height_draw_parameters.mode}")
     height_mode_entry = ttk.Combobox(frame, textvariable=height_mode_value, values=height_mode_options,
                                      width=0, height=0)
-    height_mode_entry.grid(row=3, column=1, padx=5, pady=vertical_offset, sticky='new')
+    height_mode_entry.grid(row=4, column=1, padx=5, pady=vertical_offset, sticky='new')
     height_mode_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Absolute value:").grid(row=4, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Absolute value:").grid(row=5, column=0, padx=5, pady=vertical_offset, sticky='w')
     value_absolute_entry = tk.Entry(frame)
-    value_absolute_entry.grid(row=4, column=1, padx=5, pady=5, sticky='ew')
+    value_absolute_entry.grid(row=5, column=1, padx=5, pady=5, sticky='ew')
     value_absolute_entry.insert(0, f"{height_draw_parameters.value_absolute}")
     value_absolute_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Delta value:").grid(row=5, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Delta value:").grid(row=6, column=0, padx=5, pady=vertical_offset, sticky='w')
     value_delta_entry = tk.Entry(frame)
-    value_delta_entry.grid(row=5, column=1, padx=5, pady=5, sticky='ew')
+    value_delta_entry.grid(row=6, column=1, padx=5, pady=5, sticky='ew')
     value_delta_entry.insert(0, f"{height_draw_parameters.value_delta}")
     value_delta_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Random value:").grid(row=6, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Random value:").grid(row=7, column=0, padx=5, pady=vertical_offset, sticky='w')
     value_random_entry = tk.Entry(frame)
-    value_random_entry.grid(row=6, column=1, padx=5, pady=5, sticky='ew')
+    value_random_entry.grid(row=7, column=1, padx=5, pady=5, sticky='ew')
     value_random_entry.insert(0, f"{height_draw_parameters.value_random}")
     value_random_entry.bind("<FocusOut>", lambda event: validate_entries())
 
-    tk.Label(frame, text="Smoothing treshold:").grid(row=7, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Smoothing treshold:").grid(row=8, column=0, padx=5, pady=vertical_offset, sticky='w')
     value_smoothing_entry = tk.Entry(frame)
-    value_smoothing_entry.grid(row=7, column=1, padx=5, pady=vertical_offset, sticky='ew')
+    value_smoothing_entry.grid(row=8, column=1, padx=5, pady=vertical_offset, sticky='ew')
     value_smoothing_entry.insert(0, f"{height_draw_parameters.threshold_smoothing}")
     value_smoothing_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     total_smoothing_var = tk.BooleanVar(value=height_draw_parameters.total_smoothing)
     total_smoothing_button = tk.Checkbutton(frame, text="Use total average for smoothing",
                                             variable=total_smoothing_var)
-    total_smoothing_button.grid(row=8, column=0, columnspan=2, pady=vertical_offset, sticky="w")
+    total_smoothing_button.grid(row=9, column=0, columnspan=2, pady=vertical_offset, sticky="w")
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=9, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=10, column=0, padx=5, pady=vertical_offset, sticky='w')
     tickrate_height_entry = tk.Entry(frame)
-    tickrate_height_entry.grid(row=9, column=1, padx=5, pady=vertical_offset, sticky='ew')
+    tickrate_height_entry.grid(row=10, column=1, padx=5, pady=vertical_offset, sticky='ew')
     tickrate_height_entry.insert(0, f"{height_draw_parameters.tickrate}")
     tickrate_height_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     separator_landscapes = tk.Frame(frame)
-    separator_landscapes.grid(row=10, column=0, columnspan=2, pady=2*vertical_offset, sticky="ew")
+    separator_landscapes.grid(row=11, column=0, columnspan=2, pady=2*vertical_offset, sticky="ew")
     ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
     tk.Label(separator_landscapes, text="Landscapes").pack(side="left", padx=5)
     ttk.Separator(separator_landscapes, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
-    tk.Label(frame, text="Density:").grid(row=11, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Density:").grid(row=12, column=0, padx=5, pady=vertical_offset, sticky='w')
     density_entry = tk.Entry(frame)
-    density_entry.grid(row=11, column=1, padx=5, pady=vertical_offset, sticky='ew')
+    density_entry.grid(row=12, column=1, padx=5, pady=vertical_offset, sticky='ew')
     density_entry.insert(0, f"{landscapes_draw_parameters.density}")
     density_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     legacy_randomness_var = tk.BooleanVar(value=landscapes_draw_parameters.legacy_randomness)
     legacy_randomness_button = tk.Checkbutton(frame, text="Use legacy randomness",
                                             variable=legacy_randomness_var)
-    legacy_randomness_button.grid(row=12, column=0, columnspan=2, pady=vertical_offset, sticky="w")
+    legacy_randomness_button.grid(row=13, column=0, columnspan=2, pady=vertical_offset, sticky="w")
 
     base_area_var = tk.BooleanVar(value=landscapes_draw_parameters.consider_base_area)
     base_area_button = tk.Checkbutton(frame, text="Prevent base area overlap",
                                             variable=base_area_var)
-    base_area_button.grid(row=13, column=0, columnspan=2, pady=vertical_offset, sticky="w")
+    base_area_button.grid(row=14, column=0, columnspan=2, pady=vertical_offset, sticky="w")
 
     extended_area_var = tk.BooleanVar(value=landscapes_draw_parameters.consider_extended_area)
     extended_area_button = tk.Checkbutton(frame, text="Prevent extended area overlap",
                                             variable=extended_area_var)
-    extended_area_button.grid(row=14, column=0, columnspan=2, pady=vertical_offset, sticky="w")
+    extended_area_button.grid(row=15, column=0, columnspan=2, pady=vertical_offset, sticky="w")
 
-    tk.Label(frame, text="Tickrate [Hz]:").grid(row=15, column=0, padx=5, pady=vertical_offset, sticky='w')
+    tk.Label(frame, text="Tickrate [Hz]:").grid(row=16, column=0, padx=5, pady=vertical_offset, sticky='w')
     tickrate_landscapes_entry = tk.Entry(frame)
-    tickrate_landscapes_entry.grid(row=15, column=1, padx=5, pady=vertical_offset, sticky='ew')
+    tickrate_landscapes_entry.grid(row=16, column=1, padx=5, pady=vertical_offset, sticky='ew')
     tickrate_landscapes_entry.insert(0, f"{landscapes_draw_parameters.tickrate}")
     tickrate_landscapes_entry.bind("<FocusOut>", lambda event: validate_entries())
 
     separator_end = tk.Frame(frame)
-    separator_end.grid(row=16, column=0, columnspan=2, pady=2*vertical_offset, sticky="ew")
+    separator_end.grid(row=17, column=0, columnspan=2, pady=2*vertical_offset, sticky="ew")
     ttk.Separator(separator_end, orient="horizontal").pack(side="left", expand=True, fill="x", padx=5)
 
     ok_button = tk.Button(frame, text="Update", state=tk.NORMAL, command=on_update)
-    ok_button.grid(row=17, column=0, columnspan=2, pady=2*vertical_offset)
+    ok_button.grid(row=18, column=0, columnspan=2, pady=2*vertical_offset)
 
     root.mainloop()
 

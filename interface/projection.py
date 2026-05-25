@@ -16,7 +16,11 @@ def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: 
 
     if map_canvas_rect[0] + map_canvas_rect[2] < bounds_x[0] or bounds_x[1] < 0 or\
        map_canvas_rect[1] + map_canvas_rect[3] < bounds_y[0] or bounds_y[1] < 0:
-        return # Triangle canvas are outside of visible screen
+        return # Triangle canvas are outside visible screen.
+
+    if (corners[1][0] - corners[0][0]) * (corners[2][1] - corners[0][1]) - \
+       (corners[1][1] - corners[0][1]) * (corners[2][0] - corners[0][0]) <= 0:
+        return # Triangle is facing backwards.
 
     relative_corners = ((corners[0][0] - bounds_x[0], corners[0][1] - bounds_y[0]),
                         (corners[1][0] - bounds_x[0], corners[1][1] - bounds_y[0]),

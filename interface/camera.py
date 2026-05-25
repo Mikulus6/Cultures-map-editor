@@ -4,31 +4,39 @@ from map import Map
 from math import ceil, floor, sqrt
 from dataclasses import dataclass
 from interface.const import triangle_width, triangle_height, height_factor, camera_max_move_distance,\
-                            camera_discretization_factor, map_canvas_rect, middle_button_speed_factor
+                            camera_discretization_factor, map_canvas_rect, middle_button_speed_factor, \
+                            camera_perspective_shift_cooldown, triangle_width_shifted, triangle_height_shifted, \
+                            height_factor_shifted
 from time import time
 
 
 @dataclass
 class Camera:
-    position: [float, float]
-    fixed_position: [int, int] = (0, 0)
+    position: list[float]
+    position_before_shift_change: list[float]
+    fixed_position: list[int] = (0, 0)
     is_moving: bool = False
     speed: int = 1000
     visible_margin: int = 2
-    visible_height_margin: int = 20
-    last_frame_move = time()
+    perspective_shifted: bool = False
+    last_frame_move: float = time()
+    last_perspective_shift = time() - camera_perspective_shift_cooldown - 1e-16
+    time_now = time()
+    is_perspective_mid_change: bool = False
     suspend_motion = False
 
     def move(self, pressed_state, map_object: Map, move_by_middle, relative_mouse_movement):
 
         if self.suspend_motion:
             self.suspend_motion = False
-            self.fixed_position = self.fixed_postion_update()
+            self.fixed_position_update()
             return
 
         if move_by_middle:
             self.position[0] += relative_mouse_movement[0] * middle_button_speed_factor
             self.position[1] += relative_mouse_movement[1] * middle_button_speed_factor
+            self.position_before_shift_change[0] += relative_mouse_movement[0] * middle_button_speed_factor
+            self.position_before_shift_change[1] += relative_mouse_movement[1] * middle_button_speed_factor
 
         move = [0, 0]
 
@@ -42,8 +50,7 @@ class Camera:
         else:
             speed_effective = self.speed
 
-        current_time = time()
-        delta_time = (current_time - self.last_frame_move)
+        delta_time = (self.time_now - self.last_frame_move)
 
         old_position = [self.position[0],
                         self.position[1]]
@@ -58,23 +65,34 @@ class Camera:
 
         self.position[0] += move_vector[0]
         self.position[1] += move_vector[1]
+        self.position_before_shift_change[0] += move_vector[0]
+        self.position_before_shift_change[1] += move_vector[1]
 
         self.warp(map_object)
-        self.fixed_position = self.fixed_postion_update()
-        self.is_moving = (old_position != self.position)
-        self.last_frame_move = current_time
+        self.fixed_position_update()
+        self.is_moving = (old_position != self.position or self.is_perspective_mid_change)
+        self.last_frame_move = self.time_now
 
-    def fixed_postion_update(self):
+    def update_time(self, time_now: float = None):
+        if time_now is None: self.time_now = time()
+        else:                self.time_now = time_now
+
+    def fixed_position_update(self):
         if camera_discretization_factor == 0:
-            return tuple(self.position)
-        return round(self.position[0] / (triangle_width * camera_discretization_factor)) * \
-                                            camera_discretization_factor * triangle_width, \
-               round(self.position[1] / (triangle_width * camera_discretization_factor)) * \
-                                            camera_discretization_factor * triangle_width
+            self.fixed_position = [*self.position]
+        else:
+            current_triangle_width, current_triangle_height, _ = self.get_current_perspective_parameters()
+            self.fixed_position = [round(self.position[0] / (current_triangle_width * camera_discretization_factor)) *
+                                                             current_triangle_width * camera_discretization_factor,
+                                   round(self.position[1] / (current_triangle_height * camera_discretization_factor)) *
+                                                             current_triangle_height * camera_discretization_factor]
 
-    @staticmethod
-    def get_camera_bounds(map_object: Map):
-        return (0, map_object.map_width * triangle_width), (0, map_object.map_height * triangle_height)
+    def get_camera_bounds(self, map_object: Map):
+        current_triangle_width, current_triangle_height, current_height_factor = \
+            self.get_current_perspective_parameters()
+
+        return (0, map_object.map_width * current_triangle_width), \
+               (0, map_object.map_height * current_triangle_height)
 
     def set_to_center(self, map_object: Map):
         bounds = self.get_camera_bounds(map_object)
@@ -91,7 +109,7 @@ class Camera:
         elif self.position[1] > bounds_y[1]: self.position[1] = bounds_y[1]
 
     def draw_coordinates(self, coordinates, map_object: Map, include_canvas_offset: bool = False):
-        coordinates = point_coordinates(coordinates, map_object)
+        coordinates = point_coordinates(coordinates, map_object, self.perspective_factor)
         if include_canvas_offset:
             return floor(coordinates[0] - self.fixed_position[0] + map_canvas_rect[0] + (map_canvas_rect[2] // 2)), \
                    floor(coordinates[1] - self.fixed_position[1] + map_canvas_rect[1] + (map_canvas_rect[3] // 2))
@@ -99,11 +117,17 @@ class Camera:
             return floor(coordinates[0] - self.fixed_position[0] + (map_canvas_rect[2] // 2)), \
                    floor(coordinates[1] - self.fixed_position[1] + (map_canvas_rect[3] // 2))
 
+    @property
+    def visible_height_margin(self):
+        _, current_triangle_height, current_height_factor = self.get_current_perspective_parameters()
+        return ceil((256 * current_height_factor) / current_triangle_height)
+
     def visible_range(self, map_object: Map, *, count_minor_vertices=True):
-        x_range = floor((self.fixed_position[0] - (map_canvas_rect[2] / 2)) / triangle_width)  - self.visible_margin, \
-                   ceil((self.fixed_position[0] + (map_canvas_rect[2] / 2)) / triangle_width)  + self.visible_margin
-        y_range = floor((self.fixed_position[1] - (map_canvas_rect[3] / 2)) / triangle_height) - self.visible_margin, \
-                   ceil((self.fixed_position[1] + (map_canvas_rect[3] / 2)) / triangle_height) + \
+        current_triangle_width, current_triangle_height, _ = self.get_current_perspective_parameters()
+        x_range = floor((self.fixed_position[0] - (map_canvas_rect[2] / 2)) / current_triangle_width)  - self.visible_margin, \
+                   ceil((self.fixed_position[0] + (map_canvas_rect[2] / 2)) / current_triangle_width)  + self.visible_margin
+        y_range = floor((self.fixed_position[1] - (map_canvas_rect[3] / 2)) / current_triangle_height) - self.visible_margin, \
+                   ceil((self.fixed_position[1] + (map_canvas_rect[3] / 2)) / current_triangle_height) + \
                                                                                               self.visible_height_margin
         if count_minor_vertices:
             x_range = max((0, x_range[0])), min((x_range[1], map_object.map_width))
@@ -116,23 +140,85 @@ class Camera:
             for x in range(*x_range):
                 yield x, y
 
+    def get_current_perspective_parameters(self, perspective_factor: float = None):
+        if perspective_factor is None: return get_current_perspective_parameters_static(self.perspective_factor)
+        else:                          return get_current_perspective_parameters_static(perspective_factor)
+
     @property
     def position_on_map(self):
-        return self.position[0] // triangle_width, self.position[1] // triangle_height
+        current_triangle_width, current_triangle_height, _ = self.get_current_perspective_parameters()
+        return self.position[0] // current_triangle_width, self.position[1] // current_triangle_height
 
     @staticmethod
     def position_in_canvas_rect(position):
         return map_canvas_rect[0] <= position[0] < map_canvas_rect[0] + map_canvas_rect[2] and \
                map_canvas_rect[1] <= position[1] < map_canvas_rect[1] + map_canvas_rect[3]
 
+    def handle_shift_perspective(self, editor, *, forbid_new_shift: bool = False):
+        if (not self.is_perspective_mid_change) and (not forbid_new_shift):
+            if self.position_in_canvas_rect(editor.mouse_pos):
+                if   editor.scroll_delta > 0 and not self.perspective_shifted: self.is_perspective_mid_change = True
+                elif editor.scroll_delta < 0 and     self.perspective_shifted: self.is_perspective_mid_change = True
+
+            if self.is_perspective_mid_change:
+                self.perspective_shifted = not self.perspective_shifted
+                self.last_perspective_shift = self.time_now
+                self.position_before_shift_change = [*self.position]
+
+        elif self.is_perspective_mid_change:
+            self.recenter_camera_mid_perspective_shift()
+
+    @property
+    def perspective_factor(self):
+        time_fraction = min(max(((self.time_now - self.last_perspective_shift) /
+                                  camera_perspective_shift_cooldown, 0.0)), 1.0)
+        if self.perspective_shifted: return - time_fraction + 1.0
+        else:                        return time_fraction
+
+    def recenter_camera_mid_perspective_shift(self):
+        if self.time_now == self.last_perspective_shift:
+            return # recenter is not necessary
+
+        new_triangle_width, new_triangle_height, new_height_factor = \
+            self.get_current_perspective_parameters(perspective_factor=float(not self.perspective_shifted))
+        old_triangle_width, old_triangle_height, old_current_height_factor = \
+            self.get_current_perspective_parameters(perspective_factor=float(self.perspective_shifted))
+
+        time_fraction = min(max(((self.time_now - self.last_perspective_shift) /
+                                  camera_perspective_shift_cooldown, 0.0)), 1.0)
+
+        if time_fraction == 1.0:
+            self.is_perspective_mid_change = False
+
+        new_position = [self.position_before_shift_change[0] * (new_triangle_width / old_triangle_width),
+                        self.position_before_shift_change[1] * (new_triangle_height / old_triangle_height)]
+
+        self.position[0] = new_position[0] * time_fraction + self.position_before_shift_change[0] * (1 - time_fraction)
+        self.position[1] = new_position[1] * time_fraction + self.position_before_shift_change[1] * (1 - time_fraction)
+        self.fixed_position_update()
+
+def get_current_perspective_parameters_static(perspective_factor: float):
+        assert 0.0 <= perspective_factor <= 1.0
+        current_triangle_width  = triangle_width * (1 - perspective_factor) +\
+                                  triangle_width_shifted * perspective_factor
+        current_triangle_height = triangle_height * (1 - perspective_factor) +\
+                                  triangle_height_shifted * perspective_factor
+        current_height_factor   = height_factor * (1 - perspective_factor) +\
+                                  height_factor_shifted * perspective_factor
+
+        return current_triangle_width, current_triangle_height, current_height_factor
+
 
 @lru_cache(maxsize=None)
-def point_coordinates(coordinates, map_object: Map):
+def point_coordinates(coordinates, map_object: Map, perspective_factor: float):
+
     x, y = coordinates
+    current_triangle_width, current_triangle_height, current_height_factor = \
+        get_current_perspective_parameters_static(perspective_factor)
 
     if (x % 2 == 0 and y % 4 == 0) or (x % 2 == 1 and y % 4 == 2):
-        x = coordinates[0] * triangle_width + (coordinates[1] % 2) * floor(0.5 * triangle_width)
-        y = floor(coordinates[1] * triangle_height - height_factor * \
+        x = coordinates[0] * current_triangle_width + (coordinates[1] % 2) * floor(0.5 * current_triangle_width)
+        y = floor(coordinates[1] * current_triangle_height - current_height_factor * \
             map_object.mhei[(coordinates[1] % map_object.map_height) * map_object.map_width // 4 +
                             (coordinates[0] % map_object.map_width) // 2])
         return x, y
@@ -147,8 +233,8 @@ def point_coordinates(coordinates, map_object: Map):
     else:
         raise IndexError  # this case should be unobtainable
 
-    x1, y1 = point_coordinates(vertices[0], map_object)
-    x2, y2 = point_coordinates(vertices[1], map_object)
+    x1, y1 = point_coordinates(vertices[0], map_object, perspective_factor)
+    x2, y2 = point_coordinates(vertices[1], map_object, perspective_factor)
 
     return (x1 + x2) // 2, (y1 + y2) // 2
 

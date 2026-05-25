@@ -59,7 +59,6 @@ class CatalogueEntry:
             case "both":  highlight_text = "L+R"
             case _:       highlight_text = None
 
-
         if highlight_type is not None:
             image.blit(editor.font.render(highlight_text, font_antialias, font_color), highlight_text_offset)
 

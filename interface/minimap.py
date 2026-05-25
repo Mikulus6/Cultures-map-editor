@@ -2,8 +2,7 @@ import pygame
 import numpy as np
 from map import Map
 from math import ceil, pi, sin
-from interface.const import map_canvas_rect, triangle_width, triangle_height, background_color, minimap_frequency, \
-                            minimap_frame_margin, frame_color
+from interface.const import map_canvas_rect, background_color, minimap_frequency, minimap_frame_margin, frame_color
 from interface.camera import Camera
 from interface.triangles import get_major_triangle_texture, get_major_triangle_light_values
 import time
@@ -38,8 +37,9 @@ class Minimap:
         x = camera.position_on_map[0] * self.rect[2] / map_object.map_width  + self.rect[0]
         y = camera.position_on_map[1] * self.rect[3] / map_object.map_height + self.rect[1]
 
-        size_x = self.rect[2] * (map_canvas_rect[2] // triangle_width) // self.map_size[0]
-        size_y = self.rect[3] * (map_canvas_rect[3] // triangle_height) // self.map_size[1]
+        current_triangle_width, current_triangle_height, _ = camera.get_current_perspective_parameters()
+        size_x = self.rect[2] * (map_canvas_rect[2] // current_triangle_width) // self.map_size[0]
+        size_y = self.rect[3] * (map_canvas_rect[3] // current_triangle_height) // self.map_size[1]
 
         rect = [ceil(x - size_x // 2),
                 ceil(y - size_y // 2),
@@ -83,7 +83,6 @@ class Minimap:
 
                 light_value = get_major_triangle_light_values((x, y), "a", map_object)[0]
 
-
                 average_color = (round(min(max(texture.average_color[0] * (light_value + 1), 0), 255)),
                                  round(min(max(texture.average_color[1] * (light_value + 1), 0), 255)),
                                  round(min(max(texture.average_color[2] * (light_value + 1), 0), 255)))
@@ -106,7 +105,6 @@ class Minimap:
             self.mouse_pressed_inside = False
             return
 
-
         if left_press and not left_press_old:
             self.mouse_pressed_inside = True
 
@@ -116,5 +114,6 @@ class Minimap:
 
             camera.position = [(bounds_x[1] - bounds_x[0]) * (mouse_pos[0] - self.rect[0]) / self.rect[2] + bounds_x[0],
                                (bounds_y[1] - bounds_y[0]) * (mouse_pos[1] - self.rect[1]) / self.rect[3] + bounds_y[0]]
+            camera.position_before_shift_change = [*camera.position]
             camera.is_moving = True
             camera.suspend_motion = True
