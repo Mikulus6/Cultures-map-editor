@@ -157,8 +157,8 @@ class Camera:
     def handle_shift_perspective(self, editor, *, forbid_new_shift: bool = False):
         if (not self.is_perspective_mid_change) and (not forbid_new_shift):
             if self.position_in_canvas_rect(editor.mouse_pos):
-                if   editor.scroll_delta > 0 and not self.perspective_shifted: self.is_perspective_mid_change = True
-                elif editor.scroll_delta < 0 and     self.perspective_shifted: self.is_perspective_mid_change = True
+                if   editor.scroll_delta < 0 and not self.perspective_shifted: self.is_perspective_mid_change = True
+                elif editor.scroll_delta > 0 and     self.perspective_shifted: self.is_perspective_mid_change = True
 
             if self.is_perspective_mid_change:
                 self.perspective_shifted = not self.perspective_shifted
@@ -172,17 +172,17 @@ class Camera:
     def perspective_factor(self):
         time_fraction = min(max(((self.time_now - self.last_perspective_shift) /
                                   camera_perspective_shift_cooldown, 0.0)), 1.0)
-        if self.perspective_shifted: return - time_fraction + 1.0
-        else:                        return time_fraction
+        if self.perspective_shifted: return time_fraction
+        else:                        return 1.0 - time_fraction
 
     def recenter_camera_mid_perspective_shift(self):
         if self.time_now == self.last_perspective_shift:
             return # recenter is not necessary
 
         new_triangle_width, new_triangle_height, new_height_factor = \
-            self.get_current_perspective_parameters(perspective_factor=float(not self.perspective_shifted))
-        old_triangle_width, old_triangle_height, old_current_height_factor = \
             self.get_current_perspective_parameters(perspective_factor=float(self.perspective_shifted))
+        old_triangle_width, old_triangle_height, old_current_height_factor = \
+            self.get_current_perspective_parameters(perspective_factor=float(not self.perspective_shifted))
 
         time_fraction = min(max(((self.time_now - self.last_perspective_shift) /
                                   camera_perspective_shift_cooldown, 0.0)), 1.0)
