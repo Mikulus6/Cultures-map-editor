@@ -172,7 +172,7 @@ class Editor:
                     scroll_detected = True
                     self.scroll_delta = event.y
 
-            mouse_state = pygame.mouse.get_pressed(3)
+            mouse_state = pygame.mouse.get_pressed(num_buttons=3, desktop=True)
             if not button_left_detected:   self.mouse_press_left   = mouse_state[0]
             if not button_middle_detected: self.mouse_press_middle = mouse_state[1]
             if not button_right_detected:  self.mouse_press_right  = mouse_state[2]
