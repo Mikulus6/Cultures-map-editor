@@ -54,6 +54,9 @@ def find_closest_color(color: tuple[int, int, int], *,
     color = tuple(color)
     excluded_colors = tuple(map(tuple, excluded_colors))
 
+    if color not in excluded_colors:
+        return color_type(color)
+
     norm = lambda v1: (v1[0] - color[0])**2 + \
                       (v1[1] - color[1])**2 + \
                       (v1[2] - color[2])**2
@@ -77,7 +80,10 @@ def find_closest_color(color: tuple[int, int, int], *,
                     continue
                 to_search_new[new_color] = norm(new_color)
 
-        norm_radius_bound = min(to_search_new.values())
+        try:
+            norm_radius_bound = min(to_search_new.values())
+        except ValueError:
+            raise RuntimeError  # Feasible color does not exist.
 
         for current_color, distance in to_search.items():
             if distance >= norm_radius_bound or current_color == color or current_color in excluded_colors:

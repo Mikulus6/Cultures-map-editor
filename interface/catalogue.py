@@ -214,7 +214,7 @@ def load_patterns_catalogue():
                                 ((entry_size[0] // 2, icon_margin),
                                  (entry_size[0] - icon_margin, entry_size[1] - icon_margin),
                                  (icon_margin, entry_size[1] - icon_margin)),
-                                (0.5, 0.5, 0.5), suspend_timeout=True)
+                                (0.5, 0.5, 0.5), suspend_timeout=True, black_background=True)
         entries.append(entry)
 
     return Catalogue(entries)
@@ -237,7 +237,7 @@ def load_patterns_groups_catalogue():
                                 ((entry_size[0] // 2, icon_margin),
                                  (entry_size[0] - icon_margin, entry_size[1] - icon_margin),
                                  (icon_margin, entry_size[1] - icon_margin)),
-                                (0.5, 0.5, 0.5), suspend_timeout=True)
+                                (0.5, 0.5, 0.5), suspend_timeout=True, black_background=True)
         entries.append(entry)
 
     return Catalogue(entries)
@@ -310,7 +310,7 @@ def load_structures_catalogue():
                                 ((entry_size[0] // 2, icon_margin),
                                  (entry_size[0] - icon_margin, entry_size[1] - icon_margin),
                                  (icon_margin, entry_size[1] - icon_margin)),
-                                (0.5, 0.5, 0.5), suspend_timeout=True)
+                                (0.5, 0.5, 0.5), suspend_timeout=True, black_background=False)
         entries.append(entry)
 
     return Catalogue(entries)

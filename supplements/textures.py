@@ -3,7 +3,7 @@ import os
 from math import sqrt
 import numpy as np
 from PIL import Image, ImageDraw
-from scripts.colormap import ColorMap
+from scripts.colormap import ColorMap, find_closest_color
 from supplements.patterns import patterndefs_normal
 from supplements.read import read
 from typing import Literal
@@ -61,9 +61,13 @@ def add_margin_to_trianges_corners(corners: tuple | list, *, margin: int = 0) ->
     return new_corners
 
 
+all_used_colors_in_textures = set()
+
+
 class Texture:
 
     def __init__(self, pixel_coords, set_id, source_type: Literal["free", "sys"] = "free"):
+        global all_used_colors
 
         assert set_id < 1000  # SetId can be composed of only three digits in decimal system.
 
@@ -82,9 +86,11 @@ class Texture:
 
         transparent_color = tuple(image_texture.getpalette()[:3])
 
-        image_texture = image_texture.convert('RGBA')
+        image_texture = image_texture.convert('RGB')
         mask = Image.new("L", image_texture.size, 0)
         ImageDraw.Draw(mask).polygon(add_margin_to_trianges_corners(self.pixel_coords, margin=2), fill=255)
+
+        all_used_colors_in_textures.update(set(image_texture.get_flattened_data()))
 
         self.image = Image.new("RGBA", image_texture.size, (0, 0, 0, 0))
         self.image.paste(image_texture, mask=mask)
@@ -211,3 +217,6 @@ mep_colormap = patterndefs_textures.load_colormap()
 
 transition_textures = Textures(transitions=True)
 transition_textures.load(source_dict=patterndefs_normal.transition_defs)
+
+safe_alpha_color = find_closest_color((255, 0, 255), excluded_colors=all_used_colors_in_textures)
+del all_used_colors_in_textures

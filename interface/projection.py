@@ -1,16 +1,17 @@
 import pygame
 import numpy as np
 from functools import lru_cache
-from interface.const import background_color, lru_cache_triangles_maxsize, resolution, map_canvas_rect
+from interface.const import lru_cache_triangles_maxsize, resolution, map_canvas_rect
 from interface.timeout import timeout_handler
-from supplements.textures import Texture, rect_bound
+from supplements.textures import Texture, rect_bound, safe_alpha_color
 
 
 epsylon = 1e-16
 
 
 def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: tuple, light_corners: tuple, *,
-                            suspend_loading_textures: bool = False, suspend_timeout: bool = False):
+                            suspend_loading_textures: bool = False, suspend_timeout: bool = False,
+                            black_background: bool = False):
     timeout_handler.timeout_suspension = suspend_timeout
     bounds_x, bounds_y = rect_bound(corners)
 
@@ -26,34 +27,39 @@ def draw_projected_triangle(surface: pygame.Surface, texture: Texture, corners: 
                         (corners[1][0] - bounds_x[0], corners[1][1] - bounds_y[0]),
                         (corners[2][0] - bounds_x[0], corners[2][1] - bounds_y[0]))
 
-    if texture.average_color is None:
-        return # If average color of texture is not defined, it means that the whole texture is transparent,
-               # and it is unnecessary to project it.
-
     projection_report.triangles_total += 1
     try:
         if suspend_loading_textures:
             raise TimeoutError
 
-        surface.blit(project_triangle(texture, relative_corners, light_corners), (bounds_x[0], bounds_y[0]))
+        surface.blit(project_triangle(texture, relative_corners, light_corners, black_background),
+                     (bounds_x[0], bounds_y[0]))
         projection_report.triangles_textured += 1
 
     except TimeoutError:
 
         average_light = sum(light_corners) / 3
 
-        average_color = (round(min(max(texture.average_color[0] * (average_light + 1), 0), 255)),
-                         round(min(max(texture.average_color[1] * (average_light + 1), 0), 255)),
-                         round(min(max(texture.average_color[2] * (average_light + 1), 0), 255)))
+        if texture.average_color is None:
+            if black_background: average_color = (0, 0, 0)
+            else:                return  # In this case it is unnecessary to project the triangle.
+
+        else:
+            average_color = (round(min(max(texture.average_color[0] * (average_light + 1), 0), 255)),
+                             round(min(max(texture.average_color[1] * (average_light + 1), 0), 255)),
+                             round(min(max(texture.average_color[2] * (average_light + 1), 0), 255)))
 
         pygame.draw.polygon(surface, average_color, corners)
 
 @lru_cache(maxsize=lru_cache_triangles_maxsize)
-def project_triangle(texture: Texture, relative_corners: tuple, light_corners: tuple = (0, 0, 0)):
+def project_triangle(texture: Texture, relative_corners: tuple, light_corners: tuple = (0, 0, 0),
+                     black_background: bool = False):
 
     # Function was inspired by this repository: https://github.com/FinFetChannel/SimplePython3DEngine
 
     timeout_handler.check()
+
+    alpha_color = safe_alpha_color if black_background else (0, 0, 0)
 
     texture_uv = np.array([
         [texture.pixel_coords[0][0] / texture.size[0], texture.pixel_coords[0][1] / texture.size[1]],
@@ -63,7 +69,7 @@ def project_triangle(texture: Texture, relative_corners: tuple, light_corners: t
     bounds_x, bounds_y = rect_bound(relative_corners)
     assert bounds_x[0] == bounds_y[0] == 0
 
-    frame = np.full((bounds_x[1] * 2, bounds_y[1] * 2, 3), background_color, dtype='uint8')
+    frame = np.full((bounds_x[1] * 2, bounds_y[1] * 2, 3), alpha_color, dtype='uint8')
 
     sorted_y = np.argsort([relative_corners[0][1], relative_corners[1][1], relative_corners[2][1]])
 
@@ -120,7 +126,7 @@ def project_triangle(texture: Texture, relative_corners: tuple, light_corners: t
         frame[x_range, y, :] = np.clip(texture.image[u_valid, v_valid] * brightness_range[:, None], 0, 255)
 
     surf = pygame.surfarray.make_surface(frame)
-    surf.set_colorkey(background_color)
+    surf.set_colorkey(alpha_color)
     return surf
 
 def clear_triangle_projection_cache():

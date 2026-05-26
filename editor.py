@@ -685,7 +685,8 @@ class Editor:
                     light_values = get_major_triangle_light_values(coordinates_major, triangle_type, self.map)
                     draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
                                             suspend_loading_textures=self.terrian_textures_suspension or
-                                                                     self.camera.is_perspective_mid_change)
+                                                                     self.camera.is_perspective_mid_change,
+                                            black_background=True)
                     triangles_on_screen += 1
 
                     for transition_texture, transition_key in transitions_gen(coordinates_major,
@@ -695,7 +696,8 @@ class Editor:
                         draw_projected_triangle(self.terrain_surface, transition_texture, transition_draw_corners,
                                                 transition_light_values,
                                                 suspend_loading_textures=self.terrian_textures_suspension or
-                                                                         self.camera.is_perspective_mid_change)
+                                                                         self.camera.is_perspective_mid_change,
+                                                black_background=False)
                         triangles_on_screen += 1
 
             for triangle_type, texture in get_structure(coordinates, self.map).items():
@@ -706,7 +708,8 @@ class Editor:
                 light_values = get_minor_triangle_light_values(coordinates, triangle_type, self.map)
                 draw_projected_triangle(self.terrain_surface, texture, draw_corners, light_values,
                                         suspend_loading_textures = self.terrian_textures_suspension or
-                                                                   self.camera.is_perspective_mid_change)
+                                                                   self.camera.is_perspective_mid_change,
+                                        black_background=False)
                 triangles_on_screen += 1
 
         try:
