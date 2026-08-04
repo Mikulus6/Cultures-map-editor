@@ -31,7 +31,7 @@ def convolve_hexagonal_2d(input_array, kernel_array, kernel_center=(0, 0), dtype
                     x_real_shifted = x_real + x_shift
                     y_real_shifted = y_real + y_shift
 
-                    if y % 2 == 0 or y_shift == 0:
+                    if y % 2 == 0 or y_shift % 2 == 0:
                         kernel_item = kernel_array[y_shift, x_shift]
                     elif x_shift != 0:
                         kernel_item = kernel_array[y_shift, x_shift - 1]
