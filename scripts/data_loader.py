@@ -3,20 +3,26 @@ from supplements.read import read
 
 def line_split(line_: str):
     list_ = [""]
+    list_quotes = [True]
+
     quoted = False
     for char in line_:
         if char != " " or quoted:
             list_[-1] += char
         else:
             list_.append("")
+            list_quotes.append(False)
         if char == "\"":
             quoted = not quoted
+            list_quotes[-1] = True
 
     for index in range(len(list_)):
         if index == len(list_) - 1:
             list_[index] = list_[index].rstrip("\n")
-        if str.isdigit(list_[index].replace("-", "")):
-            list_[index] = int(list_[index])
+        if not list_quotes[index]:
+            match ("." in list_[index]):
+                case True:  list_[index] = float(list_[index])
+                case False: list_[index] =   int(list_[index])
         else:
             list_[index] = list_[index].strip("\"")
 
